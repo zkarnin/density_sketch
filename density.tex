@@ -100,8 +100,14 @@ $$ \sum_i s_i K(x_i, y) \leq \sqrt{ \sum_i \|\phi(x_i)\|^2 } = \sqrt{k} $$
 For the coreset, this means that we can choose the $\tilde{x}$'s as either the $x$ vectors with positive $s_i$'s or negative $s_i$'s.
 
 
-
-
+\subsection{Another approach}
+Considering the view with $\phi$ let us restate the objective. For a point $y$ we wish to estimate
+$$ \D(y) = \sum_i K(x_i,y) = \ip{\sum_i  \phi(x_i), \phi(y)} $$
+simultaneously for all $y$. We can try to do this with any re-weighting of the $x_i$'s
+$$ \sum_i K(x_i,y) \approx \sum_i w_i K(x_i,y) =  \ip{\sum_i w_i \phi(x_i), \phi(y)} $$
+while aiming for the $w$ vector to be sparse. Letting $z_i=\phi(x_i)$, $Z$ be the matrix whose columns are $z_i$ and $v=\sum_i z_i$ we have a sparse regression problem with a single data point
+$$ \min_w \| Zw -  v\|^2 \ \ \text{s.t.} \|w\|_0 \leq k/2$$
+We proved that there exist a solution achieving $\sqrt{k}$. Could we prove that better solutions exist? In one extreme, all $z_i$ are orthogonal (corresponding to vectors that are very far away). Here you cannot achieve more than 
 
 
 
