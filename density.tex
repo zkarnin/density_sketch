@@ -107,9 +107,23 @@ For the coreset, this means that we can choose the $\tilde{x}$'s as either the $
 
 
 
+\section{General note about sketching and flat signed function}
+In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
+The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
+If $z \subset x$ this is a subset selection problem. 
+For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
+However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
 
-
-
+Here are some examples:
+\begin{itemize}
+\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else.
+\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else.
+\item in matrix column subset selection we have $f(x, q) = \langle x,q \rangle ^2$.
+\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see above)
+\item in machine learning $f(x, q) = \operatorname{loss}(x,q)$ where $q$ is the parameters of the model and $x$ is a training example and its label.
+\end{itemize}
+For all of the above, we can find flat error functions $E(q) = \sum_{i=1}^{k} s_i f(x_i,q)$ such that $\sup_q E(q)$ is small. 
+We argue that this gives a general mechanism for sketching in a diverse set of scenarios. 
 \end{document}
 
 
