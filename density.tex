@@ -47,6 +47,11 @@ Edo Liberty\\Amazon\\libertye@amazon.com
 \begin{abstract}
 abs\end{abstract}
 
+\section{Introduction}
+
+Oh no... \cite{DBLP:conf/soda/PhillipsT18}
+
+
 \section{Problem Definition}
 Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $\rho: \R^d \rightarrow \R$ of a point $y$ is defined as 
 $$ \rho(y) = \sum_{i=1}^{n} K(x_i,y) $$
@@ -139,6 +144,12 @@ If $x_i$ are all equal than a random assignment would get  $\E[\|\sum_i s_i x_i 
 But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum_i s_i x_i x_i^T\| = O(1)$. Is that always possible?
 \zk{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
 If this is correct, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
+
+Selecting $o(1/\eps^2)$ is claimed to be impossible due to \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06} and \cite{DBLP:conf/soda/GhashamiP14}.
+
+
+\bibliographystyle{plain}
+\bibliography{density}
 
 \end{document}
 
