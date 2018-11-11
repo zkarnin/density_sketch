@@ -82,7 +82,7 @@ $$\E[\| \sum_i s_i z_i \|^2] = \E[\sum_{i,j} s_i s_j \ip{z_i, z_j}] = \sum_i \|z
 leading to a randomized approach. By Markov with probability at least $3/4$ we have $\| \sum_i s_i z_i \| \le 2\sum_i \|z_i\|$.
 
 We can also use the method of expectation minimization to achieve this bound deterministically.
-Specifically, we will guaranty that $\| \sum_{j=1}^i s_j z_j \| \le \sum_{j=1}^i \|z_j\|^2$ for all $i$.
+Specifically, we will guaranty that $\| \sum_{j=1}^i s_j z_j \|^2 \le \sum_{j=1}^i \|z_j\|^2$ for all $i$.
 This is trivially true for $i=1$. 
 For another value $i$ set $s_i = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j \langle z_j, z_i \rangle)$ 
 and  assume by induction that $\| \sum_{j=1}^{i-1} s_j z_j\|^2 \le \sum_{j=1}^{i-1} \|z_j\|^2$.
@@ -118,19 +118,29 @@ Here are some examples:
 \begin{itemize}
 \item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else.
 \item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else.
-\item in matrix column subset selection we have $f(x, q) = \langle x,q \rangle ^2$.
+\item in matrix row subset selection we have $f(x, q) = \langle x,q \rangle ^2$.
 \item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see above)
 \item in machine learning $f(x, q) = \operatorname{loss}(x,q)$ where $q$ is the parameters of the model and $x$ is a training example and its label.
 \end{itemize}
 For all of the above, we can find flat error functions $E(q) = \sum_{i=1}^{k} s_i f(x_i,q)$ such that $\sup_q E(q)$ is small. 
 We argue that this gives a general mechanism for sketching in a diverse set of scenarios. 
-\end{document}
-
-
 
 
 Let us choose the value  and assume by induction that
+\section{Row subset selection}
+Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
+for simplicity, assume $x_i$ are all unit length. Moreover, assume each vector $Z$ must be one of the rows in $X$ up to some constant factor.
+This is called the row subset selection problem. 
+Since you are trying to minimize the quadratic form, you get that $f(x, q) = \langle x,q \rangle ^2$ and 
+$$E(y) = \sum_i s_i \langle x_i,q \rangle ^2 = q^T (\sum_i s_i x_i x_i^T ) q \le \|\sum_i s_i x_i x_i^T\|$$
+It is clear that we can get $\|\sum_i s_i x_i x_i^T\| \le \sqrt{k \log(d)}$. Could it would see that maybe $O(1)$ is also possible?
+When summing rank one projections matrices $x_i x_i^T$ you can think of two extreme cases. 
+If $x_i$ are orthogonal to each other than $\|\sum_i s_i x_i x_i^T\| = 1$ independently of $s_i$.
+If $x_i$ are all equal than a random assignment would get  $\E[\|\sum_i s_i x_i x_i^T\|] = E[|\sum_i s_i|] = \Omega(\sqrt{k})$.
+But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum_i s_i x_i x_i^T\| = O(1)$. Is that always possible?
+If so, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
 
+\end{document}
 
 
 %Specifically, we set $s_i$ sequentially for $i$ while minimizing the expectation. 
