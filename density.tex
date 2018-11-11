@@ -133,12 +133,12 @@ for simplicity, assume $x_i$ are all unit length. Moreover, assume each vector $
 This is called the row subset selection problem. 
 Since you are trying to minimize the quadratic form, you get that $f(x, q) = \langle x,q \rangle ^2$ and 
 $$E(y) = \sum_i s_i \langle x_i,q \rangle ^2 = q^T (\sum_i s_i x_i x_i^T ) q \le \|\sum_i s_i x_i x_i^T\|$$
-It is clear that we can get $\|\sum_i s_i x_i x_i^T\| \le \sqrt{k \log(d)}$. Could it would see that maybe $O(1)$ is also possible?
 When summing rank one projections matrices $x_i x_i^T$ you can think of two extreme cases. 
 If $x_i$ are orthogonal to each other than $\|\sum_i s_i x_i x_i^T\| = 1$ independently of $s_i$.
 If $x_i$ are all equal than a random assignment would get  $\E[\|\sum_i s_i x_i x_i^T\|] = E[|\sum_i s_i|] = \Omega(\sqrt{k})$.
 But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum_i s_i x_i x_i^T\| = O(1)$. Is that always possible?
-If so, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
+\zk{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
+If this is correct, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
 
 \end{document}
 
