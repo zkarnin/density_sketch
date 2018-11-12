@@ -45,18 +45,40 @@ Edo Liberty\\Amazon\\libertye@amazon.com
 \maketitle
 
 \begin{abstract}
-abs\end{abstract}
+abc
+\end{abstract}
 
-\section{Introduction}
+\section{introduction}
+def
 
-Oh no... \cite{DBLP:conf/soda/PhillipsT18}
+\section{General framework for sketching}
+In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
+The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
+If $z \subset x$ this is a subset selection problem. 
+For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
+However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
+
+Here are some examples:
+\begin{itemize}
+\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else.
+\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else.
+\item in matrix row subset selection we have $f(x, q) = \langle x,q \rangle ^2$.
+\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see above)
+\item in machine learning $f(x, q) = \operatorname{loss}(x,q)$ where $q$ is the parameters of the model and $x$ is a training example and its label.
+\end{itemize}
+For all of the above, we can find flat error functions $E(q) = \sum_{i=1}^{k} s_i f(x_i,q)$ such that $\sup_q E(q)$ is small. 
+We argue that this gives a general mechanism for sketching in a diverse set of scenarios. 
 
 
-\section{Problem Definition}
+
+\section{Density estimation}
+
+Already done by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751} in the non streaming setting.
+
 Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $\rho: \R^d \rightarrow \R$ of a point $y$ is defined as 
 $$ \rho(y) = \sum_{i=1}^{n} K(x_i,y) $$
 Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
-$$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = \frac{1}{1+\|x-y\|_2^2/\sigma^2)}$$
+$$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-y\|_2^2/\sigma^2)^{-1}$$
 where $\sigma$ is a scaling parameter. What we discuss in what follows applies for any kernel, an depends on a bound on $K(x,x)$. For simplicity we assume that $K(x,x) \leq 1$ for all datapoints. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
 Our objective is obtaining a core-set $z_1,\ldots, z_\ell \in \R^d$, $\ell \ll n$ along with weights $w_1,\ldots, w_\ell$ such that for any point $y \in \R^d$
@@ -112,26 +134,9 @@ For the coreset, this means that we can choose the $\tilde{x}$'s as either the $
 
 
 
-\section{General note about sketching and flat signed function}
-In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
-The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
-If $z \subset x$ this is a subset selection problem. 
-For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
-However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
-
-Here are some examples:
-\begin{itemize}
-\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else.
-\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else.
-\item in matrix row subset selection we have $f(x, q) = \langle x,q \rangle ^2$.
-\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see above)
-\item in machine learning $f(x, q) = \operatorname{loss}(x,q)$ where $q$ is the parameters of the model and $x$ is a training example and its label.
-\end{itemize}
-For all of the above, we can find flat error functions $E(q) = \sum_{i=1}^{k} s_i f(x_i,q)$ such that $\sup_q E(q)$ is small. 
-We argue that this gives a general mechanism for sketching in a diverse set of scenarios. 
 
 
-Let us choose the value  and assume by induction that
+
 \section{Row subset selection}
 Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
 for simplicity, assume $x_i$ are all unit length. Moreover, assume each vector $Z$ must be one of the rows in $X$ up to some constant factor.
@@ -145,7 +150,7 @@ But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum
 \zk{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
 If this is correct, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
 
-Selecting $o(1/\eps^2)$ is claimed to be impossible due to \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06} and \cite{DBLP:conf/soda/GhashamiP14}.
+Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings.
 
 
 \bibliographystyle{plain}
