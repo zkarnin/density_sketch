@@ -17,11 +17,12 @@
 %\newtheorem{fact}[theorem]{Fact}
 
 \newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
+\newcommand{\el}[1]{\textcolor{blue}{ZK: #1}}
 
 \newcommand{\ip}[1]{\left \langle #1 \right \rangle}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
-\newcommand{\D}{\text{Density}}
+\newcommand{\D}{\rho}
 \newcommand{\eps}{\epsilon}
 %\usepackage{ntheorem}
 %\usepackage{amsthm}
@@ -47,16 +48,22 @@ Edo Liberty\\Amazon\\libertye@amazon.com
 \begin{abstract}
 abs\end{abstract}
 
+\section{Introduction}
+
+Oh no... \cite{DBLP:conf/soda/PhillipsT18}
+
+
 \section{Problem Definition}
-Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density of a point $y$ is defined as 
-$$ \D(y) = \sum_{x \in X} K(y,x) $$
-Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent example is 
-$$ K(x,y) = \exp(-\lambda \|x-y\|_2^2) $$
-where $\lambda$ is a scaling parameter. What we discuss in what follows applies for any kernel, an depends on a bound on $K(x,x)$. For simplicity we assume that $K(x,x) \leq 1$ for all datapoints. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
+Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $\rho: \R^d \rightarrow \R$ of a point $y$ is defined as 
+$$ \rho(y) = \sum_{i=1}^{n} K(x_i,y) $$
+Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
+$$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = \frac{1}{1+\|x-y\|_2^2/\sigma^2)}$$
+$$ K(x,y) = \max(0, 1- \|x-y\|/\sigma) $$
+where $\sigma$ is a scaling parameter. What we discuss in what follows applies for any kernel, an depends on a bound on $K(x,x)$. For simplicity we assume that $K(x,x) \leq 1$ for all datapoints. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
 Our objective is obtaining a core-set $z_1,\ldots, z_\ell \in \R^d$, $\ell \ll n$ along with weights $w_1,\ldots, w_\ell$ such that for any point $y \in \R^d$
 $$ \left| \sum_{i=1}^\ell w_i \cdot K(z_i, y) - \D(y) \right| < \eps n $$
-We are interested in achieving this in the streaming setting, while bounding the amount of memory used
+We are interested in achieving this in the streaming setting, while bounding the amount of memory used throughout the run of the algorithm.
 
 \section{Compactor}
 We use the compactor approach. We collect $k$ data points $x_1,\ldots, x_k$ and output $m \approx k/2$ points $\tilde{x}_1,\ldots, \tilde{x}_m$ such that 
@@ -77,38 +84,100 @@ This upper bound allows to optimize a much easier minimization function.
 
 We continue to solve the following problem: Given $k$ vectors $z_1,\ldots,z_k$ in an inner product space, compute signs minimizing 
 $$\| \sum_i s_i z_i \| $$
-We first notice that for i.i.d uniform signs, it holds that
+We first notice that for i.i.d.\ uniform signs, it holds that
 $$\E[\| \sum_i s_i z_i \|^2] = \E[\sum_{i,j} s_i s_j \ip{z_i, z_j}] = \sum_i \|z_i\|^2 $$
-leading to a randomized approach. We use the method of expectation minimization to achieve this bound deterministically. Specifically, we set $s_i$ sequentially for $i$ while minimizing the expectation. We prove by induction on $i$ that for the fixed $s_j$'s up to and not including $i$,
-$$\E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] \leq \sum_j \|z_j\|^2$$
-For $i=1$ this is trivial. For $i>1$ let $m=\sum_{j=1}^{i-1} s_j z_j$.
-$$ \E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] = \E[\| m + \sum_{j=i}^k s_j z_j \|^2] = \|m\|^2 + \sum_{j=i}^k \|z_j\|^2$$
-It follows that by fixing $s_i$ deterministically,
-$$ \E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] - \E_{s_{i+1},\ldots,s_k}[\| \sum_j s_j z_j \|^2] = \|m\|^2 + \|z_i\|^2 - \|m + s_i z_i\|^2  $$
-so in order to make sure that 
-$$ \E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] \geq \E_{s_{i+1},\ldots,s_k}[\| \sum_j s_j z_j \|^2] $$
-we need
-$$ 2\ip{m,s_i z_i} = \|m\|^2 + \|z_i\|^2 - \|m + s_i z_i\|^2 \geq 0 $$
-We thus set 
-$$ s_i = -\text{sign} \ip{m,z_i}$$
+leading to a randomized approach. By Markov with probability at least $3/4$ we have $\| \sum_i s_i z_i \| \le 2\sum_i \|z_i\|$.
 
-Let us now translate this to an algorithm w.r.t the $d$ dimensional points $x_1,\ldots, x_k$. The sign of $x_1$ is set arbitrarily as $s_1=1$. For $i>1$, we choose 
-$$ s_i = -\text{sign} \left( \ip{\sum_{j<i} s_j \phi(x_j), \phi(x_i)} \right) = -\text{sign} \left( \sum_{j<i} s_j K(x_j, x_i) \right) $$
+We can also use the method of expectation minimization to achieve this bound deterministically.
+Specifically, we will guaranty that $\| \sum_{j=1}^i s_j z_j \|^2 \le \sum_{j=1}^i \|z_j\|^2$ for all $i$.
+This is trivially true for $i=1$. 
+For another value $i$ set $s_i = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j \langle z_j, z_i \rangle)$ 
+and  assume by induction that $\| \sum_{j=1}^{i-1} s_j z_j\|^2 \le \sum_{j=1}^{i-1} \|z_j\|^2$.
+
+\begin{eqnarray*}
+\| \sum_{j=1}^{i}s_j z_j\|^2 &=& \|\sum_{j=1}^{i-1}s_j z_j\|^2 + \|z_i\|^2 + \langle \sum_{j=1}^{i-1}s_j z_j, s_i z_i\rangle \\
+&\le& \sum_{j=1}^{i-1} \|z_j\|^2 + \|z_i\|^2 + s_i \sum_{j=1}^{i-1}s_j \langle  z_j,  z_i\rangle \mbox{\;\;\; by the induction assumption}\\ 
+&=& \sum_{j=1}^{i} \|z_j\|^2 - |\sum_{j=1}^{i-1}s_j \langle  z_j,  z_i\rangle| \le \sum_{j=1}^{i} \|z_j\|^2
+\end{eqnarray*}
+
+
+Let us now translate this to an algorithm w.r.t.\ the $d$ dimensional points $x_1,\ldots, x_k$. 
+The sign of $x_1$ is set arbitrarily as $s_1=1$. For $i>1$, we choose 
+$$ s_i = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j \langle \phi(x_j), \phi(x_i) \rangle) = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j  K(x_j, x_i)) $$
 This guarantees that for any $y \in \R^d$,
 $$ \sum_i s_i K(x_i, y) \leq \sqrt{ \sum_i \|\phi(x_i)\|^2 } = \sqrt{k} $$
+
+Before we extend this to a complete algorithm, it is worth getting an intuition for the meaning of this result.
 
 For the coreset, this means that we can choose the $\tilde{x}$'s as either the $x$ vectors with positive $s_i$'s or negative $s_i$'s.
 
 
-\subsection{Another approach}
-Considering the view with $\phi$ let us restate the objective. For a point $y$ we wish to estimate
-$$ \D(y) = \sum_i K(x_i,y) = \ip{\sum_i  \phi(x_i), \phi(y)} $$
-simultaneously for all $y$. We can try to do this with any re-weighting of the $x_i$'s
-$$ \sum_i K(x_i,y) \approx \sum_i w_i K(x_i,y) =  \ip{\sum_i w_i \phi(x_i), \phi(y)} $$
-while aiming for the $w$ vector to be sparse. Letting $z_i=\phi(x_i)$, $Z$ be the matrix whose columns are $z_i$ and $v=\sum_i z_i$ we have a sparse regression problem with a single data point
-$$ \min_w \| Zw -  v\|^2 \ \ \text{s.t.} \|w\|_0 \leq k/2$$
-We proved that there exist a solution achieving $\sqrt{k}$. Could we prove that better solutions exist? In one extreme, all $z_i$ are orthogonal (corresponding to vectors that are very far away). Here you cannot achieve more than 
+
+\section{General note about sketching and flat signed function}
+In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
+The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
+If $z \subset x$ this is a subset selection problem. 
+For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
+However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
+
+Here are some examples:
+\begin{itemize}
+\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else.
+\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else.
+\item in matrix row subset selection we have $f(x, q) = \langle x,q \rangle ^2$.
+\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see above)
+\item in machine learning $f(x, q) = \operatorname{loss}(x,q)$ where $q$ is the parameters of the model and $x$ is a training example and its label.
+\end{itemize}
+For all of the above, we can find flat error functions $E(q) = \sum_{i=1}^{k} s_i f(x_i,q)$ such that $\sup_q E(q)$ is small. 
+We argue that this gives a general mechanism for sketching in a diverse set of scenarios. 
 
 
+Let us choose the value  and assume by induction that
+\section{Row subset selection}
+Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
+for simplicity, assume $x_i$ are all unit length. Moreover, assume each vector $Z$ must be one of the rows in $X$ up to some constant factor.
+This is called the row subset selection problem. 
+Since you are trying to minimize the quadratic form, you get that $f(x, q) = \langle x,q \rangle ^2$ and 
+$$E(y) = \sum_i s_i \langle x_i,q \rangle ^2 = q^T (\sum_i s_i x_i x_i^T ) q \le \|\sum_i s_i x_i x_i^T\|$$
+When summing rank one projections matrices $x_i x_i^T$ you can think of two extreme cases. 
+If $x_i$ are orthogonal to each other than $\|\sum_i s_i x_i x_i^T\| = 1$ independently of $s_i$.
+If $x_i$ are all equal than a random assignment would get  $\E[\|\sum_i s_i x_i x_i^T\|] = E[|\sum_i s_i|] = \Omega(\sqrt{k})$.
+But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum_i s_i x_i x_i^T\| = O(1)$. Is that always possible?
+\el{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
+If this is correct, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
+
+Selecting $o(1/\eps^2)$ is claimed to be impossible due to \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06} and \cite{DBLP:conf/soda/GhashamiP14}.
+
+\subsection{notes about row selection}
+The problem is 
+$$ \min_s \| \sum_i s_i x_ix_i^T\| $$
+where $\|x_i\| \leq 1$. Consider the following greedy approach: At point $x_i$, let
+$$ C_i = \sum_{j<i} s_j x_j x_j^T, \ \  l_+ = \|C_i + x_i x_i^T \|, \ l_- = \|C_i - x_i x_i^T\|$$
+We choose $s_i = 1$ if $l_+ < l_i$, otherwise $s_i=-1$.
+
+This approach can be shown to be better than random. Random will result in an answer of up to 
+
+Consider the following example. 
+$$x_1=e_1, x_2=e_2*\eps, x_3=e_2, x_4=e_1/\sqrt{2} + e_2/\sqrt{2}$$
+where $\eps \to 0$. We get that the covariance matrix after inserting $x_3$ has two eigenvalues of +1 and -1. Now when inserting $x_4$ we have to increase the magnitude of one of them and we exceed the limit of 1. 
+
+\bibliographystyle{plain}
+\bibliography{density}
 
 \end{document}
+
+
+%Specifically, we set $s_i$ sequentially for $i$ while minimizing the expectation. 
+%We prove by induction on $i$ that for the fixed $s_j$'s up to and not including $i$,
+%$$\E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] \leq \sum_j \|z_j\|^2$$
+%For $i=1$ this is trivial. For $i>1$ let $v=\sum_{j=1}^{i-1} s_j z_j$.
+%$$ \E_{s_i,\ldots,s_k}[\| \sum_{j=1}^k s_j z_j \|^2] = \E[\| v + \sum_{j=i}^k s_j z_j \|^2] = \|v\|^2 + \sum_{j=i}^k \|z_j\|^2$$
+%It follows that by fixing $s_i$ deterministically,
+%$$ \E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] - \E_{s_{i+1},\ldots,s_k}[\| \sum_j s_j z_j \|^2] = \|v\|^2 + \|z_i\|^2 - \|v + s_i z_i\|^2  $$
+%so in order to make sure that 
+%$$ \E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] \geq \E_{s_{i+1},\ldots,s_k}[\| \sum_j s_j z_j \|^2] $$
+%we need
+%$$ 2\ip{m,s_i z_i} = \|m\|^2 + \|z_i\|^2 - \|m + s_i z_i\|^2 \geq 0 $$
+%We thus set 
+%$$ s_i = -\text{sign} \ip{m,z_i}$$
+
