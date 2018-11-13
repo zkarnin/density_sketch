@@ -17,7 +17,7 @@
 %\newtheorem{fact}[theorem]{Fact}
 
 \newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
-\newcommand{\el}[1]{\textcolor{blue}{ZK: #1}}
+\newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
 
 \newcommand{\ip}[1]{\left \langle #1 \right \rangle}
 \newcommand{\R}{\mathbb{R}}
@@ -46,19 +46,78 @@ Edo Liberty\\Amazon\\libertye@amazon.com
 \maketitle
 
 \begin{abstract}
-abs\end{abstract}
+abc
+\end{abstract}
 
-\section{Introduction}
+\section{introduction}
+def
 
-Oh no... \cite{DBLP:conf/soda/PhillipsT18}
+\section{General framework for sketching}
+In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
+The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
+If $z \subset x$ this is a subset selection problem. 
+For bounded functions $f$, uniform sampling combined with a union bound over the space of possible values for $q$ always provides a valid solution. 
+While the number of possible queries $q$ is often infinite it often reduces to a finite set through a net argument. 
+This is common practice in machine learning, specifically, PAC learning. 
+
+However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
+
+Here are some examples:
+\begin{itemize}
+\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else. Here both $x$ and $q$ belong to some finite domain.
+\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else. Here, $x$ and $q$ belong to a set which exhibits strong ordering.
+\item in matrix row subset selection we have $f(x, q) = \langle x,q \rangle ^2$ where $q$ is any unit vector in $\R^d$ and $x$ are matrix rows. For simplicity, we will assume in this manuscript that $x$ is also unit norm.
+\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
+\item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = 1/(1 + \exp(-q^T x))$. 
+Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
+\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian and $q$ is a test vector.
+\item Probably also good for matrix approx when we get entry updates. 
+\end{itemize}
+
+We argue that we can offer a unified solution for producing coresets for all of the above problems in a unified manner. 
+Moreover, our solution created streaming algorithms with fully mergeable sketches. 
+
+We begin with describing the basic operation of compaction and the notion of flat error functions. 
+
+Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$.
+Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
+Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
+Note that the above is true for any choice of signs $s_i$, specifically, for those minimizing $\max_q | E(q)|$.
+We call $E$ flat if $\min_s \max_q |E(q)| = o(n)$. 
+
+\begin{definition}
+We define $E_n$ with respect to a function $f(x,q)$ to be  $\min_s \max_q \max_x \sum_{i=1}^{n} s_i f(x_i,q)$. 
+\end{definition}
+
+As a warmup exercise, consider the case where $E_n = 1$.
+This is the case for quantiles and for counting. 
+At step one, we will create a coreset of weight $2$ and size at most $n/2$ (by either adding or subtracting $E$). Here we incur an error of at most $1$.
+Then, we repeat the process and incur an error of at most $2$ resulting in a stream of length at most $n/4$. 
+We can continue the above process until we are left with $O(1/\eps)$ points in the coreset. At this point, the error adds up to at most $\eps n$.
+Similarly, when $E_n = O(\sqrt{n})$ we get a coreset of size $O(1/\eps^2)$ whose error is at most $\eps n$.
+This gives an offline algorithm.
+
+\el{We can describe the general streaming algorithm here. I think $E_n$ is a sufficient characterization of this.} 
 
 
-\section{Problem Definition}
+For all of the above, we argue that we can find flat signed error functions such that $E_n = O(1)$ or $E_n = O(\sqrt{n})$.
+
+
+
+
+\section{Density estimation}
+
+Already done by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751} in the non streaming setting.
+
 Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $\rho: \R^d \rightarrow \R$ of a point $y$ is defined as 
 $$ \rho(y) = \sum_{i=1}^{n} K(x_i,y) $$
 Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
+<<<<<<< HEAD
 $$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = \frac{1}{1+\|x-y\|_2^2/\sigma^2)}$$
 $$ K(x,y) = \max(0, 1- \|x-y\|/\sigma) $$
+=======
+$$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-y\|_2^2/\sigma^2)^{-1}$$
+>>>>>>> ce3a786138737689452723acbd3980a5d8533fbe
 where $\sigma$ is a scaling parameter. What we discuss in what follows applies for any kernel, an depends on a bound on $K(x,x)$. For simplicity we assume that $K(x,x) \leq 1$ for all datapoints. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
 Our objective is obtaining a core-set $z_1,\ldots, z_\ell \in \R^d$, $\ell \ll n$ along with weights $w_1,\ldots, w_\ell$ such that for any point $y \in \R^d$
@@ -112,27 +171,20 @@ Before we extend this to a complete algorithm, it is worth getting an intuition 
 For the coreset, this means that we can choose the $\tilde{x}$'s as either the $x$ vectors with positive $s_i$'s or negative $s_i$'s.
 
 
-
-\section{General note about sketching and flat signed function}
-In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
-The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
-If $z \subset x$ this is a subset selection problem. 
-For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
-However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
-
-Here are some examples:
-\begin{itemize}
-\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else.
-\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else.
-\item in matrix row subset selection we have $f(x, q) = \langle x,q \rangle ^2$.
-\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see above)
-\item in machine learning $f(x, q) = \operatorname{loss}(x,q)$ where $q$ is the parameters of the model and $x$ is a training example and its label.
-\end{itemize}
-For all of the above, we can find flat error functions $E(q) = \sum_{i=1}^{k} s_i f(x_i,q)$ such that $\sup_q E(q)$ is small. 
-We argue that this gives a general mechanism for sketching in a diverse set of scenarios. 
+%
+%<<<<<<< HEAD
+%\section{General note about sketching and flat signed function}
+%In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
+%The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
+%If $z \subset x$ this is a subset selection problem. 
+%For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
+%However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
+%=======
+%
+%>>>>>>> ce3a786138737689452723acbd3980a5d8533fbe
 
 
-Let us choose the value  and assume by induction that
+
 \section{Row subset selection}
 Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
 for simplicity, assume $x_i$ are all unit length. Moreover, assume each vector $Z$ must be one of the rows in $X$ up to some constant factor.
@@ -146,7 +198,11 @@ But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum
 \el{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
 If this is correct, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
 
-Selecting $o(1/\eps^2)$ is claimed to be impossible due to \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06} and \cite{DBLP:conf/soda/GhashamiP14}.
+Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings.
+
+\paragraph{Hard example?}
+$$x_i = \frac{1}{\sqrt{i}} e_1 \pm e_2 $$
+
 
 \subsection{notes about row selection}
 The problem is 
