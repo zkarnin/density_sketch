@@ -79,10 +79,10 @@ Moreover, our solution created streaming algorithms with fully mergeable sketche
 We begin with describing the basic operation of compaction and the notion of flat error functions. 
 
 Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$.
-Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
-Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
-Note that the above is true for any choice of signs $s_i$, specifically, for those minimizing $\max_q | E(q)|$.
-We call $E$ flat if $\min_s \max_q |E(q)| = o(n)$. 
+Now consider $\tilde F(q) = F(q) + \Delta(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
+Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | \Delta(q)|$.
+Note that the above is true for any choice of signs $s_i$, specifically, for those minimizing $\max_q | \Delta(q)|$.
+We call $E$ flat if $\min_s \max_q |\Delta(q)| = o(n)$. 
 
 \begin{definition}
 We define $E_n$ with respect to a function $f(x,q)$ to be  $\min_s \max_q \max_x \sum_{i=1}^{n} s_i f(x_i,q)$. 
