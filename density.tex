@@ -17,6 +17,7 @@
 %\newtheorem{fact}[theorem]{Fact}
 
 \newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
+\newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
 
 \newcommand{\ip}[1]{\left \langle #1 \right \rangle}
 \newcommand{\R}{\mathbb{R}}
@@ -96,7 +97,7 @@ We can continue the above process until we are left with $O(1/\eps)$ points in t
 Similarly, when $E_n = O(\sqrt{n})$ we get a coreset of size $O(1/\eps^2)$ whose error is at most $\eps n$.
 This gives an offline algorithm.
 
-\zk{We can describe the general streaming algorithm here. I think $E_n$ is a sufficient characterization of this.} 
+\el{We can describe the general streaming algorithm here. I think $E_n$ is a sufficient characterization of this.} 
 
 
 For all of the above, we argue that we can find flat signed error functions such that $E_n = O(1)$ or $E_n = O(\sqrt{n})$.
@@ -111,7 +112,12 @@ Already done by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/a
 Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $\rho: \R^d \rightarrow \R$ of a point $y$ is defined as 
 $$ \rho(y) = \sum_{i=1}^{n} K(x_i,y) $$
 Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
+<<<<<<< HEAD
+$$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = \frac{1}{1+\|x-y\|_2^2/\sigma^2)}$$
+$$ K(x,y) = \max(0, 1- \|x-y\|/\sigma) $$
+=======
 $$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-y\|_2^2/\sigma^2)^{-1}$$
+>>>>>>> ce3a786138737689452723acbd3980a5d8533fbe
 where $\sigma$ is a scaling parameter. What we discuss in what follows applies for any kernel, an depends on a bound on $K(x,x)$. For simplicity we assume that $K(x,x) \leq 1$ for all datapoints. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
 Our objective is obtaining a core-set $z_1,\ldots, z_\ell \in \R^d$, $\ell \ll n$ along with weights $w_1,\ldots, w_\ell$ such that for any point $y \in \R^d$
@@ -165,8 +171,17 @@ Before we extend this to a complete algorithm, it is worth getting an intuition 
 For the coreset, this means that we can choose the $\tilde{x}$'s as either the $x$ vectors with positive $s_i$'s or negative $s_i$'s.
 
 
-
-
+%
+%<<<<<<< HEAD
+%\section{General note about sketching and flat signed function}
+%In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
+%The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
+%If $z \subset x$ this is a subset selection problem. 
+%For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
+%However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
+%=======
+%
+%>>>>>>> ce3a786138737689452723acbd3980a5d8533fbe
 
 
 
@@ -180,12 +195,30 @@ When summing rank one projections matrices $x_i x_i^T$ you can think of two extr
 If $x_i$ are orthogonal to each other than $\|\sum_i s_i x_i x_i^T\| = 1$ independently of $s_i$.
 If $x_i$ are all equal than a random assignment would get  $\E[\|\sum_i s_i x_i x_i^T\|] = E[|\sum_i s_i|] = \Omega(\sqrt{k})$.
 But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum_i s_i x_i x_i^T\| = O(1)$. Is that always possible?
-\zk{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
+\el{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
 If this is correct, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
 
 Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings.
 
+\paragraph{Hard example?}
+$x_i$'s are gaussian vectors with mean zero and covariance $\sum_{i=1}^d \sqrt{i} \cdot e_i e_i^T$. It might be the case that any sign assignment here will result in $\sqrt{d}$ operator norm. 
 
+\paragraph{Reduction to the Kernel case}
+This is really the Kernel density estimation problem with $K(x,y) = \ip{x,y}^2$. We might be able to squeeze a bit more due to the fact that $\phi(x) = xx^T$ is a very special $d \times d$ matrix: a rank $1$ matrix. That being said, a coreset of $1/\eps^2$ can be obtained by simply using the kernel technique. The special structure can either give better dependence on $\eps$ or exploit low rank structure e.g.\ if the vectors form a nearly rank $k$ matrix.
+%
+%\subsection{notes about row selection}
+%The problem is 
+%$$ \min_s \| \sum_i s_i x_ix_i^T\| $$
+%where $\|x_i\| \leq 1$. Consider the following greedy approach: At point $x_i$, let
+%$$ C_i = \sum_{j<i} s_j x_j x_j^T, \ \  l_+ = \|C_i + x_i x_i^T \|, \ l_- = \|C_i - x_i x_i^T\|$$
+%We choose $s_i = 1$ if $l_+ < l_i$, otherwise $s_i=-1$.
+%
+%This approach can be shown to be better than random. Random will result in an answer of up to 
+%
+%Consider the following example. 
+%$$x_1=e_1, x_2=e_2*\eps, x_3=e_2, x_4=e_1/\sqrt{2} + e_2/\sqrt{2}$$
+%where $\eps \to 0$. We get that the covariance matrix after inserting $x_3$ has two eigenvalues of +1 and -1. Now when inserting $x_4$ we have to increase the magnitude of one of them and we exceed the limit of 1. 
+%
 \bibliographystyle{plain}
 \bibliography{density}
 
