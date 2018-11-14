@@ -98,55 +98,30 @@ Similarly, when $E_n = O(\sqrt{n})$ we get a coreset of size $O(1/\eps^2)$ whose
 This gives an offline algorithm.
 
 \el{We can describe the general streaming algorithm here. I think $E_n$ is a sufficient characterization of this.} 
-
-
 For all of the above, we argue that we can find flat signed error functions such that $E_n = O(1)$ or $E_n = O(\sqrt{n})$.
 
 
-
-
-\section{Density estimation}
-
-Already done by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751} in the non streaming setting.
+\section{Density Estimation}
 
 Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $\rho: \R^d \rightarrow \R$ of a point $y$ is defined as 
 $$ \rho(y) = \sum_{i=1}^{n} K(x_i,y) $$
 Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
-<<<<<<< HEAD
-$$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = \frac{1}{1+\|x-y\|_2^2/\sigma^2)}$$
-$$ K(x,y) = \max(0, 1- \|x-y\|/\sigma) $$
-=======
+
 $$ K(x,y) = \exp(- \|x-y\|_2^2/\sigma^2)\;\;\; K(x,y) = \exp(-\lambda \|x-y\|/\sigma) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-y\|_2^2/\sigma^2)^{-1}$$
->>>>>>> ce3a786138737689452723acbd3980a5d8533fbe
+
 where $\sigma$ is a scaling parameter. What we discuss in what follows applies for any kernel, an depends on a bound on $K(x,x)$. For simplicity we assume that $K(x,x) \leq 1$ for all datapoints. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
-Our objective is obtaining a core-set $z_1,\ldots, z_\ell \in \R^d$, $\ell \ll n$ along with weights $w_1,\ldots, w_\ell$ such that for any point $y \in \R^d$
-$$ \left| \sum_{i=1}^\ell w_i \cdot K(z_i, y) - \D(y) \right| < \eps n $$
-We are interested in achieving this in the streaming setting, while bounding the amount of memory used throughout the run of the algorithm.
 
-\section{Compactor}
-We use the compactor approach. We collect $k$ data points $x_1,\ldots, x_k$ and output $m \approx k/2$ points $\tilde{x}_1,\ldots, \tilde{x}_m$ such that 
-$$ \left| \sum_{i =1}^k K(x_i,y) - 2\sum_{i=1}^m K(\tilde{x}_i, y) \right| = o(k)$$
-This can be used to transform a stream of $n$ to $n/2$, then the $n/2$ stream to $n/4$, until we have a stream we can keep in memory. We move to define the compactor. First, consider the error induced by a single compaction
-$$ \text{Err}(y) = \sum_{i =1}^k K(x_i,y) - 2\sum_{i=1}^m K(\tilde{x}_i, y) $$
-If the $\tilde{x}_i$'s are chosen as a subset of the $x_i$'s the error can be re-written as
-$$ \text{Err}(y) = \sum_{i=1}^k s_i K(x_i,y)  $$
-where $s_i \in \{-1, 1\}$ according to whether $x_i$ is in the set of $\tilde{x}$'s. It follows that our objective is the following function
-$$ \min_{s \in \{-1,1\}^k} \max_y \sum_{i=1}^k s_i K(x_i,y) $$
-
-We now exploit a property of kernel functions to reformulate the problem. For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
+Using our framework, we need to bound $\Delta(y) = \sum_{i=1}^k s_i K(x_i,y)$. For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
 $$ K(x,y) = \ip{\phi(x), \phi(y)} $$
 Using this function $\phi$ our objective function becomes
-$$\sum_{i=1}^k s_i K(x_i,y) = \sum_{i=1}^k s_i \ip{\phi(x_i), \phi(y)} =  \ip{ \sum_{i=1}^k s_i \phi(x_i), \phi(y)} \leq $$
-$$ \|\phi(y)\| \cdot \left\|  \sum_{i=1}^k s_i \phi(x_i) \right\| \leq  \left\|  \sum_{i=1}^k s_i \phi(x_i) \right\| $$
-This upper bound allows to optimize a much easier minimization function. 
-
-We continue to solve the following problem: Given $k$ vectors $z_1,\ldots,z_k$ in an inner product space, compute signs minimizing 
-$$\| \sum_i s_i z_i \| $$
+$$\sum_{i=1}^k s_i K(x_i,y) = \sum_{i=1}^k s_i \ip{\phi(x_i), \phi(y)} =  \ip{ \sum_{i=1}^k s_i \phi(x_i), \phi(y)} \leq \|\phi(y)\| \cdot \left\|  \sum_{i=1}^k s_i \phi(x_i) \right\| \leq  \left\|  \sum_{i=1}^k s_i \phi(x_i) \right\| $$
+This upper bound allows us to optimize (find values for $s_i$) a simple expression.
+Given $k$ vectors $z_1,\ldots,z_k$ in an inner product space, compute signs minimizing $\| \sum_i s_i z_i \|$.
 We first notice that for i.i.d.\ uniform signs, it holds that
 $$\E[\| \sum_i s_i z_i \|^2] = \E[\sum_{i,j} s_i s_j \ip{z_i, z_j}] = \sum_i \|z_i\|^2 $$
 leading to a randomized approach. By Markov with probability at least $3/4$ we have $\| \sum_i s_i z_i \| \le 2\sum_i \|z_i\|$.
-
+%
 We can also use the method of expectation minimization to achieve this bound deterministically.
 Specifically, we will guaranty that $\| \sum_{j=1}^i s_j z_j \|^2 \le \sum_{j=1}^i \|z_j\|^2$ for all $i$.
 This is trivially true for $i=1$. 
@@ -158,17 +133,21 @@ and  assume by induction that $\| \sum_{j=1}^{i-1} s_j z_j\|^2 \le \sum_{j=1}^{i
 &\le& \sum_{j=1}^{i-1} \|z_j\|^2 + \|z_i\|^2 + s_i \sum_{j=1}^{i-1}s_j \langle  z_j,  z_i\rangle \mbox{\;\;\; by the induction assumption}\\ 
 &=& \sum_{j=1}^{i} \|z_j\|^2 - |\sum_{j=1}^{i-1}s_j \langle  z_j,  z_i\rangle| \le \sum_{j=1}^{i} \|z_j\|^2
 \end{eqnarray*}
-
-
+This completes the proof that $\| \sum_{j=1}^{k}s_j z_j\| \le \sqrt{\sum_{j=1}^{i} \|z_j\|^2}$ for our choice of values for $s$. 
+%
 Let us now translate this to an algorithm w.r.t.\ the $d$ dimensional points $x_1,\ldots, x_k$. 
 The sign of $x_1$ is set arbitrarily as $s_1=1$. For $i>1$, we choose 
-$$ s_i = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j \langle \phi(x_j), \phi(x_i) \rangle) = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j  K(x_j, x_i)) $$
-This guarantees that for any $y \in \R^d$,
-$$ \sum_i s_i K(x_i, y) \leq \sqrt{ \sum_i \|\phi(x_i)\|^2 } = \sqrt{k} $$
+$$ s_i = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j \langle \phi(x_j), \phi(x_i) \rangle) = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j  K(x_j, x_i))$$
+This guarantees that 
+$$ \forall y \in \R^d \;\;\; \sum s_i K(x_i, y) \leq \sqrt{ \sum \|\phi(x_i)\|^2 } = \sqrt{k} $$
 
-Before we extend this to a complete algorithm, it is worth getting an intuition for the meaning of this result.
+Using the framework above this provides a streaming coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that 
+$\forall \;q\;\; |\tilde \rho(q) - \rho(q)| \le \eps n$.
+This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}.
+\el{The running time of this algorithm is amortized.... I hope it will be better than Jeff's result, especially in the randomized shrinking buffers setting.}
 
-For the coreset, this means that we can choose the $\tilde{x}$'s as either the $x$ vectors with positive $s_i$'s or negative $s_i$'s.
+
+
 
 
 %
@@ -185,7 +164,7 @@ For the coreset, this means that we can choose the $\tilde{x}$'s as either the $
 
 
 
-\section{Row subset selection}
+\section{Row Subset Selection}
 Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
 for simplicity, assume $x_i$ are all unit length. Moreover, assume each vector $Z$ must be one of the rows in $X$ up to some constant factor.
 This is called the row subset selection problem. 
@@ -205,6 +184,8 @@ $x_i$'s are gaussian vectors with mean zero and covariance $\sum_{i=1}^d \sqrt{i
 
 \paragraph{Reduction to the Kernel case}
 This is really the Kernel density estimation problem with $K(x,y) = \ip{x,y}^2$. We might be able to squeeze a bit more due to the fact that $\phi(x) = xx^T$ is a very special $d \times d$ matrix: a rank $1$ matrix. That being said, a coreset of $1/\eps^2$ can be obtained by simply using the kernel technique. The special structure can either give better dependence on $\eps$ or exploit low rank structure e.g.\ if the vectors form a nearly rank $k$ matrix.
+
+\zk{The Kernel argument will get us $\sqrt{k}$ and I think we really should get $\sqrt{d}$ which is possibly better.}
 %
 %\subsection{notes about row selection}
 %The problem is 
