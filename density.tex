@@ -223,15 +223,21 @@ The last inequality holds because the values $\alpha^*_i$ are non-integer in at 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
 
-\noindent The conjectures appear to be provable in almost exactly the same manner
+\noindent The following theorems are provable in almost exactly the same manner
 \begin{conjecture}
-For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{2,F} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i X_i||_{2,F} \le O(\sqrt{d_1d_2\log(d_1 + d_2) })$.
+For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{F} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i X_i||_{F} \le O(\sqrt{d_1d_2})$.
 \end{conjecture}
-\begin{conjecture}
+
+\begin{theorem}
+For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{2} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i X_i||_{2} \le O(\sqrt{\log(d_1 + d_2) d_1d_2})$.
+Here, $\|\cdot\|_2$ denotes the spectral norm of a matrix. 
+\end{theorem}
+
+\begin{theorem}
 For any set of vector $x_1,...,x_n$ in $\R^d$ such that $\|x_i\| \le 1$ there exists a set of 
-signs $s_1,...,s_n$ such that $||\sum_i s_i x_i x^T||_2 \le d\sqrt{\log{d}}$.
-Here, $\|\cdot\|_2$ denotes the spectral norm of a matrix. \el{This us weak. It really should be $\sqrt{d}$ or at most $\sqrt{d\log{d}}$ }
-\end{conjecture}
+signs $s_1,...,s_n$ such that $||\sum_i s_i x_i x^T||_2 \le d$.
+Here, $\|\cdot\|_2$ denotes the spectral norm of a matrix. 
+\end{theorem}
 
 
 \end{document}
