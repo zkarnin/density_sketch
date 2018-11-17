@@ -16,7 +16,7 @@
 %\newtheorem{observation}[theorem]{Observation}
 %\newtheorem{corollary}[theorem]{Corollary}
 %\newtheorem{proposition}[theorem]{Proposition}
-%\newtheorem{fact}[theorem]{Fact}
+\newtheorem{fact}[theorem]{Fact}
 
 \newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
 \newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
@@ -59,7 +59,7 @@ def
 \section{General framework for sketching}
 In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
 The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
-If $z \subset x$ this is a subset selection problem. 
+If $z \subset x$ this is a subset selection or a coreset problem. 
 For bounded functions $f$, uniform sampling combined with a union bound over the space of possible values for $q$ always provides a valid solution. 
 While the number of possible queries $q$ is often infinite it often reduces to a finite set through a net argument. 
 This is common practice in machine learning, specifically, PAC learning. 
@@ -84,25 +84,48 @@ Moreover, our solution created streaming algorithms with fully mergeable sketche
 We begin with describing the basic operation of compaction and the notion of flat error functions. 
 
 Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$.
-Now consider $\tilde F(q) = F(q) + \Delta(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
-Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | \Delta(q)|$.
-Note that the above is true for any choice of signs $s_i$, specifically, for those minimizing $\max_q | \Delta(q)|$.
-We call $E$ flat if $\min_s \max_q |\Delta(q)| = o(n)$. 
-
+Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
+Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
+Note that the above is true for any choice of signs $s_i$, specifically, for those minimizing $\max_q | E(q)|$.
 \begin{definition}
-We define $E_n$ with respect to a function $f(x,q)$ to be  $\min_s \max_q \max_x \sum_{i=1}^{n} s_i f(x_i,q)$. 
+We define the discrepancy $\Delta_k$ with respect to a function $f(x,q)$ to be  
+\[\Delta_n = \min_s \max_q \max_x \sum_{i=1}^{n} s_i f(x_i,q). \] 
 \end{definition}
+\noindent We claim that a function is sketch-able if $\Delta_n = o(n)$. 
+As a warmup exercise, consider the non-streaming case.
+\begin{fact}
+For any function $f$ which a corresponding discrepancy of $\Delta_k = O(1)$ there exists a coreset of size 
+$O(1/\eps)$ whose error is at most $\eps n$.
+\end{fact}
+\begin{fact}
+For any sum of functions $f$ which a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists a coreset of size 
+$O(1/\eps^2)$ whose error is at most $\eps n$.
+\end{fact}
 
-As a warmup exercise, consider the case where $E_n = 1$.
-This is the case for quantiles and for counting. 
-At step one, we will create a coreset of weight $2$ and size at most $n/2$ (by either adding or subtracting $E$). Here we incur an error of at most $1$.
-Then, we repeat the process and incur an error of at most $2$ resulting in a stream of length at most $n/4$. 
-We can continue the above process until we are left with $O(1/\eps)$ points in the coreset. At this point, the error adds up to at most $\eps n$.
-Similarly, when $E_n = O(\sqrt{n})$ we get a coreset of size $O(1/\eps^2)$ whose error is at most $\eps n$.
-This gives an offline algorithm.
+\noindent Proving both facts is trivial. 
+At step one, create a coreset of size at most $n/2$ of items of weight $2$ and incur an error of at most $c_1$ or $c_2 \sqrt{n}$.
+Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c_1$ of $2\sqrt{n/2}  = \sqrt{2n}$.
+Note that the sum of errors is dominated by last iterations. 
+Halting the compression at $O(1/\eps)$ or $O(1/\eps^2)$ items respectively achieves the goal.
+ 
 
-\el{We can describe the general streaming algorithm here. I think $E_n$ is a sufficient characterization of this.} 
-For all of the above, we argue that we can find flat signed error functions such that $E_n = O(1)$ or $E_n = O(\sqrt{n})$.
+\begin{fact}
+For any function $f$ with a corresponding discrepancy of $\Delta_k = O(1)$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+$O(\log^2(\log(1/\delta))/\eps)$ whose error is at most $\eps n$ and failure probability at most $\delta$.
+\end{fact}
+\begin{fact}
+For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+$O(\log^2(\log(1/\delta))/\eps^2)$ whose error is at most $\eps n$ and failure probability at most $\delta$.
+\end{fact}
+
+\begin{fact}
+For any function $f$ with a corresponding discrepancy of $\Delta_k = O(1)$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
+$O(\log^2(n)/\eps)$ whose error is at most $\eps n$.
+\end{fact}
+\begin{fact}
+For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
+$O(\log^2(n)/\eps^2)$ whose error is at most $\eps n$.
+\end{fact}
 
 
 \section{Density Estimation}
