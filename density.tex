@@ -77,6 +77,8 @@ Here are some examples:
 \item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
 \item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = 1/(1 + \exp(-q^T x))$. 
 Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
+\item Linear Classification $f(x,q) = 1$ if $x^t > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
+\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
 \item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian  corresponding to the graph with a single edge $x$ and $q$ is a test vector.
 \item Probably also good for matrix approx when we get entry updates. 
 \end{itemize}
@@ -116,7 +118,7 @@ $O(1/\eps^2)$ whose error is at most $\eps n$.
 \noindent Proving both facts is trivial. 
 At step one, create a coreset of size at most $n/2$ of items of weight $2$ and incur an error of at most $c_1$ or $c_2 \sqrt{n}$.
 Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c_1$ of $2\sqrt{n/2}  = \sqrt{2n}$.
-Note that the sum of errors is dominated by last iterations. 
+Note that the sum of errors is asymptotically dominated by last iterations. 
 Halting the compression at $O(1/\eps)$ or $O(1/\eps^2)$ items respectively achieves the goal.
  
 In what follows, we prove the following.
@@ -218,6 +220,40 @@ The error for the bottom layers is $O(\min\{\rho(k), 1/\sqrt{k}\} n)$. The error
 
 Hence, if we aim for an error of $\eps n$ w.p.\ $1-\delta$ we set $k$ large enough such that $\rho(k) \leq c \eps / \log\log(1/\delta)$. Denoting by $\rho^{\dagger}$ the inverse function to $\rho$ this leads to a total memory requirement of 
 $$ \rho^{\dagger}(c \eps / \log\log(1/\delta)) \log\log(1/\delta) $$
+%=======
+%$O(\log^3(\log(1/\delta))/\eps^2)$ whose error is at most $\eps n$ and failure probability at most $\delta$.
+%\end{fact}
+%\begin{proof}
+%For simplicity, assume that $n$, the length of the stream, is known in advance. This assumption will be removed later.
+%We begin with an obvious observation that sampling is always a possible first step if the stream is long enough.
+%Consider sampling stream items with probably $p = \log(1/\delta)/n\eps^2$ and weighting the sampled items by $w = 1/p$.
+%This gives a an $\eps n$ approximation for any single query $q$ with probability at least $1-\delta$. 
+%Let $Q_\eps$ denote an epsilon-net over $f$. Specifically $\max_q \min_{q' \in Q_\eps} |F(q) - F(q')| \le \eps n$.
+%Setting $\delta \le 1/|Q_\eps|$ will achieve a strong corset for using the union bound. 
+%Note that $|Q_\eps|$ is usually exponential in the parameters of the problem and $\log(1/\delta)$ is polynomial in those parameters. 
+%
+%\noindent From here on, we assume $n = O(\log(1/\delta)/\eps^2)$ for some appropriately small value $\delta$.
+%Let us begin with the simpler case where $\Delta_k = O(\sqrt{k})$. 
+%Here, we will create $H$ buffers $B_1,...,B_H$ of size $k$ feeding one into each other. 
+%The number items seen by buffer $h$ is $n_h = n/2^{h-1}$ and their weight is $w_h = 2^{h-1}$.
+%The error induce by buffer $h$ is at most $w_h\frac{n_h}{k} \sqrt{k} = n/\sqrt{k}$. The total error is therefore at most $Hn/\sqrt{k}$.
+%In order for the last buffer to not overflow we need to make sure that $n_H \le k$. Setting $H = \log(n/k)+1$ achieves that.
+%Demanding that $Hn/\sqrt{k} \le \eps n$ and setting $k = (\log\log(1/\delta) + 1)^2/\eps^2$ we get that the total error is less than $\eps n$.
+%Substituting we get that $H \le \log\log(1/\delta) + 1$. Finally, the total storage of the sketch is $Hk = O(\log\log(1/\delta) + 1)^3/\eps^2$.
+% 
+%\begin{fact}
+%For any function $f$ with a corresponding discrepancy of $\Delta_k = O(1)$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
+%$O(\log^2(n)/\eps)$ whose error is at most $\eps n$.
+%\end{fact}
+%\begin{proof}
+%Proving this is more involved. It follows the same steps as the recent breakthrough result about streaming quantiles \cite{DBLP:conf/focs/KarninLL16} which exhibit $\Delta_k = O(1)$. The following proof can be thought of as a generalization of the proof in \cite{DBLP:conf/focs/KarninLL16}. 
+%\end{proof}
+%
+%
+%
+%
+%
+%>>>>>>> 3fb6fdab63baebeec7715bcb29d19665e3023a8c
 
 \end{proof}
 
