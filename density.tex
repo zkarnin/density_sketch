@@ -6,11 +6,12 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{xcolor}
 \usepackage{amsfonts}
+\usepackage{ amssymb }
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{conjecture}{Conjecture}[section]
 %\newtheorem{claim}[theorem]{Claim}
-%\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{lemma}[theorem]{Lemma}
 %\newtheorem{remark}[theorem]{Remark}
 %\newtheorem{definition}[theorem]{Definition}
 %\newtheorem{observation}[theorem]{Observation}
@@ -27,7 +28,8 @@
 \newcommand{\D}{\rho}
 \newcommand{\eps}{\epsilon}
 %\usepackage{ntheorem}
-
+\newcommand{\floor}[1]{\left \lfloor #1 \right \rfloor}
+\newcommand{\ceil}[1]{\left \lceil #1 \right \rceil}
 
 
 %\newtheorem*{definition*}{Definition}
@@ -58,7 +60,8 @@ def
 
 \section{General framework for sketching}
 In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
-The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
+The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$, either for all possible queries simultaneously, for every fixed $q$ with high probability, or more complicated formulations such as weak coresets.
+ 
 If $z \subset x$ this is a subset selection or a coreset problem. 
 For bounded functions $f$, uniform sampling combined with a union bound over the space of possible values for $q$ always provides a valid solution. 
 While the number of possible queries $q$ is often infinite it often reduces to a finite set through a net argument. 
@@ -69,30 +72,38 @@ However, it is often far from being the best possible in terms of its space-accu
 Here are some examples:
 \begin{itemize}
 \item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else. Here both $x$ and $q$ belong to some finite domain.
-\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else. Here, $x$ and $q$ belong to a set which exhibits strong ordering.
-\item in matrix row subset selection we have $f(x, q) = \langle x,q \rangle ^2$ where $q$ is any unit vector in $\R^d$ and $x$ are matrix rows. For simplicity, we will assume in this manuscript that $x$ is also unit norm.
+\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else. Here, $x$ and $q$ belong to a set which exhibits total ordering.
+\item in matrix column subset selection we have $f(x, q) = \langle x,q \rangle ^2$ where $q$ is any unit vector in $\R^d$ and $x$ are matrix rows. For simplicity, we will assume in this manuscript that $x$ is also unit norm.
 \item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
 \item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = 1/(1 + \exp(-q^T x))$. 
 Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
-\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian and $q$ is a test vector.
+\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian  corresponding to the graph with a single edge $x$ and $q$ is a test vector.
 \item Probably also good for matrix approx when we get entry updates. 
 \end{itemize}
 
-We argue that we can offer a unified solution for producing coresets for all of the above problems in a unified manner. 
-Moreover, our solution created streaming algorithms with fully mergeable sketches. 
+We argue that we can offer a solution for producing coresets for all of the above problems in a unified manner. 
+Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
 
-We begin with describing the basic operation of compaction and the notion of flat error functions. 
+The high level idea is the following. Consider a stream of the data points $x_i$. We wish to to maintain a buffer that can hold up to $k$ points, and output a stream of data points having half the amount of the original stream, yet at the same time maintain a similar value for 
+$$ \sum_i f(x_i, q) $$
+for any query $q$. To do so our buffer, once collecting $k$ data points, performs a \emph{compact} operation that outputs $k/2$ data points of weight $2$ representing the original $k$ inputs. The compact operation partitions the $k$ points into two (roughly) sets, whose corresponding sum are very close. This is made formal with the following definitions: Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$ where $s_i \in \{-1,1\}$ are signs.
+Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$ and the corresponding $F_{-1}$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| \le  | E(q)|$.
 
-Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$.
-Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
-Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
+%
+%We begin with describing the basic operation of compaction and the notion of flat error functions. 
+%
+%Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$.
+%Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
+%Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
 Note that the above is true for any choice of signs $s_i$, specifically, for those minimizing $\max_q | E(q)|$.
 \begin{definition}
 We define the discrepancy $\Delta_k$ with respect to a function $f(x,q)$ to be  
-\[\Delta_n = \min_s \max_q \max_x \sum_{i=1}^{n} s_i f(x_i,q). \] 
+\[\Delta_k = \min_s \max_{q,x} \sum_{i=1}^{k} s_i f(x_i,q). \] 
 \end{definition}
-\noindent We claim that a function is sketch-able if $\Delta_n = o(n)$. 
-As a warmup exercise, consider the non-streaming case.
+\noindent We claim that a function is sketch-able if $\Delta_k = o(k)$. 
+As a warmup exercise, consider the non-streaming case. Throughout we discuss functions $f$ with the property $|f(x,q)| \leq 1$ for all $x,q$.
+
+
 \begin{fact}
 For any function $f$ which a corresponding discrepancy of $\Delta_k = O(1)$ there exists a coreset of size 
 $O(1/\eps)$ whose error is at most $\eps n$.
@@ -108,24 +119,107 @@ Then, we repeat the process and create a coreset of size $n/4$ of items of weigh
 Note that the sum of errors is dominated by last iterations. 
 Halting the compression at $O(1/\eps)$ or $O(1/\eps^2)$ items respectively achieves the goal.
  
-
-\begin{fact}
+In what follows, we prove the following.
+\begin{theorem} \label{thm:streaming}
 For any function $f$ with a corresponding discrepancy of $\Delta_k = O(1)$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
-$O(\log^2(\log(1/\delta))/\eps)$ whose error is at most $\eps n$ and failure probability at most $\delta$.
-\end{fact}
-\begin{fact}
-For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
-$O(\log^2(\log(1/\delta))/\eps^2)$ whose error is at most $\eps n$ and failure probability at most $\delta$.
-\end{fact}
+$O\left(\log^2\left(\min(n, \log(1/\delta)) \right)/\eps\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require knowledge of the stream length $n$.
+\end{theorem}
 
-\begin{fact}
-For any function $f$ with a corresponding discrepancy of $\Delta_k = O(1)$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
-$O(\log^2(n)/\eps)$ whose error is at most $\eps n$.
-\end{fact}
-\begin{fact}
-For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
-$O(\log^2(n)/\eps^2)$ whose error is at most $\eps n$.
-\end{fact}
+
+\begin{theorem}
+For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+$O\left(\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require knowledge of the stream length $n$.
+\end{theorem}
+%
+%\begin{fact}
+%For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+%$O(\log^2(\log(1/\delta))/\eps^2)$ whose error is at most $\eps n$ and failure probability at most $\delta$.
+%\end{fact}
+%
+%\begin{fact}
+%For any function $f$ with a corresponding discrepancy of $\Delta_k = O(1)$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
+%$O(\log^2(n)/\eps)$ whose error is at most $\eps n$.
+%\end{fact}
+%\begin{fact}
+%For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
+%$O(\log^2(n)/\eps^2)$ whose error is at most $\eps n$.
+%\end{fact}
+
+\begin{lemma} \label{lem:compactor}
+Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $s_1,\ldots,s_k$ such that
+$$\max_q \left| \sum_i s_i f(x_i, q)\right| \leq \rho k$$
+Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
+\begin{itemize}
+\item $\{z_i\}_i$ is a subset of $\{x_i\}$
+\item $\E[m] = n/2$
+\item For any fixed query $q$, the error associated with $q$, defined as
+$$\text{Err}(q) = 2\sum_{i=1}^m f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
+Can be decomposed as a sum
+$$\text{Err}(q) = \sum_{j=1}^{n/k} \text{Err}_j(q)$$
+where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{Err}_j(q)| \leq \rho k$
+\end{itemize}
+The last property ensures that deterministically $|\text{Err}(q)| \leq \rho n$, and that w.h.p (via Chernoff's inequality) for a fixed $q$ 
+$$|\text{Err}(q)| \lesssim \rho k\sqrt{n/k} = \rho \sqrt{kn}$$
+\end{lemma}
+\begin{proof}
+The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
+$$\max_q \left| \sum_i s_i f(x_i, q)\right| \leq \rho k$$
+Now, consider the set $P=\{i:s_i=1\}$ and $N=\{i:s_i=-1\}$.
+$$ \sum_i s_i f(x_i, q) = \sum_i s_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in P} f(x_i,q) - \sum_i f(x_i, q)   $$
+$$ -\sum_i s_i f(x_i, q) = \sum_i -s_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
+Thus, we draw a random coin and either output to the stream the data points of $P$ or $N$. We call this operation a single compaction. Since $P,N$ form a partition of $[k]$ we get that the expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. As for the error term w.r.t a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
+$\sum_i s_i f(x_i, q)$ or $-\sum_i s_i f(x_i, q)$ with equal probability. It follows that it is a Bernoulli r.v. with magnitude of at most $\rho k$ as required.
+\end{proof}
+
+
+\begin{proof} [Proof of Theorem~\ref{thm:streaming}]
+Denote the streaming algorithm of Lemma~\ref{lem:compactor} as a compactor. The streaming algorithm operates as follows. At any given time it maintains a hierarchy of compactors where the hierarchy is measured in levels, starting from 0. The Compactor of level $h$ receives inputs of weight $2^h$ and outputs items of weight $2^{h+1}$. In the beginning we have a single compactor at level $h=0$. Once it outputs items to its output stream we open a compactor at level $h=1$ and so on. After observing $n$ items let $H$ be the level of the final compactor, meaning the compactor that never began an output stream.
+
+The sketch at that point contains all the data points contained in the buffers of the different compactors, weighted according to the level of the compactor. For a query $q$ we analyze the error
+$$\text{Err}(q) = \sum_{h=0}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \ .$$
+Here, $k_h$ is the capacity of the buffers at level $h$, $n_h$ is the length of the stream observed at level $h$. The multiplier of $2^h$ is there since level $h$ observes items of weight $2^h$. The sum over $j$ is over the number of compactions at level $h$. Finally, the $Y_{ij}$ are independent random variables with mean zero and absolute value of at most $1$. 
+
+To achieve a deterministic bound we set all $k_h=k$, and set the compactors to choose the set $P$ or $N$ with the least cardinality, ensuring $n_h \leq n_{h-1}/2$ and $H \leq \log_2(n/k)$, thus
+$$ \text{Err}(q) \leq \rho(k) \log_2(n/k) n $$
+
+If however, we are interested in a high probability bound of $1-\delta$, we decompose the error to two components
+$$\text{Err}(q) = \sum_{h=0}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho k_h Y_{ij} + \sum_{h=H'+1}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij}$$
+ Here, $H' = H - \ceil{\log(c \log(1/ \delta))}$ where $c$ is some universal constant we set later. Notice that the right summand contains roughly $\log(1/\delta)$ random variables. Since they are all Bernoulli we get that any combination of them is possible with probability $\geq \delta$ hence we must use a deterministic bound for these upper layers. We thus set $k_h=k$ for $h > H'$ and use the bound
+$$ \text{Err}^{\text{top}}(q) = \left|\sum_{h=H'+1}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij}\right| \leq O\left( \rho(k) \left(H-H'\right) n \right) =  O\left( \rho(k) \log \log(1/ \delta) n \right) $$
+Now, for the bottom layers we use Chernoffs bound
+$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -\frac{c' \eps^2 n^2}{\sum_{h=h}^{H'} 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h)^2 k_h^2}   \right) =$$
+$$\exp \left( -\frac{c' \eps^2 n^2}{\sum_{h=h}^{H'} 2^{2h} \rho(k_h)^2 k_h^2 \floor{n_h/k_h} } \right) $$
+
+\zk{$n_h$ being random is a problem. The weight of the stream might increase with time. The analysis now works for a completely balanced case }
+Consider the sum in the denominator. 
+$$ \sum_{h=h}^{H'} 2^{2h} \rho(k_h)^2 k_h^2 \floor{n_h/k_h} = O(\sum_{h=0}^{H'} 2^{2h} \rho(k_h)^2 k_h n_h ) $$
+Since $n_h \leq n_{h-1}/2$ and we have $k_h \leq k$ we have 
+$$  = n  \cdot O(\sum_{h=0}^{H'} 2^h k_h \rho(k_h)^2  ) $$
+Now, if $\rho(k_h) \geq 1/\sqrt{k_h}$ we set $k_h = 2$ for all $h \leq H'$ and obtain
+$$  = n  \cdot O(\sum_{h=0}^{H'} 2^h  ) = O(n^2/ (k \log(1/\delta))) $$
+and we get
+$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -O\left( \eps^2 k \log(1/\delta) \right)   \right) $$
+Hence, by setting $k \geq c/\eps^2$ for sufficiently large constant $c$ the probability is upper bounded by $\delta$.
+
+Now, for $\rho(k) < 1/\sqrt{k}$ we have $\eta(k) = \rho(k)^2 k = o(1)$. We can exploit that to allow for $k = o(1/\eps^2)$. For $\eta(k)=O(k^{-p})$ we\footnote{We do not discuss other scenarios as we are not aware of any setting where they occur. Also, extending the analysis to them is a purely technical exercise} use $k_h = \max(2, \ceil{(2/3)^{H'-h}k})$, leading to a bound of
+$$\sum_{h=0}^{H'} 2^h k_h \rho(k_h)^2 \leq \sum_{h=0}^{H'} 2^h \eta(k) \cdot (3/2)^{H'-h} = (3/2)^{H'} \eta(k) \sum_{h=0}^{H'} (4/3)^h \leq  $$
+$$(3/2)^{H'} \eta(k) \cdot (4/3)^{H'} \cdot 3 = 3 \cdot 2^{H'} \eta(k) = O(\eta(k)n/(k\log(1/\delta))$$
+Plugging this in the probability bound gives
+$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -O\left( \eps^2 k \log(1/\delta) / \eta(k) \right)   \right) = $$
+$$ \exp \left( -O\left( \eps^2 \log(1/\delta) / \rho(k)^2 \right)   \right) $$
+Hence, setting $k$ large enough so that $\rho(k) \leq c\eps$ for some universal constant $c$ leads to the required bound.
+
+In particular for $\rho(k) = O(1/k)$ we see that $k=1/\eps$ suffices, for general $p>1/2$ with $\rho(k) = k^{-p}$ we require $k=\eps^{-1/p}$.
+
+
+Now, consider the overall error and memory of the entire process. For the bottom layers, for any $\rho(k)$ we require $O(k+H')=O(k+\log(n))$ memory. A closer inspection actually shows that once $k_h=2$ we are simply performing uniform sampling, and all of those layers can be done with constant memory. Hence, the memory footprint of the bottom layers is $O(k)$. The top layers require $O(\log\log(1/\delta)k)$ memory leading to a total memory usage of $O(\log\log(1/\delta)k)$.
+
+The error for the bottom layers is $O(\min\{\rho(k), 1/\sqrt{k}\} n)$. The error of the top layers is $O(\log\log(1/\delta) \rho(k) n)$, meaning that the overall error is $O(\log\log(1/\delta) \rho(k) n)$.
+
+Hence, if we aim for an error of $\eps n$ w.p.\ $1-\delta$ we set $k$ large enough such that $\rho(k) \leq c \eps / \log\log(1/\delta)$. Denoting by $\rho^{\dagger}$ the inverse function to $\rho$ this leads to a total memory requirement of 
+$$ \rho^{\dagger}(c \eps / \log\log(1/\delta)) \log\log(1/\delta) $$
+
+\end{proof}
 
 
 \section{Density Estimation}
