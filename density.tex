@@ -307,42 +307,45 @@ This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite
 
 
 
-%
-%<<<<<<< HEAD
-%\section{General note about sketching and flat signed function}
-%In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
-%The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$. 
-%If $z \subset x$ this is a subset selection problem. 
-%For bounded functions $f$, uniform sampling combined with a union bound over the space of possbile values for $q$ always provides a valid solution.
-%However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
-%=======
-%
-%>>>>>>> ce3a786138737689452723acbd3980a5d8533fbe
 
 
 
 \section{Row Subset Selection}
 Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
-for simplicity, assume $x_i$ are all unit length. Moreover, assume each vector $Z$ must be one of the rows in $X$ up to some constant factor.
+For simplicity, assume $x_i$ are all unit length. Moreover, assume each vector in $Z$ must be one of the rows in $X$ up to some constant factor.
 This is called the row subset selection problem. 
 Since you are trying to minimize the quadratic form, you get that $f(x, q) = \langle x,q \rangle ^2$ and 
-$$E(y) = \sum_i s_i \langle x_i,q \rangle ^2 = q^T (\sum_i s_i x_i x_i^T ) q \le \|\sum_i s_i x_i x_i^T\|$$
-When summing rank one projections matrices $x_i x_i^T$ you can think of two extreme cases. 
-If $x_i$ are orthogonal to each other than $\|\sum_i s_i x_i x_i^T\| = 1$ independently of $s_i$.
-If $x_i$ are all equal than a random assignment would get  $\E[\|\sum_i s_i x_i x_i^T\|] = E[|\sum_i s_i|] = \Omega(\sqrt{k})$.
-But, in that case it's also easy to find a sequence of $s_i$ which gives $\|\sum_i s_i x_i x_i^T\| = O(1)$. Is that always possible?
-\el{My experiments show that behaves like polylog $d$ and $n$ but who knows. I thought I proved $O(1)$ but I think it's wrong.}
-If this is correct, it would give a covariance sketch is subset selection of size $1/\eps$ which would be an improvement over frequent directions.
+$$E(y) = \sum_i s_i \langle x_i,q \rangle ^2 = q^T (\sum_i s_i x_i x_i^T ) q \le \|\sum_i s_i x_i x_i^T\| \le c\sqrt{d}$$
 
-Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings.
+\noindent The last inequality is a direct application of the following Theorem.
+\begin{theorem}\label{BansalInDaHouz}
+For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{F} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i X_i||_{2} \le O(\sqrt{d_1 + d_2})$.
+\end{theorem}
+\begin{proof}
+First, recount Banaszczyk's theorem. 
+Let $\mathcal K$ be a convex body in $\R^d$ such that $\Pr[g \in \mathcal K] \ge 1/2$ where $g$ is Gaussian i.i.d.
+Let $x_1,\ldots,x_n$ be vectors in $\R^d$ with $\|x_i\| \le 1$. 
+Then, there exist signs $s_i$ such that $\sum s_i x_i \in C \mathcal K$ for some universal constant $C$.
 
-\paragraph{Hard example?}
-$x_i$'s are gaussian vectors with mean zero and covariance $\sum_{i=1}^d \sqrt{i} \cdot e_i e_i^T$. It might be the case that any sign assignment here will result in $\sqrt{d}$ operator norm. 
+To invoke Banaszczyk's theorem here we set $x_i \in \R^{d_1d_2}$ to be the flattening of $X_i$ into a vector by concatenating its rows. 
+Let $\mathcal K$ be the set of vectors in $\R^{d_1d_2}$ whose stacking (the inverse of flattening) results in a matrix whose spectral norm is less then $10\sqrt{d_1 + d_2}$.
+More accurately $\mathcal K = \{x  \in \R^{d_1d_2} |\;\; ||\operatorname{stack}(x)||_2 \le 10\sqrt{d_1+d_2}\}$. 
+Due to $\operatorname{stack}$ being linear it is obvious that $\mathcal K$ is convex. 
+Moreover $\Pr[g \in \mathcal K] \ge 1/2$ due to standard results on the operator norm of random Gaussian matrices \cite{}.
+Banaszczyk's theorem says that there exist signs $s_i$ such that $\sum s_i \operatorname{flatten}(X_i) \in C \mathcal K$.
+In other words $\| \sum s_i X_i\| = \| \operatorname{stack}( \sum s_i \operatorname{flatten}(x_i x_i^T)) \| \le 10 C \sqrt{d}$. 
+\end{proof}
 
-\paragraph{Reduction to the Kernel case}
-This is really the Kernel density estimation problem with $K(x,y) = \ip{x,y}^2$. We might be able to squeeze a bit more due to the fact that $\phi(x) = xx^T$ is a very special $d \times d$ matrix: a rank $1$ matrix. That being said, a coreset of $1/\eps^2$ can be obtained by simply using the kernel technique. The special structure can either give better dependence on $\eps$ or exploit low rank structure e.g.\ if the vectors form a nearly rank $k$ matrix.
+Using the general framework above gives a matrix covariance coreset of cardinality $O(\sqrt{d}/\eps)$.
+Alternatively, we obtain a streaming mergeable algorithm for creating coresets of size $\log^{2}(\min(n, \log(1/\delta)) \sqrt{d}/\eps$.
 
-\zk{The Kernel argument will get us $\sqrt{k}$ and I think we really should get $\sqrt{d}$ which is possibly better.}
+\zk{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.}
+
+
+%\paragraph{Reduction to the Kernel case}
+%This is really the Kernel density estimation problem with $K(x,y) = \ip{x,y}^2$. We might be able to squeeze a bit more due to the fact that $\phi(x) = xx^T$ is a very special $d \times d$ matrix: a rank $1$ matrix. That being said, a coreset of $1/\eps^2$ can be obtained by simply using the kernel technique. The special structure can either give better dependence on $\eps$ or exploit low rank structure e.g.\ if the vectors form a nearly rank $k$ matrix.
+
+
 %
 %\subsection{notes about row selection}
 %The problem is 
@@ -376,24 +379,12 @@ The last inequality holds because the values $\alpha^*_i$ are non-integer in at 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
 
-\noindent The following theorems are provable in almost exactly the same manner
-\begin{conjecture}
-For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{F} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i X_i||_{F} \le O(\sqrt{d_1d_2})$.
-\end{conjecture}
 
-\begin{theorem}
-For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{2} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i X_i||_{2} \le O(\sqrt{\log(d_1 + d_2) d_1d_2})$.
-Here, $\|\cdot\|_2$ denotes the spectral norm of a matrix. 
-\end{theorem}
 
-\begin{theorem}
-For any set of vector $x_1,...,x_n$ in $\R^d$ such that $\|x_i\| \le 1$ there exists a set of 
-signs $s_1,...,s_n$ such that $||\sum_i s_i x_i x^T||_2 \le d$.
-Here, $\|\cdot\|_2$ denotes the spectral norm of a matrix. 
-\end{theorem}
 
 
 \end{document}
+
 
 
 %Specifically, we set $s_i$ sequentially for $i$ while minimizing the expectation. 
