@@ -79,7 +79,7 @@ Here are some examples:
 Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
 \item Linear Classification $f(x,q) = 1$ if $x^t > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
 \item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
-\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian  corresponding to the graph with a single edge $x$ and $q$ is a test vector.
+\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
 \item Probably also good for matrix approx when we get entry updates. 
 \end{itemize}
 
@@ -310,7 +310,7 @@ This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite
 
 
 
-\section{Row Subset Selection}
+\section{Row (or Column) Subset Selection}
 Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
 For simplicity, assume $x_i$ are all unit length. Moreover, assume each vector in $Z$ must be one of the rows in $X$ up to some constant factor.
 This is called the row subset selection problem. 
@@ -340,10 +340,20 @@ This suffices according to \cite{DBLP:conf/approx/DadushGLN16} and the correspon
 Using the general framework above gives a matrix covariance coreset of cardinality $O(\sqrt{d}/\eps)$.
 Alternatively, we obtain a streaming mergeable algorithm for creating coresets of size $\log^{2}(\min(n, \log(1/\delta)) \sqrt{d}/\eps$.
 
-
-
-
 \zk{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.}
+
+\section{Streaming Graph Approximation}
+Streaming graphs have received a lot of attention in the last several years \cite{}. 
+In the standard setting, the edges of a graph $G(V,E)$ are given to an algorithm one ofter the other in arbitrary order.
+Here we show how to approximate all quadratic forms $\sum_{(i,j) \in E} (q_i - q_j)^2$ where the values $q$ are not known in advance.
+Let $L_e$ be the graph Laplacian of the edge $e$. More accurately, $L_e(i,i) = L_e(j,j) = 1$ and  $L_e(i,j) = L_e(j,i) = -1$ and all other values are zeros.
+Then, $\sum_{(i,j) \in E} (q_i - q_j)^2 = q^T \sum_{e \in E}L_e q = q^T L q$. 
+In this formulation, this problem reduced to that of row (column) subset selection. 
+Note that $L_e = v_ev_e^T$ where $v_e(i) = 1$, $v_e(j)=-1$ and zero else.
+Applying the results of the last section we get a streaming mergeable algorithm of approximating graph quadratic forms.
+The number of retained edges in the coreset $E'$ is $|E'| = O(\log^{2}(n) \sqrt{n}/\eps)$ and it guaranties that 
+$|\sum_{(i,j) \in E} (q_i - q_j)^2  - c \sum_{(i,j) \in E'} (q_i - q_j)^2| \le \eps n$ for all unit norm vectors $q$.
+
 
 
 %\paragraph{Reduction to the Kernel case}
