@@ -59,14 +59,13 @@ abc
 def
 
 \section{General framework for sketching}
-In many sketching problems our goal is to approximate a function of the of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i$ are all the stream items and and $q$ is some query point. 
-The goal is to produce a sketch of $\ell$ points $z$ and weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$, either for all possible queries simultaneously, for every fixed $q$ with high probability, or more complicated formulations such as weak coresets.
+In many sketching problems our goal is to approximate a function of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i \in \mathcal X$ are all the stream items and $q \in \mathcal Q$ is any query point from a possible set $\mathcal Q$ which is known in advance.
+The goal is to produce a sketch of $\ell$ points $z \subset \mathcal X$ and real weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$, either for all possible queries $q \in \mathcal Q$ simultaneously or for every fixed $q$ with high probability at least $1-\delta$. There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript.
  
-If $z \subset x$ this is a subset selection or a coreset problem. 
-For bounded functions $f$, uniform sampling combined with a union bound over the space of possible values for $q$ always provides a valid solution. 
-While the number of possible queries $q$ is often infinite it often reduces to a finite set through a net argument. 
+If $z \subset x$ the problem is further restricted to being a subset selection or a coreset selection problem. 
+For bounded functions $f$, uniform sampling combined with a union bound over $|\mathcal Q|$ always provides a valid solution. 
+While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit exponential) set through a net argument. 
 This is common practice in machine learning, specifically, PAC learning. 
-
 However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
 
 Here are some examples:
