@@ -79,7 +79,7 @@ Here $q$ is the parameters of the linear model and $x$ is a training example vec
 \item Linear Classification $f(x,q) = 1$ if $x^t > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
 \item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
 \item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
-\item Probably also good for matrix approx when we get entry updates. 
+\item Probably also good for matrix approximation when we get entry updates. 
 \end{itemize}
 
 We argue that we can offer a solution for producing coresets for all of the above problems in a unified manner. 
@@ -353,6 +353,9 @@ Applying the results of the last section we get a streaming mergeable algorithm 
 The number of retained edges in the coreset $E'$ is $|E'| = O(\log^{2}(n) \sqrt{n}/\eps)$ and it guaranties that 
 $|\sum_{(i,j) \in E} (q_i - q_j)^2  - c \sum_{(i,j) \in E'} (q_i - q_j)^2| \le \eps n$ for all unit norm vectors $q$.
 
+\section{Logistic Regression}
+The following paper claims no streaming algorithms or coresets are available \cite{DBLP:journals/corr/abs-1805-08571}.
+This paper claims to have done that \cite{DBLP:conf/nips/HugginsCB16}.
 
 
 %\paragraph{Reduction to the Kernel case}
