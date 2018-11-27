@@ -345,6 +345,30 @@ Alternatively, we obtain a streaming mergeable algorithm for creating coresets o
 
 \el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} \zk{We can get $1/\eps^2$ though which is better than $\sqrt{d}/\eps$ as long as $\eps > 1/\sqrt{d}$. If $\eps < 1/\sqrt{d}$ then $\sqrt{d}/\eps > d$ - shouldn't it be trivial to get a coreset of size $d$?}
 
+\subsection{optimal design of experiments}
+We discuss the problem of linear regression with mean squared error. In the classic setting we are given $n$ points $x_1,\ldots,x_n \in \R^d$ along with $n$ labels $y_1,\ldots,y_n \in \R$ and wish to find $w \in \R^d$ minimizing
+$$ \sum_i (w^Tx_i - y_i)^2 $$
+In the field of optimal design of experiments, the labels are not given with the data. Instead, the learner must choose in advance a subset of datapoints for which they query the labels. The subset is chosen to provide the least error in a generalization bound, assuming $(x_1,y_1),\ldots,(x_n,y_n)$ are i.i.d from an unknown distribution.
+
+The way this is done in optimal design of experiments is as follows. Let $X$ be the set of $n$ points and consider a subset $B \subseteq X$. The empirical risk minimizer (ERM) for $B$ is 
+$$ w_B = \left( \sum_{x \in B} xx^T \right)^{\dagger} y_B $$
+%It is known that $w_B$ is an unbiased estimator of $w^*$, the optimal regressor for the distribution, where the noise comes from the realizations of the $y_i$'s. It follows that to minimize 
+%$$ E_{x \sim {\cal D}} \ip{w-w^*,x}^2 $$
+%which is the variance of $w$ measured by the distribution of data points, it suffice to minimize the second moment
+%$$ E_{x \sim {\cal D}} \ip{w,x}^2  \approx w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
+
+
+One can show that for $w_B$,
+$$ \sum_i (w_B^Tx_i - y_i)^2 = C \cdot \text{Tr} \left(\left( \sum_{x \in B} xx^T \right)^{\dagger} \right) $$
+This only works when $\sum_{x \in B} xx^T$ is full rank, otherwise we need to introduce some regularization and then things get messy.
+
+We can use the results above for optimal design in the case where $w$ is restricted to have a unit Euclidean norm. Something that is commonly practiced. Since we will solve the problem for the subset we choose in an optimal way for gaussian noise, we end up with an unbiased estimator for $w^*$. The error is the variance of that unbiased estimator and minimizing the variance for an unbiased estimator is the same as minimizing its second moment we can aim to minimize
+$$ F(w) = w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
+This is leads to the exact same objective as in column subset selection. Meaning that an $\eps$ core-set for the $x$'s gives a guaranteed error for a subset in the optimal design setting. Specifically we get that we can obtain a core-set of size
+$$ \min(1/\eps^2, \sqrt{d}/\eps)$$
+For the case of $\eps < 1/\sqrt{d}$, which is an interesting case in linear regression, a random sample of $\sqrt{d}/\eps$ points will not give a generalization bound of $\eps$ (there are known lower bounds, http://jmlr.org/papers/volume16/shamir15a/shamir15a.pdf contradicting this), meaning that we have a provable non-trivial guarantee for active learning. I'm not sure what statements are known already. 
+
+In the optimal design setting, they require keeping the covariance matrix. We could come up with a hueristic or even sketching algorithm that avoids maintaining $d^2$ points.
 
 %\paragraph{Reduction to the Kernel case}
 %This is really the Kernel density estimation problem with $K(x,y) = \ip{x,y}^2$. We might be able to squeeze a bit more due to the fact that $\phi(x) = xx^T$ is a very special $d \times d$ matrix: a rank $1$ matrix. That being said, a coreset of $1/\eps^2$ can be obtained by simply using the kernel technique. The special structure can either give better dependence on $\eps$ or exploit low rank structure e.g.\ if the vectors form a nearly rank $k$ matrix.
