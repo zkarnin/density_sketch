@@ -52,7 +52,11 @@ Edo Liberty\\Amazon\\libertye@amazon.com
 \maketitle
 
 \begin{abstract}
-abc
+We present a general framework for producing mergeable sketches based on coresets for a wide variety of streaming problems. 
+The algorithm is generic and works whenever the task exhibits a certain low discrepancy property.
+Such problems include simple tasks like frequent item counting and quantile approximation, newer results on kernel density estimation and matrix covariance approximation, and extends to machine learning in problems such at linear and logistic regression. 
+For all of the above we match the state of the art or improve on it with the above generic framework.
+This makes an explicit connection between low discrepancy, streaming algorithms, coresets, and learnability. 
 \end{abstract}
 
 \section{introduction}
@@ -60,11 +64,12 @@ def
 
 \section{General framework for sketching}
 In many sketching problems our goal is to approximate a function of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i \in \mathcal X$ are all the stream items and $q \in \mathcal Q$ is any query point from a possible set $\mathcal Q$ which is known in advance.
-The goal is to produce a sketch of $\ell$ points $z \subset \mathcal X$ and real weights $w$ such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(z_i,q) \approx \sum_{i=1}^{n} f(x_i, q)$, either for all possible queries $q \in \mathcal Q$ simultaneously or for every fixed $q$ with high probability at least $1-\delta$. There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript.
- 
-If $z \subset x$ the problem is further restricted to being a subset selection or a coreset selection problem. 
+The goal is to produce weights $w$ with at most $\ell \ll n$ non-zero such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(x_i,q) \approx F(q)$.
+Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all possible queries $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
+There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript.
+
 For bounded functions $f$, uniform sampling combined with a union bound over $|\mathcal Q|$ always provides a valid solution. 
-While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit exponential) set through a net argument. 
+While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through an epsilon net argument. 
 This is common practice in machine learning, specifically, PAC learning. 
 However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
 
@@ -74,11 +79,11 @@ Here are some examples:
 \item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else. Here, $x$ and $q$ belong to a set which exhibits total ordering.
 \item in matrix column subset selection we have $f(x, q) = \langle x,q \rangle ^2$ where $q$ is any unit vector in $\R^d$ and $x$ are matrix rows. For simplicity, we will assume in this manuscript that $x$ is also unit norm.
 \item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
-\item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = 1/(1 + \exp(-q^T x))$. 
+\item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = \log(1 + \exp(-q^T x))$. 
 Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
-\item Linear Classification $f(x,q) = 1$ if $x^t > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
+\item Linear Classification $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
 \item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
-\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
+\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
 \item Probably also good for matrix approximation when we get entry updates. 
 \end{itemize}
 
@@ -283,8 +288,8 @@ This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite
 
 
 \section{Row (or Column) Subset Selection}
-Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps n$.
-For simplicity, assume $x_i$ are all unit length. Moreover, assume each vector in $Z$ must be one of the rows in $X$ up to some constant factor.
+Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to compute $Z$ such that $\|Z^TZ - X^TX\| \le \eps \operatorname{Tr}(X^TX)$.
+For simplicity, assume $x_i$ are all unit length so $\eps \operatorname{Tr}(X^TX) = \eps n$. Moreover, assume each vector in $Z$ must be one of the rows in $X$ up to some constant factor.
 This is called the row subset selection problem. 
 Since you are trying to minimize the quadratic form, you get that $f(x, q) = \langle x,q \rangle ^2$ and 
 $$E(y) = \sum_i s_i \langle x_i,q \rangle ^2 = q^T (\sum_i s_i x_i x_i^T ) q \le \|\sum_i s_i x_i x_i^T\| \le c\sqrt{d}$$
@@ -394,7 +399,6 @@ $$
 The last inequality holds because the values $\alpha^*_i$ are non-integer in at most $d$ places. 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
-
 
 
 
