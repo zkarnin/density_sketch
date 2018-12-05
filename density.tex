@@ -27,6 +27,8 @@
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\D}{\rho}
 \newcommand{\eps}{\epsilon}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\X}{\mathcal{X}}
 %\usepackage{ntheorem}
 \newcommand{\floor}[1]{\left \lfloor #1 \right \rfloor}
 \newcommand{\ceil}[1]{\left \lceil #1 \right \rceil}
@@ -68,10 +70,9 @@ The goal is to produce weights $w$ with at most $\ell \ll n$ non-zero such that 
 Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all possible queries $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript.
 
-For bounded functions $f$, uniform sampling combined with a union bound over $|\mathcal Q|$ always provides a valid solution. 
-While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through an epsilon net argument. 
-This is common practice in machine learning, specifically, PAC learning. 
-However, it is often far from being the best possible in terms of its space-accuracy tradeoff. 
+Generating a concise representation for $\tilde F$ allows one to optimize of $\tilde F$ instead of $F$ which more efficient. 
+Moreover, if the sketches or coresets are mergable, this could be done on separate machines without the need for communication or assuming randomness in the partitioning.
+
 
 Here are some examples:
 \begin{itemize}
@@ -87,12 +88,21 @@ Here $q$ is the parameters of the linear model and $x$ is a training example vec
 \item Probably also good for matrix approximation when we get entry updates. 
 \end{itemize}
 
-We argue that we can offer a solution for producing coresets for all of the above problems in a unified manner. 
+
+For bounded functions $f$ like above, uniform sampling of $\ell = O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $\ell = O(\log(|\mathcal Q|)/\eps^2)$ stream items. 
+While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
+This is common practice in machine learning, specifically, PAC learning. 
+However, it is often far from being the smallest cardinality coreset possible.
+
+We argue that we can offer a solution for producing smaller coresets for all of the above problems in a unified manner. 
 Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
 
-The high level idea is the following. Consider a stream of the data points $x_i$. We wish to to maintain a buffer that can hold up to $k$ points, and output a stream of data points having half the amount of the original stream, yet at the same time maintain a similar value for 
-$$ \sum_i f(x_i, q) $$
-for any query $q$. To do so our buffer, once collecting $k$ data points, performs a \emph{compact} operation that outputs $k/2$ data points of weight $2$ representing the original $k$ inputs. The compact operation partitions the $k$ points into two (roughly) sets, whose corresponding sum are very close. This is made formal with the following definitions: Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$ where $s_i \in \{-1,1\}$ are signs.
+The high level idea is the following. 
+Consider a stream of the data points $x_i$. 
+We maintain a buffer that can hold up to $k$ points.
+Once collecting $k$ data points it performs a \emph{compact} operation that outputs $k/2$ data points of weight $2$ representing the original $k$ inputs. The compact operation partitions the $k$ points into two sets whose corresponding sum are very close. 
+This is made formal with the following definitions: 
+Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$ where $s_i \in \{-1,1\}$ are signs.
 Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$ and the corresponding $F_{-1}$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| \le  | E(q)|$.
 
 %
@@ -321,7 +331,7 @@ Alternatively, we obtain a streaming mergeable algorithm for creating coresets o
 
 \el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} \zk{We can get $1/\eps^2$ though which is better than $\sqrt{d}/\eps$ as long as $\eps > 1/\sqrt{d}$. If $\eps < 1/\sqrt{d}$ then $\sqrt{d}/\eps > d$ - shouldn't it be trivial to get a coreset of size $d$?}
 
-\subsection{optimal design of experiments}
+\subsection{Optimal Design of Experiments}
 We discuss the problem of linear regression with mean squared error. In the classic setting we are given $n$ points $x_1,\ldots,x_n \in \R^d$ along with $n$ labels $y_1,\ldots,y_n \in \R$ and wish to find $w \in \R^d$ minimizing
 $$ \sum_i (w^Tx_i - y_i)^2 $$
 In the field of optimal design of experiments, the labels are not given with the data. Instead, the learner must choose in advance a subset of datapoints for which they query the labels. The subset is chosen to provide the least error in a generalization bound, assuming $(x_1,y_1),\ldots,(x_n,y_n)$ are i.i.d from an unknown distribution.
@@ -400,6 +410,34 @@ The last inequality holds because the values $\alpha^*_i$ are non-integer in at 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
 
+
+\section{Attempt at Cleaner Definitions}
+Let $\mathcal F$ be a family functions from a domain $\X$ to $\R$.
+We define the discrepancy of $\F$. Let $f \subset{\F}$ to a subset of $\F$.
+$$\mathcal D_m(\F) := \sup_{x\in\X} \min_{s\in \{0,1\}^m} \sup_{f\subset \F, |f|=m}  \sum_{i}s_i f_i (x)$$  \el{need to double check the order here...}
+
+We claim that a very common task is to approximate the function $F = \sum_i f_i$ using a concise representation.  
+Specifically, using coresets we can approximate $F$ with $\tilde F = \sum_i w_i f_i$ where $w$ is non-zero in at most $k$ places.
+
+In this paper we show that if a family of functions exhibits low discrepancy then finding a good coreset is always possible.
+The size of the coresets we find with the proposed algorithm is always smaller than that achievable by uniform sampling.
+Moreover, we show that this framework includes a wide variety of problems including quantile approximation, approximate counting, machine learning classification and regressing, kernel density estimation and many more. 
+Finally, we show that coresets can always be created in a streaming fashion using fully mergable sketches with only a $\operatorname{poly}\log\log$ factor loss in space.
+
+
+In what follows, we subscript the function $f$ with its parametrization.
+\begin{itemize}
+\item In approximate counting we have $f_a(x) = 1$ if $a=x$ and zero else. Here both $a$ and $x$ belong to some finite domain.
+\item In quantile approximation we have $f_a(x) = 1$ if $a<x$ and zero else. Here, $a$ and $x$ belong to a set which exhibits total ordering.
+\item In matrix column subset selection we have $f_z(a,q) = \langle z,x \rangle ^2$ where $a,x \R^d$. For simplicity, we assume $\|a\| = \|x\| = 1$.
+\item In density estimation $f_a(x) = \exp(- \|a-x\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
+\item In logistic regression $f_a(x) = \operatorname{loss}(a,x) = \log(1 + \exp(-a^T x))$. 
+Here $x$ is the parameters of the linear model and $a$ is a training example vector multiplied by its label ($1$ or $-1$).
+\item Linear Classification $f_a(x) = 1$ if $a^Tx > 0$ and $0$ else. Here, like in Logistic Regression, $a$ is the example point multiplied by its label and $x$ is the weights of the linear classifier.
+\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
+\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
+\item Probably also good for matrix approximation when we get entry updates. 
+\end{itemize}
 
 
 
