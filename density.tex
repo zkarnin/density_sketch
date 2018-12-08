@@ -440,6 +440,52 @@ Here $x$ is the parameters of the linear model and $a$ is a training example vec
 \end{itemize}
 
 
+\section{Komlos Complexity}
+
+
+\begin{definition}
+Let $\F:\mathcal Q\rightarrow \R$ be a family of functions, $f \subset \F$, and $\sigma \in \{-1,1\}^m$ uniformly. 
+The Rademacher complexity of $\F$ is defined to be
+\[
+R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{f}  \sum_{i=1}^{m}\sigma_i f_i
+\]
+\end{definition}
+\cite{Bartlett:2003:RGC:944919.944944}
+\begin{definition}
+Let $\F:\mathcal Q\rightarrow \R$ be a family of functions, $f \subset \F$, and $\sigma \in \{-1,1\}^m$.
+The Komlos complexity of $\F$ is defined as
+\[
+K_m(\F) =  \frac{1}{m}\min_{\sigma} \sup_{f}  \sum_{i=1}^{m}\sigma_i f_i
+\]
+\end{definition}
+We claim that while $R_n$ is a good measure for generalization when data is chosen uniformly at random (or drawn from an unknown distribution) $K_n$ is the measure more suitable for
+active learning and creating streaming coresets. 
+The name Komlos Complexity due to the Komlos Conjecture which claims the minimal value of $\min_\sigma \max_f \|\sum_i \sigma_i f_i\|_\infty = O(1)$ for unit vectors $f$. The correctness of the Komlos Conjecture is still an important open problem in the study of discrepancy theory. 
+
+It is clear that $K_m(\F) < R_m(\F)$ for every family $\F$.
+
+\newcommand{\ccc}[1]{\parbox}
+\begin{table}[htp]
+\caption{default}
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+Problem				& $f$ 							& $R_m$ 		& $K_m$ \\ \hline
+Counting 				& $f(x, q) = 1$ if $x=q$ and zero else 	& $1/\sqrt{m}$	& $1/m$ \\ \hline
+Quantiles				& $f(x, q) = 1$ if $x\le q$ and zero else  	& $1/\sqrt{m}$	& $1/m$ \\ \hline
+Matrix Sketching		& $f(x, q) = \langle x,q \rangle ^2$ where $q,x\in \R^d$	& $1/\sqrt{m}$	& $\min\{\sqrt{d}/m,1/\sqrt{m}\}$ \\ \hline
+Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other positive kernel (see \cite{}) & ?	$\sqrt{m}$ ? \\ \hline
+Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ 		& ?	 ? \\ \hline
+Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else	& ?	& ? \\ \hline
+Graph Laplacian 		& $f(x, q) = q^T L_x q = w_{ij}(q_i - q_i)^2$ for $x = (w_{ij},i,j)$ and $q \in \R^n$ & ?	& ? \\ \hline
+Entry-wise Matrix Approximation  & $f(x, q) = w_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q = (u,v)$ & ?	& ? \\ \hline
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+According to these notes \el{https://courses.cs.washington.edu/courses/cse522/11wi/scribes/lecture6.pdf find better ref} all
+linear classifiers have Rademacher complexity $O(1/\sqrt{m})$. 
+If we look at the proof in the last page, it is clear we can get also $K_m = \sqrt{d}/m$ which is better whenever $m>d$ which is pretty much always the case for linear classification (number of examples greater than $d$)
 
 \end{document}
 
