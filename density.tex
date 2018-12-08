@@ -469,15 +469,16 @@ It is clear that $K_m(\F) < R_m(\F)$ for every family $\F$.
 \caption{default}
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
-Problem				& $f$ 							& $R_m$ 		& $K_m$ \\ \hline
-Counting 				& $f(x, q) = 1$ if $x=q$ and zero else 	& $1/\sqrt{m}$	& $1/m$ \\ \hline
-Quantiles				& $f(x, q) = 1$ if $x\le q$ and zero else  	& $1/\sqrt{m}$	& $1/m$ \\ \hline
-Matrix Sketching		& $f(x, q) = \langle x,q \rangle ^2$ where $q,x\in \R^d$	& $1/\sqrt{m}$	& $\min\{\sqrt{d}/m,1/\sqrt{m}\}$ \\ \hline
-Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other positive kernel (see \cite{}) & ?	$\sqrt{m}$ ? \\ \hline
-Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ 		& ?	 ? \\ \hline
-Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else	& ?	& ? \\ \hline
-Graph Laplacian 		& $f(x, q) = q^T L_x q = w_{ij}(q_i - q_i)^2$ for $x = (w_{ij},i,j)$ and $q \in \R^n$ & ?	& ? \\ \hline
-Entry-wise Matrix Approximation  & $f(x, q) = w_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q = (u,v)$ & ?	& ? \\ \hline
+Problem				& $f$ 											& $R_m$ 			& $K_m$ \\ \hline
+Counting 				& $f(x, q) = 1$ if $x=q$ and zero else 					& $1/\sqrt{m}$		& $1/m$ \\ \hline
+Quantiles				& $f(x, q) = 1$ if $x\le q$ and zero else  					& $1/\sqrt{m}$		& $1/m$ \\ \hline
+Column Slection		& $f(x, q) = \langle x,q \rangle ^2$ where  $q,x\in \R^d$		& $1/\sqrt{m}$		& $\sqrt{d}/m$ \\ \hline
+Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ 					& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ 						& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+Hinge Regression     		& $f(x, q) = [1-q^T x]_+$								& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else					& ?				& ? \\ \hline
+Graph Laplacian 		& $f(x, q) = w_{ij}(q_i - q_i)^2$ for $x = (w_{ij},i,j)$, $q \in \R^n$ & ?				& ? \\ \hline
+Matrix Approximation  	& $f(x, q) = w_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q = (u,v)$ 	& ?				& ? \\ \hline
 \end{tabular}
 \end{center}
 \label{default}
