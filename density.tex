@@ -402,43 +402,44 @@ For any set of vector $x_1,...,x_n$ in $\R^d$ such that $\|x_i\| \le 1$ there ex
 \begin{proof}
 Consider the feasible region for $\sum_i \alpha_i x_i = 0$ and all $\alpha_i \in [-1,1]$.
 This feasible region is not empty because it contains the origin. 
-Consider an extreme point $\alpha^*_i$ and set $s_i = 1$ w.p.\ $(1+\alpha^*_i)/2$ and $s_i = -1$ w.p.\ $(1+\alpha^*_i)/2$.
+Consider an extreme point $\alpha^*_i$ and set $s_i = 1$ w.p.\ $(1+\alpha^*_i)/2$ and $s_i = -1$ w.p.\ $(1-\alpha^*_i)/2$.
 $$
 \E[\|\sum s_i x_i\|^2] =  \E[\|\sum (s_i - \alpha^*_i) x_i\|^2] = \sum \E[(s_i - \alpha^*_i)^2] \|x_i\|^2= \sum (1-(\alpha_i^*)^2) \le d
 $$
+The first equality is due to $\sum_i \alpha_i x_i = 0$. The second used $\E[s_i] = \alpha^*_i $.
 The last inequality holds because the values $\alpha^*_i$ are non-integer in at most $d$ places. 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
 
 
-\section{Attempt at Cleaner Definitions}
-Let $\mathcal F$ be a family functions from a domain $\X$ to $\R$.
-We define the discrepancy of $\F$. Let $f \subset{\F}$ to a subset of $\F$.
-$$\mathcal D_m(\F) := \sup_{x\in\X} \min_{s\in \{0,1\}^m} \sup_{f\subset \F, |f|=m}  \sum_{i}s_i f_i (x)$$  \el{need to double check the order here...}
-
-We claim that a very common task is to approximate the function $F = \sum_i f_i$ using a concise representation.  
-Specifically, using coresets we can approximate $F$ with $\tilde F = \sum_i w_i f_i$ where $w$ is non-zero in at most $k$ places.
-
-In this paper we show that if a family of functions exhibits low discrepancy then finding a good coreset is always possible.
-The size of the coresets we find with the proposed algorithm is always smaller than that achievable by uniform sampling.
-Moreover, we show that this framework includes a wide variety of problems including quantile approximation, approximate counting, machine learning classification and regressing, kernel density estimation and many more. 
-Finally, we show that coresets can always be created in a streaming fashion using fully mergable sketches with only a $\operatorname{poly}\log\log$ factor loss in space.
-
-
-In what follows, we subscript the function $f$ with its parametrization.
-\begin{itemize}
-\item In approximate counting we have $f_a(x) = 1$ if $a=x$ and zero else. Here both $a$ and $x$ belong to some finite domain.
-\item In quantile approximation we have $f_a(x) = 1$ if $a<x$ and zero else. Here, $a$ and $x$ belong to a set which exhibits total ordering.
-\item In matrix column subset selection we have $f_z(a,q) = \langle z,x \rangle ^2$ where $a,x \R^d$. For simplicity, we assume $\|a\| = \|x\| = 1$.
-\item In density estimation $f_a(x) = \exp(- \|a-x\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
-\item In logistic regression $f_a(x) = \operatorname{loss}(a,x) = \log(1 + \exp(-a^T x))$. 
-Here $x$ is the parameters of the linear model and $a$ is a training example vector multiplied by its label ($1$ or $-1$).
-\item Linear Classification $f_a(x) = 1$ if $a^Tx > 0$ and $0$ else. Here, like in Logistic Regression, $a$ is the example point multiplied by its label and $x$ is the weights of the linear classifier.
-\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
-\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
-\item Probably also good for matrix approximation when we get entry updates. 
-\end{itemize}
-
+%\section{Attempt at Cleaner Definitions}
+%Let $\mathcal F$ be a family functions from a domain $\X$ to $\R$.
+%We define the discrepancy of $\F$. Let $f \subset{\F}$ to a subset of $\F$.
+%$$\mathcal D_m(\F) := \sup_{x\in\X} \min_{s\in \{0,1\}^m} \sup_{f\subset \F, |f|=m}  \sum_{i}s_i f_i (x)$$  \el{need to double check the order here...}
+%
+%We claim that a very common task is to approximate the function $F = \sum_i f_i$ using a concise representation.  
+%Specifically, using coresets we can approximate $F$ with $\tilde F = \sum_i w_i f_i$ where $w$ is non-zero in at most $k$ places.
+%
+%In this paper we show that if a family of functions exhibits low discrepancy then finding a good coreset is always possible.
+%The size of the coresets we find with the proposed algorithm is always smaller than that achievable by uniform sampling.
+%Moreover, we show that this framework includes a wide variety of problems including quantile approximation, approximate counting, machine learning classification and regressing, kernel density estimation and many more. 
+%Finally, we show that coresets can always be created in a streaming fashion using fully mergable sketches with only a $\operatorname{poly}\log\log$ factor loss in space.
+%
+%
+%In what follows, we subscript the function $f$ with its parametrization.
+%\begin{itemize}
+%\item In approximate counting we have $f_a(x) = 1$ if $a=x$ and zero else. Here both $a$ and $x$ belong to some finite domain.
+%\item In quantile approximation we have $f_a(x) = 1$ if $a<x$ and zero else. Here, $a$ and $x$ belong to a set which exhibits total ordering.
+%\item In matrix column subset selection we have $f_z(a,q) = \langle z,x \rangle ^2$ where $a,x \R^d$. For simplicity, we assume $\|a\| = \|x\| = 1$.
+%\item In density estimation $f_a(x) = \exp(- \|a-x\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
+%\item In logistic regression $f_a(x) = \operatorname{loss}(a,x) = \log(1 + \exp(-a^T x))$. 
+%Here $x$ is the parameters of the linear model and $a$ is a training example vector multiplied by its label ($1$ or $-1$).
+%\item Linear Classification $f_a(x) = 1$ if $a^Tx > 0$ and $0$ else. Here, like in Logistic Regression, $a$ is the example point multiplied by its label and $x$ is the weights of the linear classifier.
+%\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
+%\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
+%\item Probably also good for matrix approximation when we get entry updates. 
+%\end{itemize}
+%
 
 \section{Komlos Complexity}
 
@@ -459,10 +460,10 @@ K_m(\F) =  \frac{1}{m}\min_{\sigma} \sup_{f}  \sum_{i=1}^{m}\sigma_i f_i
 \]
 \end{definition}
 We claim that while $R_n$ is a good measure for generalization when data is chosen uniformly at random (or drawn from an unknown distribution) $K_n$ is the measure more suitable for
-active learning and creating streaming coresets. 
-The name Komlos Complexity due to the Komlos Conjecture which claims the minimal value of $\min_\sigma \max_f \|\sum_i \sigma_i f_i\|_\infty = O(1)$ for unit vectors $f$. The correctness of the Komlos Conjecture is still an important open problem in the study of discrepancy theory. 
-
-It is clear that $K_m(\F) < R_m(\F)$ for every family $\F$.
+active learning, for creating coresets, and for creating mergeable sketches.
+The name Komlos Complexity due to the Komlos Conjecture. It claims that $\min_\sigma \max_f \|\sum_i \sigma_i f_i\|_\infty = O(1)$ for unit vectors $f$. The correctness of the Komlos Conjecture is still a fundamental open problem in the study of discrepancy theory. 
+The definition is useful, however regardless of the correctness of the conjecture.  
+It is obvious that  $K_m(\F) \le R_m(\F)$ for any family $\F$. We claim, however, that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
 
 \newcommand{\ccc}[1]{\parbox}
 \begin{table}[htp]
@@ -473,7 +474,7 @@ Problem				& $f$ 											& $R_m$ 			& $K_m$ \\ \hline
 Counting 				& $f(x, q) = 1$ if $x=q$ and zero else 					& $1/\sqrt{m}$		& $1/m$ \\ \hline
 Quantiles				& $f(x, q) = 1$ if $x\le q$ and zero else  					& $1/\sqrt{m}$		& $1/m$ \\ \hline
 Column Slection		& $f(x, q) = \langle x,q \rangle ^2$ where  $q,x\in \R^d$		& $1/\sqrt{m}$		& $\sqrt{d}/m$ \\ \hline
-Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ 					& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ 					& ? 		& $\sqrt{m}$ \\ \hline
 Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ 						& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
 Hinge Regression     		& $f(x, q) = [1-q^T x]_+$								& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
 Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else					& ?				& ? \\ \hline
