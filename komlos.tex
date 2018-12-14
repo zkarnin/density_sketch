@@ -29,6 +29,7 @@
 \newcommand{\eps}{\epsilon}
 \newcommand{\F}{\mathcal{F}}
 \newcommand{\X}{\mathcal{X}}
+\newcommand{\Q}{\mathcal{Q}}
 %\usepackage{ntheorem}
 \newcommand{\floor}[1]{\left \lfloor #1 \right \rfloor}
 \newcommand{\ceil}[1]{\left \lceil #1 \right \rceil}
@@ -67,47 +68,51 @@ We also asymptotically improve on the generic merge-reduce framework for creatin
 
 \section{Introduction}
 
-In many machine learning and sketching problems our goal is to approximate the sum (or expectation) of functions.
-Specifically, function of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i \in \mathcal X$ are either training examples or stream items and $q \in \mathcal Q$ is either the model parameters or a query from a possible set $\mathcal Q$ which is known in advance.
-The goal is to produce weights $w$ with at most $\ell \ll n$ non-zero such that $\tilde F(q) = \sum_{i=1}^{\ell}w_i f(x_i,q) \approx F(q)$.
+In many machine learning and sketching problems our goal is often to approximate the sum (or expectation) of functions.
+Specifically, function of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i \in \mathcal X$ are either training examples or stream items and $q \in \mathcal Q$ is either the model parameters or a query from a possible set $\Q$ which is known in advance. For simplicity and throughout this manuscript we will assume $f:\X\times\Q\rightarrow [0,1]$.
+The goal is to produce weights $w$ with at most $k \ll n$ non-zero such that $\tilde F(q) = \sum_{i=1}^{n}w_i f(x_i,q)$ approximates $F(q)$.
 Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all possible queries $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript.
 
-Generating a concise representation for $\tilde F$ allows one to optimize over $\tilde F$ instead of $F$ which more efficient. 
-Moreover, if the sketches or coresets are mergable, this could be done on separate machines without the need for communication or assuming randomness in the partitioning.
+Generating a concise representation for $\tilde F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
+Moreover, if the resulting sketches or coresets are mergable, this could be done on separate machines without the need for communication or assuming randomness in the partitioning.
 
-Here are some examples:
-\begin{itemize}
-\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else. Here both $x$ and $q$ belong to some finite domain.
-\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else. Here, $x$ and $q$ belong to a set which exhibits total ordering.
-\item in matrix column subset selection we have $f(x, q) = \langle x,q \rangle ^2$ where $q$ is any unit vector in $\R^d$ and $x$ are matrix rows. For simplicity, we will assume in this manuscript that $x$ is also unit norm.
-\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
-\item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = \log(1 + \exp(-q^T x))$. 
-Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
-\item Linear Classification $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
-\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
-\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
-\item Probably also good for matrix approximation when we get entry updates. 
-\end{itemize}
+%Here are some examples:
+%\begin{itemize}
+%\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else. Here both $x$ and $q$ belong to some finite domain.
+%\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else. Here, $x$ and $q$ belong to a set which exhibits total ordering.
+%\item in matrix column subset selection we have $f(x, q) = \langle x,q \rangle ^2$ where $q$ is any unit vector in $\R^d$ and $x$ are matrix rows. For simplicity, we will assume in this manuscript that $x$ is also unit norm.
+%\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
+%\item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = \log(1 + \exp(-q^T x))$. 
+%Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
+%\item Linear Classification $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
+%\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
+%\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
+%\item Probably also good for matrix approximation when we get entry updates. 
+%\end{itemize}
 
 
 
 \newcommand{\ccc}[1]{\parbox}
 \begin{table}[htp]
-\caption{default}
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
 Problem				& $f$ 											& $R_m$ 			& $K_m$ \\ \hline
 Counting 				& $f(x, q) = 1$ if $x=q$ and zero else 					& $1/\sqrt{m}$		& $1/m$ \\ \hline
 Quantiles				& $f(x, q) = 1$ if $x\le q$ and zero else  					& $1/\sqrt{m}$		& $1/m$ \\ \hline
 Column Selection		& $f(x, q) = \langle x,q \rangle ^2$ where  $q,x\in \R^d$		& $1/\sqrt{m}$		& $\sqrt{d}/m$ \\ \hline
-Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ 					& ? 		& $\sqrt{m}$ \\ \hline
-Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ 						& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
-Hinge Regression     		& $f(x, q) = [1-q^T x]_+$								& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
-Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else					& ?				& ? \\ \hline
+Gaussian Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\lambda^2)$ where  $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
+Laplacian Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2/\lambda)$ where  $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
+Positive Kernel Density 			& $f(x, q) = k(x,q)$ for any positive kernel $k$ and $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
+
+%Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ where  $q,x\in \R^d$ 						& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+%Hinge Regression     		& $f(x, q) = [1-q^T x]_+$ where  $q,x\in \R^d$							& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+Linear Regression		& $f(x,q) = (z^Tq - y)^2$ where $x = (z\in\R^d,y\in \R)$ and $q\in \R^d$					& ?				& ? \\ \hline
+Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else. $q,x\in \R^d$					& ?				& ? \\ \hline
 Graph Laplacian 		& $f(x, q) = w_{ij}(q_i - q_i)^2$ for $x = (w_{ij},i,j)$, $q \in \R^n$ & ?				& ? \\ \hline
-Matrix Approximation  	& $f(x, q) = w_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q = (u,v)$ 	& ?				& ? \\ \hline
+Matrix Approximation  	& $f(x, q) = a_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q = (u,v)$ 	& ?				& ? \\ \hline
 \end{tabular}
+\caption{Example problems in machine learning and sketching that fall into this framework.}
 \end{center}
 \label{default}
 \end{table}%
@@ -118,9 +123,7 @@ Matrix Approximation  	& $f(x, q) = w_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q
 
 For bounded functions $f$ like above, uniform sampling of $\ell = O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $\ell = O(\log(|\mathcal Q|)/\eps^2)$ stream items. 
 While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
-This is common practice in machine learning, specifically, PAC learning. 
-However, it is often far from being the smallest cardinality coreset possible.
-
+%This is common practice in machine learning, specifically, PAC learning. However, it is often far from being the smallest cardinality coreset possible.
 We argue that we can offer a solution for producing smaller coresets for all of the above problems in a unified manner. 
 Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
 The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
@@ -149,38 +152,52 @@ K_m(A) =  \frac{1}{m}\min_{\sigma} \sup_{a \in A}  \sum_{i=1}^{m}\sigma_i a_i
 The name Komlos Complexity is due to the Komlos Conjecture. It claims that $\min_\sigma \max_f \|\sum_i \sigma_i f_i\|_\infty = O(1)$ for unit vectors $f$. The correctness of the Komlos Conjecture is still a fundamental open problem in the study of discrepancy theory.  The definition is useful, however, regardless of the correctness or provability of the conjecture.  
 It is obvious that  $K_m(\F) \le R_m(\F)$ for any family $\F$. We show later that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
 
+%\begin{theorem}
+%Let $F(a) = \sum_i a_i$ for $a \in A$ and let $K_m(A) = O(c/m^\gamma)$ for any constant $\gamma \in (0,1]$.
+%There exist a coreset for $A$ such that $\tilde{F}(a) = \sum_{i} w_i a_i$, $\operatorname{supp}(w) \le m$ and 
+%$$
+%\forall \; a \in A \;\;\;  |F(a) - \tilde F(a)| \le \eps n
+%$$
+%\end{theorem}
+%\begin{proof}
+%By halving the points repeatedly \el{TODO}.
+%\end{proof}
+
+\begin{fact}
+For any function family $\F$ which a corresponding Komlos Complexity $K_m(\F) = O(c/m)$ there exists a coreset of size 
+$O(c/\eps)$ whose error is at most $\eps n$.
+\end{fact}
+\begin{fact}
+For any function family $\F$ which a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$ there exists a coreset of size 
+$O(c/\eps^2)$ whose error is at most $\eps n$.
+\end{fact}
+
+\noindent Proving both facts is trivial. 
+At step one, create a coreset of size at most $n/2$ of items of weight $2$ and incur an error of at most $c$ or $c \sqrt{n}$.
+Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c$ of $2\sqrt{n/2}  = \sqrt{2n}$.
+Note that the sum of errors is asymptotically dominated by last iterations. 
+Halting the compression at $\Theta(1/\eps)$ or $\Theta(1/\eps^2)$ items respectively achieves the goal.
 
 
-\begin{theorem}
-Let $F(a) = \sum_i a_i$ for $a \in A$ and let $K_m(A) = O(c/m^\gamma)$ for any constant $\gamma \in (0,1]$.
-There exist a coreset for $A$ such that $\tilde{F}(a) = \sum_{i} w_i a_i$, $\operatorname{supp}(w) \le m$ and 
-$$
-\forall \; a \in A \;\;\;  |F(a) - \tilde F(a)| \le \eps n
-$$
-\end{theorem}
-\begin{proof}
-By halving the points repeatedly \el{TODO}.
-\end{proof}
 
-
-\begin{theorem}
-Let $A$ be of the special form $a_i = f(x_i,q) \in [0,1]$ and $K_m(A) = O(c/\sqrt{m})$.
-There exist and streaming mergeable coreset for $A$ with cardinality at most $\ell = O(c\log^{3}\log(1/\delta)/\eps^2)$.
-That is, let $F(q) = \sum_i f(x_i,q)$. One can process a stream of item $x_1,\ldots,x_n$ and produce $\tilde{F}(q) = \sum_{i} w_i a_i$ with $\operatorname{supp}(w) \le \ell$ such that 
-$$
-\forall \; q \in Q \text{\;\;with probability\;\;} 1-\delta  \;\;\;  |F(q) - \tilde F(q)| \le \eps n
-$$
-\end{theorem}
-
-
-\begin{theorem}
-Let $A$ be of the special form $a_i = f(x_i,q) \in [0,1]$ and $K_m(A) = O(c/m)$.
-There exist and streaming mergeable coreset for $A$ with cardinality at most $\ell = O(c\log^{2}\log(1/\delta)/\eps)$.
-That is, let $F(q) = \sum_i f(x_i,q)$. One can process a stream of item $x_1,\ldots,x_n$ and produce $\tilde{F}(q) = \sum_{i} w_i a_i$ with $\operatorname{supp}(w) \le \ell$ such that 
-$$
-\forall \; q \in Q \text{\;\;with probability\;\;} 1-\delta  \;\;\;  |F(q) - \tilde F(q)| \le \eps n
-$$
-\end{theorem}
+%\begin{theorem}
+%Let $A$ be of the special form $a_i = f(x_i,q) \in [0,1]$ and $K_m(A) = O(c/\sqrt{m})$.
+%There exist and streaming mergeable coreset for $A$ with cardinality at most $\ell = O(c\log^{3}\log(1/\delta)/\eps^2)$.
+%That is, let $F(q) = \sum_i f(x_i,q)$. One can process a stream of item $x_1,\ldots,x_n$ and produce $\tilde{F}(q) = \sum_{i} w_i a_i$ with $\operatorname{supp}(w) \le \ell$ such that 
+%$$
+%\forall \; q \in Q \text{\;\;with probability\;\;} 1-\delta  \;\;\;  |F(q) - \tilde F(q)| \le \eps n
+%$$
+%\end{theorem}
+%
+%
+%\begin{theorem}
+%Let $A$ be of the special form $a_i = f(x_i,q) \in [0,1]$ and $K_m(A) = O(c/m)$.
+%There exist and streaming mergeable coreset for $A$ with cardinality at most $\ell = O(c\log^{2}\log(1/\delta)/\eps)$.
+%That is, let $F(q) = \sum_i f(x_i,q)$. One can process a stream of item $x_1,\ldots,x_n$ and produce $\tilde{F}(q) = \sum_{i} w_i a_i$ with $\operatorname{supp}(w) \le \ell$ such that 
+%$$
+%\forall \; q \in Q \text{\;\;with probability\;\;} 1-\delta  \;\;\;  |F(q) - \tilde F(q)| \le \eps n
+%$$
+%\end{theorem}
 
 
 
@@ -191,11 +208,11 @@ $$
 
 The high level idea is the following. 
 Consider a stream of the data points $x_i$. 
-We maintain a buffer that can hold up to $k$ points.
-Once collecting $k$ data points it performs a \emph{compact} operation that outputs $k/2$ data points of weight $2$ representing the original $k$ inputs. The compact operation partitions the $k$ points into two sets whose corresponding sum are very close. 
+We maintain a buffer that can hold up to $m$ points.
+Once collecting $m$ data points it performs a \emph{compact} operation that outputs at most $m/2$ data points of weight $2$ representing the original $m$ inputs. The compact operation partitions the $m$ points into two sets whose corresponding sums are very close. 
 This is made formal with the following definitions: 
-Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$ where $s_i \in \{-1,1\}$ are signs.
-Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$ and the corresponding $F_{-1}$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| \le  | E(q)|$.
+Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
+Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$ and the corresponding $F_{-1}$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| \le  |E(q)|$.
 
 %
 %We begin with describing the basic operation of compaction and the notion of flat error functions. 
@@ -203,39 +220,19 @@ Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s
 %Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$.
 %Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
 %Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
-Note that the above is true for any choice of signs $s_i$, specifically, for those minimizing $\max_q | E(q)|$.
-\begin{definition}
-We define the discrepancy $\Delta_k$ with respect to a function $f(x,q)$ to be  
-\[\Delta_k = \min_s \max_{q,x} \sum_{i=1}^{k} s_i f(x_i,q). \] 
-\end{definition}
-\noindent We claim that a function is sketch-able if $\Delta_k = o(k)$. 
-As a warmup exercise, consider the non-streaming case. Throughout we discuss functions $f$ with the property $|f(x,q)| \leq 1$ for all $x,q$.
-
-
-\begin{fact}
-For any function $f$ which a corresponding discrepancy of $\Delta_k = O(1)$ there exists a coreset of size 
-$O(1/\eps)$ whose error is at most $\eps n$.
-\end{fact}
-\begin{fact}
-For any sum of functions $f$ which a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists a coreset of size 
-$O(1/\eps^2)$ whose error is at most $\eps n$.
-\end{fact}
-
-\noindent Proving both facts is trivial. 
-At step one, create a coreset of size at most $n/2$ of items of weight $2$ and incur an error of at most $c_1$ or $c_2 \sqrt{n}$.
-Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c_1$ of $2\sqrt{n/2}  = \sqrt{2n}$.
-Note that the sum of errors is asymptotically dominated by last iterations. 
-Halting the compression at $O(1/\eps)$ or $O(1/\eps^2)$ items respectively achieves the goal.
+Note that the above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
+Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
+We claim that a function is sketch-able if $K_m(\F) = O(m^\gamma)$ for any constant $\gamma \in [0,1)$.
  
 In what follows, we prove the following.
 \begin{theorem} \label{thm:streaming}
-For any function $f$ with a corresponding discrepancy of $\Delta_k = O(1)$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+For any function $f$ with a corresponding cthere exists an unbiased fully-mergeable streaming coreset algorithms of size 
 $O\left(\log^2\left(\min(n, \log(1/\delta)) \right)/\eps\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require knowledge of the stream length $n$.
 \end{theorem}
 
 
 \begin{theorem}
-For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+For any function $f$ with a corresponding omlos Complexity of $K_m = O(1/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
 $O\left(\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require knowledge of the stream length $n$.
 \end{theorem}
 %
@@ -254,8 +251,9 @@ $O\left(\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error i
 %\end{fact}
 
 \begin{lemma} \label{lem:compactor}
-Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $s_1,\ldots,s_k$ such that
-$$\max_q \left| \sum_i s_i f(x_i, q)\right| \leq \rho k$$
+Let $k$ be an integer and assume we have black box access to a solver that for any $m$ inputs $x_1,\ldots,x_m$ obtains $m$ signs $\sigma_1,\ldots,\sigma_m$ such that
+$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_m$$
+\el{I need to think about this absolute value here. Is it needed?}
 Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
 \begin{itemize}
 \item $\{z_i\}_i$ is a subset of $\{x_i\}$
