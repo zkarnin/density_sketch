@@ -217,8 +217,8 @@ Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \
 %
 %We begin with describing the basic operation of compaction and the notion of flat error functions. 
 %
-%Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} s_i f(x_i,q)$.
-%Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} s_i f(x_i,q)  = 2 \sum_{i | s_i=1} f(x_i,q)$.
+%Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} \sigma_i f(x_i,q)$.
+%Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$.
 %Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
 Note that the above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
 Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
@@ -269,19 +269,19 @@ $$|\text{Err}(q)| \lesssim \rho k\sqrt{n/k} = \rho \sqrt{kn}$$
 \end{lemma}
 \begin{proof}
 The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
-$$\max_q \left| \sum_i s_i f(x_i, q)\right| \leq \rho k$$
-Then, the algorithm output to the stream the with probability $1/2$ each data points $\{x_i \; | \; s_i = 1\}$ or $\{x_i \; | \; s_i = -1\}$ with twice the weight.
-$$\sum_{i ,\; s_i=1} 2f(x_i, q) = \sum_{i} f(x_i, q) +  \sum_{i} s_i f(x_i, q)$$
-$$\sum_{i ,\; s_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} s_i f(x_i, q)$$
+$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq \rho k$$
+Then, the algorithm output to the stream the with probability $1/2$ each data points $\{x_i \; | \; \sigma_i = 1\}$ or $\{x_i \; | \; \sigma_i = -1\}$ with twice the weight.
+$$\sum_{i ,\; \sigma_i=1} 2f(x_i, q) = \sum_{i} f(x_i, q) +  \sum_{i} \sigma_i f(x_i, q)$$
+$$\sum_{i ,\; \sigma_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} \sigma_i f(x_i, q)$$
 
-%Now, consider the set $P=\{i:s_i=1\}$ and $N=\{i:s_i=-1\}$.
-%$$ \sum_i s_i f(x_i, q) = \sum_i s_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in P} f(x_i,q) - \sum_i f(x_i, q)   $$
-%$$ -\sum_i s_i f(x_i, q) = \sum_i -s_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
+%Now, consider the set $P=\{i:\sigma_i=1\}$ and $N=\{i:\sigma_i=-1\}$.
+%$$ \sum_i \sigma_i f(x_i, q) = \sum_i \sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in P} f(x_i,q) - \sum_i f(x_i, q)   $$
+%$$ -\sum_i \sigma_i f(x_i, q) = \sum_i -\sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
 %Thus, we draw a random coin and either output to the stream the data points of $P$ or $N$. We call this operation a single compaction. 
 %\el{this is clunky way to say this...}
 The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. 
 As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
-$\sum_i s_i f(x_i, q)$ or $-\sum_i s_i f(x_i, q)$ with equal probability. It follows that it is a Bernoulli r.v. with magnitude of at most $\rho k$ as required.
+$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Bernoulli r.v. with magnitude of at most $\rho k$ as required.
 \end{proof}
 
 
@@ -358,31 +358,31 @@ where $\lambda$ is a scaling parameter. What we discuss in what follows applies 
 Using our framework, we need to bound $K_m = \frac{1}{m}\sum_{i=1}^m \sigma_i K(x_i,y)$. For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
 $$ K(x,y) = \ip{\phi(x), \phi(y)} $$
 Using this function $\phi$ our objective function becomes
-$$\sum_{i=1}^k s_i K(x_i,y) = \sum_{i=1}^k s_i \ip{\phi(x_i), \phi(y)} =  \ip{ \sum_{i=1}^k s_i \phi(x_i), \phi(y)} \leq \|\phi(y)\| \cdot \left\|  \sum_{i=1}^k s_i \phi(x_i) \right\| \leq  \left\|  \sum_{i=1}^k s_i \phi(x_i) \right\| $$
-This upper bound allows us to optimize (find values for $s_i$) a simple expression.
-Given $k$ vectors $z_1,\ldots,z_k$ in an inner product space, compute signs minimizing $\| \sum_i s_i z_i \|$.
+$$\sum_{i=1}^m \sigma_i K(x_i,y) = \sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(y)} =  \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(y)} \leq \|\phi(y)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| \leq  \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| $$
+This upper bound allows us to find values for $\sigma_i$ which bound $K_n$ using a simple algorithm.
+Given $m$ vectors $z_1,\ldots,z_m$ in an inner product space, compute signs minimizing $\| \sum_i \sigma_i z_i \|$.
 We first notice that for i.i.d.\ uniform signs, it holds that
-$$\E[\| \sum_i s_i z_i \|^2] = \E[\sum_{i,j} s_i s_j \ip{z_i, z_j}] = \sum_i \|z_i\|^2 $$
-leading to a randomized approach. By Markov with probability at least $3/4$ we have $\| \sum_i s_i z_i \| \le 2\sum_i \|z_i\|$.
+$$\E[\| \sum_i \sigma_i z_i \|^2] = \E[\sum_{i,j} \sigma_i \sigma_j \ip{z_i, z_j}] = \sum_i \|z_i\|^2 $$
+leading to a randomized approach. By Markov with probability at least $3/4$ we have $\| \sum_i \sigma_i z_i \| \le 2\sqrt{\sum_i \|z_i\|^2}$.
 %
 We can also use the method of expectation minimization to achieve this bound deterministically.
-Specifically, we will guaranty that $\| \sum_{j=1}^i s_j z_j \|^2 \le \sum_{j=1}^i \|z_j\|^2$ for all $i$.
+Specifically, we will guaranty that $\| \sum_{j=1}^i \sigma_j z_j \|^2 \le \sum_{j=1}^i \|z_j\|^2$ for all $i$.
 This is trivially true for $i=1$. 
-For another value $i$ set $s_i = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j \langle z_j, z_i \rangle)$ 
-and  assume by induction that $\| \sum_{j=1}^{i-1} s_j z_j\|^2 \le \sum_{j=1}^{i-1} \|z_j\|^2$.
+For another value $i$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j \langle z_j, z_i \rangle)$ 
+and  assume by induction that $\| \sum_{j=1}^{i-1} \sigma_j z_j\|^2 \le \sum_{j=1}^{i-1} \|z_j\|^2$.
 
 \begin{eqnarray*}
-\| \sum_{j=1}^{i}s_j z_j\|^2 &=& \|\sum_{j=1}^{i-1}s_j z_j\|^2 + \|z_i\|^2 + \langle \sum_{j=1}^{i-1}s_j z_j, s_i z_i\rangle \\
-&\le& \sum_{j=1}^{i-1} \|z_j\|^2 + \|z_i\|^2 + s_i \sum_{j=1}^{i-1}s_j \langle  z_j,  z_i\rangle \mbox{\;\;\; by the induction assumption}\\ 
-&=& \sum_{j=1}^{i} \|z_j\|^2 - |\sum_{j=1}^{i-1}s_j \langle  z_j,  z_i\rangle| \le \sum_{j=1}^{i} \|z_j\|^2
+\| \sum_{j=1}^{i}\sigma_j z_j\|^2 &=& \|\sum_{j=1}^{i-1}\sigma_j z_j\|^2 + \|z_i\|^2 + 2\langle \sum_{j=1}^{i-1}\sigma_j z_j, \sigma_i z_i\rangle \\
+&\le& \sum_{j=1}^{i-1} \|z_j\|^2 + \|z_i\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j \langle  z_j,  z_i\rangle \mbox{\;\;\; by the induction assumption}\\ 
+&=& \sum_{j=1}^{i} \|z_j\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j \langle  z_j,  z_i\rangle| \le \sum_{j=1}^{i} \|z_j\|^2
 \end{eqnarray*}
-This completes the proof that $\| \sum_{j=1}^{k}s_j z_j\| \le \sqrt{\sum_{j=1}^{i} \|z_j\|^2}$ for our choice of values for $s$. 
+This completes the proof that $\| \sum_{j=1}^{k}\sigma_j z_j\| \le \sqrt{\sum_{j=1}^{i} \|z_j\|^2}$ for our choice of values for $\sigma$. 
 %
 Let us now translate this to an algorithm w.r.t.\ the $d$ dimensional points $x_1,\ldots, x_k$. 
 The sign of $x_1$ is set arbitrarily as $s_1=1$. For $i>1$, we choose 
-$$ s_i = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j \langle \phi(x_j), \phi(x_i) \rangle) = -\operatorname{sign} (\sum_{j=1}^{i-1}s_j  K(x_j, x_i))$$
+$$ \sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j \langle \phi(x_j), \phi(x_i) \rangle) = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$$
 This guarantees that 
-$$ \forall y \in \R^d \;\;\; \sum s_i K(x_i, y) \leq \sqrt{ \sum \|\phi(x_i)\|^2 } = \sqrt{m} $$
+$$ \forall y \in \R^d \;\;\; \sum \sigma_i K(x_i, y) \leq \sqrt{ \sum \|\phi(x_i)\|^2 } = \sqrt{m} $$
 
 Using the framework above this provides a streaming coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that 
 $\forall \;q\;\; |\tilde \rho(q) - \rho(q)| \le \eps n$.
@@ -401,28 +401,28 @@ Assume you are getting the rows $x_i$  of matrix $X$ in a stream and you want to
 For simplicity, assume $x_i$ are all unit length so $\eps \operatorname{Tr}(X^TX) = \eps n$. Moreover, assume each vector in $Z$ must be one of the rows in $X$ up to some constant factor.
 This is called the row subset selection problem. 
 Since you are trying to minimize the quadratic form, you get that $f(x, q) = \langle x,q \rangle ^2$ and 
-$$E(y) = \sum_i s_i \langle x_i,q \rangle ^2 = q^T (\sum_i s_i x_i x_i^T ) q \le \|\sum_i s_i x_i x_i^T\| \le c\sqrt{d}$$
+$$E(q) = \sum_i \sigma_i \langle x_i,q \rangle ^2 = q^T (\sum_i \sigma_i x_i x_i^T ) q \le \|\sum_i \sigma_i x_i x_i^T\| \le c\sqrt{d}$$
 
 \noindent The last inequality is a direct application of the following Theorem.
 \begin{theorem}\label{BansalInDaHouz}
-For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{F} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i X_i||_{2} \le O(\sqrt{d_1 + d_2})$.
+For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{F} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i \sigma_i X_i||_{2} \le O(\sqrt{d_1 + d_2})$.
 \end{theorem}
 \begin{proof}
 First, recount Banaszczyk's theorem. 
-Let $\mathcal K$ be a convex body in $\R^d$ such that $\Pr[g \in \mathcal K] \ge 1/2$ where $g$ is Gaussian i.i.d.
+Let $\mathcal K$ be a convex body in $\R^d$ with Gaussian measure at least 1/2 ($\Pr[g \in \mathcal K] \ge 1/2$ where $g$ is i.i.d.\ Gaussian).
 Let $x_1,\ldots,x_n$ be vectors in $\R^d$ with $\|x_i\| \le 1$. 
-Then, there exist signs $s_i$ such that $\sum s_i x_i \in C \mathcal K$ for some universal constant $C$.
+Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some universal constant $C$.
 
 To invoke Banaszczyk's theorem here we set $x_i \in \R^{d_1d_2}$ to be the flattening of $X_i$ into a vector by concatenating its rows. 
-Let $\mathcal K$ be the set of vectors in $\R^{d_1d_2}$ whose stacking (the inverse of flattening) results in a matrix whose spectral norm is less then $10\sqrt{d_1 + d_2}$.
-More accurately $\mathcal K = \{x  \in \R^{d_1d_2} |\;\; ||\operatorname{stack}(x)||_2 \le 10\sqrt{d_1+d_2}\}$. 
+Let $\mathcal K$ be the set of vectors in $\R^{d_1d_2}$ whose stacking (the inverse of flattening) results in a matrix whose spectral norm is less then $c\sqrt{d_1 + d_2}$.
+More accurately $\mathcal K = \{x  \in \R^{d_1d_2} |\;\; ||\operatorname{stack}(x)||_2 \le c\sqrt{d_1+d_2}\}$. 
 Due to $\operatorname{stack}$ being linear it is obvious that $\mathcal K$ is convex. 
-Moreover $\Pr[g \in \mathcal K] \ge 1/2$ due to standard results on the operator norm of random Gaussian matrices \cite{}.
-Banaszczyk's theorem says that there exist signs $s_i$ such that $\sum s_i \operatorname{flatten}(X_i) \in C \mathcal K$.
-In other words $\| \sum s_i X_i\| = \| \operatorname{stack}( \sum s_i \operatorname{flatten}(x_i x_i^T)) \| \le 10 C \sqrt{d}$. 
+Moreover $\Pr[g \in \mathcal K] \ge 1/2$ due to standard results on the operator norm of random Gaussian matrices \el{add citation \cite{}}.
+Banaszczyk's theorem says that there exist signs $\sigma_i$ such that $\sum \sigma_i \operatorname{flatten}(X_i) \in C \mathcal K$.
+In other words $\| \sum \sigma_i X_i\| = \| \operatorname{stack}( \sum \sigma_i \operatorname{flatten}(x_i x_i^T)) \| \le C \sqrt{d}$. 
 \end{proof}
-\el{The algorithm for finding the signs reduces to random choice for $s_i$ and then checking the norm of $\sum s_i x_i x_i^T$.
-This suffices according to \cite{DBLP:conf/approx/DadushGLN16} and the corresponding convex body $\mathcal K$ being symmetric. TODO Replace with Bansal's paper}
+The algorithm for finding the signs above is, unfortunately, not as simple as with kernels. 
+In fact, Banaszczyk's theorem was not constructive and a matching algorithms is a very recent breakthrough result by Bansal, Dadush, Garg, and Lovett \cite{DBLP:conf/stoc/BansalDGL18}.
 Using the general framework above gives a matrix covariance coreset of cardinality $O(\sqrt{d}/\eps)$.
 Alternatively, we obtain a streaming mergeable algorithm for creating coresets of size $\log^{2}(\min(n, \log(1/\delta)) \sqrt{d}/\eps$.
 
@@ -484,10 +484,10 @@ This paper claims to have done that \cite{DBLP:conf/nips/HugginsCB16}.
 %
 %\subsection{notes about row selection}
 %The problem is 
-%$$ \min_s \| \sum_i s_i x_ix_i^T\| $$
+%$$ \min_s \| \sum_i \sigma_i x_ix_i^T\| $$
 %where $\|x_i\| \leq 1$. Consider the following greedy approach: At point $x_i$, let
-%$$ C_i = \sum_{j<i} s_j x_j x_j^T, \ \  l_+ = \|C_i + x_i x_i^T \|, \ l_- = \|C_i - x_i x_i^T\|$$
-%We choose $s_i = 1$ if $l_+ < l_i$, otherwise $s_i=-1$.
+%$$ C_i = \sum_{j<i} \sigma_j x_j x_j^T, \ \  l_+ = \|C_i + x_i x_i^T \|, \ l_- = \|C_i - x_i x_i^T\|$$
+%We choose $\sigma_i = 1$ if $l_+ < l_i$, otherwise $\sigma_i=-1$.
 %
 %This approach can be shown to be better than random. Random will result in an answer of up to 
 %
@@ -501,16 +501,16 @@ This paper claims to have done that \cite{DBLP:conf/nips/HugginsCB16}.
 \section{Appendix 1}
 For completeness we recap a result from \cite{barany2008}.
 \begin{theorem}[Simplified from B\'ar\'any \cite{barany2008} Theorem 4.1]
-For any set of vector $x_1,...,x_n$ in $\R^d$ such that $\|x_i\| \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i s_i x_i || \le \sqrt{d}$.
+For any set of vector $x_1,...,x_n$ in $\R^d$ such that $\|x_i\| \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i \sigma_i x_i || \le \sqrt{d}$.
 \end{theorem}
 \begin{proof}
 Consider the feasible region for $\sum_i \alpha_i x_i = 0$ and all $\alpha_i \in [-1,1]$.
 This feasible region is not empty because it contains the origin. 
-Consider an extreme point $\alpha^*_i$ and set $s_i = 1$ w.p.\ $(1+\alpha^*_i)/2$ and $s_i = -1$ w.p.\ $(1-\alpha^*_i)/2$.
+Consider an extreme point $\alpha^*_i$ and set $\sigma_i = 1$ w.p.\ $(1+\alpha^*_i)/2$ and $\sigma_i = -1$ w.p.\ $(1-\alpha^*_i)/2$.
 $$
-\E[\|\sum s_i x_i\|^2] =  \E[\|\sum (s_i - \alpha^*_i) x_i\|^2] = \sum \E[(s_i - \alpha^*_i)^2] \|x_i\|^2= \sum (1-(\alpha_i^*)^2) \le d
+\E[\|\sum \sigma_i x_i\|^2] =  \E[\|\sum (\sigma_i - \alpha^*_i) x_i\|^2] = \sum \E[(\sigma_i - \alpha^*_i)^2] \|x_i\|^2= \sum (1-(\alpha_i^*)^2) \le d
 $$
-The first equality is due to $\sum_i \alpha_i x_i = 0$. The second used $\E[s_i] = \alpha^*_i $.
+The first equality is due to $\sum_i \alpha_i x_i = 0$. The second used $\E[\sigma_i] = \alpha^*_i $.
 The last inequality holds because the values $\alpha^*_i$ are non-integer in at most $d$ places. 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
@@ -519,7 +519,7 @@ Assuming otherwise would entail more than $d$ linearly independent vectors in $\
 %\section{Attempt at Cleaner Definitions}
 %Let $\mathcal F$ be a family functions from a domain $\X$ to $\R$.
 %We define the discrepancy of $\F$. Let $f \subset{\F}$ to a subset of $\F$.
-%$$\mathcal D_m(\F) := \sup_{x\in\X} \min_{s\in \{0,1\}^m} \sup_{f\subset \F, |f|=m}  \sum_{i}s_i f_i (x)$$  \el{need to double check the order here...}
+%$$\mathcal D_m(\F) := \sup_{x\in\X} \min_{s\in \{0,1\}^m} \sup_{f\subset \F, |f|=m}  \sum_{i}\sigma_i f_i (x)$$  \el{need to double check the order here...}
 %
 %We claim that a very common task is to approximate the function $F = \sum_i f_i$ using a concise representation.  
 %Specifically, using coresets we can approximate $F$ with $\tilde F = \sum_i w_i f_i$ where $w$ is non-zero in at most $k$ places.
@@ -551,17 +551,17 @@ Assuming otherwise would entail more than $d$ linearly independent vectors in $\
 
 
 
-%Specifically, we set $s_i$ sequentially for $i$ while minimizing the expectation. 
-%We prove by induction on $i$ that for the fixed $s_j$'s up to and not including $i$,
-%$$\E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] \leq \sum_j \|z_j\|^2$$
-%For $i=1$ this is trivial. For $i>1$ let $v=\sum_{j=1}^{i-1} s_j z_j$.
-%$$ \E_{s_i,\ldots,s_k}[\| \sum_{j=1}^k s_j z_j \|^2] = \E[\| v + \sum_{j=i}^k s_j z_j \|^2] = \|v\|^2 + \sum_{j=i}^k \|z_j\|^2$$
-%It follows that by fixing $s_i$ deterministically,
-%$$ \E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] - \E_{s_{i+1},\ldots,s_k}[\| \sum_j s_j z_j \|^2] = \|v\|^2 + \|z_i\|^2 - \|v + s_i z_i\|^2  $$
+%Specifically, we set $\sigma_i$ sequentially for $i$ while minimizing the expectation. 
+%We prove by induction on $i$ that for the fixed $\sigma_j$'s up to and not including $i$,
+%$$\E_{\sigma_i,\ldots,s_k}[\| \sum_j \sigma_j z_j \|^2] \leq \sum_j \|z_j\|^2$$
+%For $i=1$ this is trivial. For $i>1$ let $v=\sum_{j=1}^{i-1} \sigma_j z_j$.
+%$$ \E_{\sigma_i,\ldots,s_k}[\| \sum_{j=1}^k \sigma_j z_j \|^2] = \E[\| v + \sum_{j=i}^k \sigma_j z_j \|^2] = \|v\|^2 + \sum_{j=i}^k \|z_j\|^2$$
+%It follows that by fixing $\sigma_i$ deterministically,
+%$$ \E_{\sigma_i,\ldots,s_k}[\| \sum_j \sigma_j z_j \|^2] - \E_{s_{i+1},\ldots,s_k}[\| \sum_j \sigma_j z_j \|^2] = \|v\|^2 + \|z_i\|^2 - \|v + \sigma_i z_i\|^2  $$
 %so in order to make sure that 
-%$$ \E_{s_i,\ldots,s_k}[\| \sum_j s_j z_j \|^2] \geq \E_{s_{i+1},\ldots,s_k}[\| \sum_j s_j z_j \|^2] $$
+%$$ \E_{\sigma_i,\ldots,s_k}[\| \sum_j \sigma_j z_j \|^2] \geq \E_{s_{i+1},\ldots,s_k}[\| \sum_j \sigma_j z_j \|^2] $$
 %we need
-%$$ 2\ip{m,s_i z_i} = \|m\|^2 + \|z_i\|^2 - \|m + s_i z_i\|^2 \geq 0 $$
+%$$ 2\ip{m,\sigma_i z_i} = \|m\|^2 + \|z_i\|^2 - \|m + \sigma_i z_i\|^2 \geq 0 $$
 %We thus set 
-%$$ s_i = -\text{sign} \ip{m,z_i}$$
+%$$ \sigma_i = -\text{sign} \ip{m,z_i}$$
 
