@@ -132,25 +132,46 @@ This is captured by its Komlos complexity.
 
 \section{Komlos Complexity}
 We begin by formally defining the Komols complexity and by giving some general results about for problems with low Komols complexity. The Komols complexity of a sequence set is defined similarly to it Rademacher complexity.
-\begin{definition}
-Let $A \subset [0,1]^m$ and $\sigma \in \{-1,1\}^m$ uniformly. 
-The Rademacher complexity of $\F$ is 
-\[
-R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{a \in A}  \sum_{i=1}^{m}\sigma_i a_i
-\]
-\end{definition}
+%\begin{definition}
+%Let $A \subset [0,1]^m$ and $\sigma \in \{-1,1\}^m$ uniformly. 
+%The Rademacher complexity of $\F$ is 
+%\[
+%R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{a \in A}  \sum_{i=1}^{m}\sigma_i a_i
+%\]
+%\end{definition}
+%
+%\begin{definition}
+%Let $A \subset [0,1]^m$ and $\sigma \in \{-1,1\}^m$. 
+%The Komlos complexity of $A$ is 
+%\[
+%K_m(A) =  \frac{1}{m}\min_{\sigma} \sup_{a \in A}  \left|\sum_{i=1}^{m}\sigma_i a_i\right|
+%\]
+%\end{definition}
 
 \begin{definition}
-Let $A \subset [0,1]^m$ and $\sigma \in \{-1,1\}^m$. 
-The Komlos complexity of $A$ is 
+Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$ uniformly. 
+The Rademacher complexity of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
-K_m(A) =  \frac{1}{m}\min_{\sigma} \sup_{a \in A}  \sum_{i=1}^{m}\sigma_i a_i
+R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{f \in \F}  \sum_{i=1}^{m}\sigma_i f(x_i)
 \]
 \end{definition}
-\noindent It well known that $R_n$ is a good measure for generalization when data is chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions complexity and relationships between them. We claim that $K_n$ is the measure more suitable for active learning, for creating coresets, and for creating mergeable sketches.
+%
+\begin{definition}
+Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
+The Komlos complexity of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+\[
+K_m(\F) =  \frac{1}{m}\min_{\sigma} \sup_{f \in \F}  \left|\sum_{i=1}^{m}\sigma_i f(x_i)\right|
+\]
+The Komlos Complexity $K_m(\F)$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
+\end{definition}
 
-The name Komlos Complexity is due to the Komlos Conjecture. It claims that $\min_\sigma \max_f \|\sum_i \sigma_i f_i\|_\infty = O(1)$ for unit vectors $f$. The correctness of the Komlos Conjecture is still a fundamental open problem in the study of discrepancy theory.  The definition is useful, however, regardless of the correctness or provability of the conjecture.  
+
+
+\noindent It well known that $R_m$ is a good measure for generalization when data is chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them. We claim that $K_m$ is the measure more suitable for active learning, for creating coresets, and for creating mergeable sketches.
+
+\el{Add a much longer explanation about the connection to discrepancy and the ideas behind this construction} The name Komlos Complexity is due to the Komlos Conjecture. It claims that $\min_\sigma \max_f \|\sum_i \sigma_i f_i\|_\infty = O(1)$ for unit vectors $f$. The correctness of the Komlos Conjecture is still a fundamental open problem in the study of discrepancy theory.  The definition is useful, however, regardless of the correctness or provability of the conjecture.  
 It is obvious that  $K_m(\F) \le R_m(\F)$ for any family $\F$. We show later that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
+
 
 %\begin{theorem}
 %Let $F(a) = \sum_i a_i$ for $a \in A$ and let $K_m(A) = O(c/m^\gamma)$ for any constant $\gamma \in (0,1]$.
@@ -162,6 +183,14 @@ It is obvious that  $K_m(\F) \le R_m(\F)$ for any family $\F$. We show later tha
 %\begin{proof}
 %By halving the points repeatedly \el{TODO}.
 %\end{proof}
+\subsection{General Framework for Coresets}
+Consider the function $F = \sum_{i=1}^{m} f(x_i,q)$ and the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
+Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$ and similarly $F_{-1}$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
+%
+The above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
+Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
+A function is sketch-able if $K_m(\F) = O(m^\gamma)$ for any constant $\gamma \in [0,1)$.
+Typically we see that $K_m(\F) = O(c/m)$ or $K_m(\F)= c/\sqrt{m}$ for some $c$ which does not depend on $m$.
 
 \begin{fact}
 For any function family $\F$ which a corresponding Komlos Complexity $K_m(\F) = O(c/m)$ there exists a coreset of size 
@@ -174,10 +203,9 @@ $O(c/\eps^2)$ whose error is at most $\eps n$.
 
 \noindent Proving both facts is trivial. 
 At step one, create a coreset of size at most $n/2$ of items of weight $2$ and incur an error of at most $c$ or $c \sqrt{n}$.
-Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c$ of $2\sqrt{n/2}  = \sqrt{2n}$.
+Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c$ or $2c\sqrt{n/2}  = \sqrt{2n}$.
 Note that the sum of errors is asymptotically dominated by last iterations. 
-Halting the compression at $\Theta(1/\eps)$ or $\Theta(1/\eps^2)$ items respectively achieves the goal.
-
+Halting the compression at $\Theta(c/\eps)$ or $\Theta(c/\eps^2)$ items respectively achieves the goal.
 
 
 %\begin{theorem}
@@ -201,9 +229,9 @@ Halting the compression at $\Theta(1/\eps)$ or $\Theta(1/\eps^2)$ items respecti
 
 
 
+\el{I believe we that the correctness of the Komlos conjecture implies equivalence between coresets limited to the input and general coresets. Specifically, a constructive positive resolution will give an algorithm for converting any coresets to signs $\sigma$ and select inputs from a sequence.}
 
-
-\section{General Framework for Sketching}
+\subsection{General Framework for Sketching}
 
 
 The high level idea is the following. 
@@ -211,29 +239,18 @@ Consider a stream of the data points $x_i$.
 We maintain a buffer that can hold up to $m$ points.
 Once collecting $m$ data points it performs a \emph{compact} operation that outputs at most $m/2$ data points of weight $2$ representing the original $m$ inputs. The compact operation partitions the $m$ points into two sets whose corresponding sums are very close. 
 This is made formal with the following definitions: 
-Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
-Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$ and the corresponding $F_{-1}$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| \le  |E(q)|$.
 
-%
-%We begin with describing the basic operation of compaction and the notion of flat error functions. 
-%
-%Let us consider a signed sum of error function $E(q) = \sum_{i=1}^{n} \sigma_i f(x_i,q)$.
-%Now consider $\tilde F(q) = F(q) + E(q) = \sum_{i=1}^{n} f(x_i,q)  + \sum_{i=1}^{n} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$.
-%Therefore $\tilde F(q)$ is a coreset for $F(q)$ with item weights of $2$ and error at most $|\tilde F(q) - F(q)| \le \max_q | E(q)|$.
-Note that the above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
-Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
-We claim that a function is sketch-able if $K_m(\F) = O(m^\gamma)$ for any constant $\gamma \in [0,1)$.
- 
+ %
 In what follows, we prove the following.
 \begin{theorem} \label{thm:streaming}
-For any function $f$ with a corresponding cthere exists an unbiased fully-mergeable streaming coreset algorithms of size 
-$O\left(\log^2\left(\min(n, \log(1/\delta)) \right)/\eps\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require knowledge of the stream length $n$.
+For any function $f$ with a corresponding Komlos Complexity $K_m = O(c/m)$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+$O\left(c\log^2\left(\min(n, \log(1/\delta)) \right)/\eps\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
 \end{theorem}
 
 
 \begin{theorem}
-For any function $f$ with a corresponding omlos Complexity of $K_m = O(1/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
-$O\left(\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require knowledge of the stream length $n$.
+For any function $f$ with a corresponding Komlos Complexity of $K_m = O(c/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+$O\left(c\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
 \end{theorem}
 %
 %\begin{fact}
@@ -251,9 +268,12 @@ $O\left(\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error i
 %\end{fact}
 
 \begin{lemma} \label{lem:compactor}
-Let $k$ be an integer and assume we have black box access to a solver that for any $m$ inputs $x_1,\ldots,x_m$ obtains $m$ signs $\sigma_1,\ldots,\sigma_m$ such that
-$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_m$$
-\el{I need to think about this absolute value here. Is it needed?}
+Let $m$ be an integer and assume we have black box access to a solver that for any $m$ inputs $x_1,\ldots,x_m$ obtains $m$ signs $\sigma_1,\ldots,\sigma_m$ such that
+$$\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \in O(K_m)$$
+Note that such signs are guarantied to exist by the definition of the Komols Complexity. 
+In fact, the quantity above is likely much smaller than $K_m$ because it is computed for a specific set of points $x_i$ and the worst such possible set.
+
+
 Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
 \begin{itemize}
 \item $\{z_i\}_i$ is a subset of $\{x_i\}$
