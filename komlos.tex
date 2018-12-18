@@ -408,7 +408,7 @@ Using the framework above this provides a streaming coreset construction for ker
 $\forall \;q\;\; |\tilde \rho(q) - \rho(q)| \le \eps n$.
 This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}.
 \el{The running time of this algorithm is amortized.... I hope it will be better than Jeff's result, especially in the randomized shrinking buffers setting.}
-
+\zk{We actually ended up using the Radamacher complexity, at least for the bound. Namely, we used random signs. Perhaps there is a kernel for which it is easy to prove something better? One that comes to mind is apx low rank data. By low rank I mean in the kernel space, meaning the $z_i$'s. To find the core-set we can first run PCA on the $z_i$'s, reduce their dimension from $n$ to being the minimal such that we suffer a loss of $\eps$. Then, we use theory on the sum of unit vectors of low dimension giving $\sqrt{k}/\eps$ where $k$ is the dimension we got. In the worst case if the kernel matrix is isotropic we will get $k \approx n$ and gain nothing, but this way we can squeeze something from the data that wasn't squeezed before.. We can take this further and look into the details of the proof that we can balance unit vectors to have a norm of $\sqrt{d}$ regardless of the number of vectors. The key in that proof is that by considering continuous $s_i$'s we can have the sum equal to zero while keeping only $d$ points with non $\{-1,1\}$ $s_i$'s. Consider a split of top $k$ and bottom rest directions. If we restrict the $s_i$'s to only have the sum to be zero in the top $k$ we get $k$ non integral $s_i$'s but possibly horrible performance on the bottom $k$. What if only restrict $d-2k$ and not $d-k$ points? Then we get some freedom in choosing the integer $s_i$'s. The bound on the bottom singular values can become smaller than the trivial one.}
 
 
 
@@ -443,12 +443,13 @@ In other words $\| \sum \sigma_i X_i\| = \| \operatorname{stack}( \sum \sigma_i 
 \end{proof}
 The algorithm for finding the signs above is, unfortunately, not as simple as with kernels. 
 In fact, Banaszczyk's theorem was not constructive and a matching algorithms is a very recent breakthrough result by Bansal, Dadush, Garg, and Lovett \cite{DBLP:conf/stoc/BansalDGL18}.
+
 Using the general framework above gives a matrix covariance coreset of cardinality $O(\sqrt{d}/\eps)$.
 Alternatively, we obtain a streaming mergeable algorithm for creating coresets of size $\log^{2}(\min(n, \log(1/\delta)) \sqrt{d}/\eps$.
 
 
 
-\el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} \zk{We can get $1/\eps^2$ though which is better than $\sqrt{d}/\eps$ as long as $\eps > 1/\sqrt{d}$. If $\eps < 1/\sqrt{d}$ then $\sqrt{d}/\eps > d$ - shouldn't it be trivial to get a coreset of size $d$?}
+\el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} 
 
 \subsection{Streaming Graph Approximation}
 Streaming graphs have received a lot of attention in the last several years \cite{}. 
@@ -496,6 +497,11 @@ In the optimal design setting, they require keeping the covariance matrix. We co
 The following paper claims no streaming algorithms or coresets are available \cite{DBLP:journals/corr/abs-1805-08571}.
 This paper claims to have done that \cite{DBLP:conf/nips/HugginsCB16}.
 
+In \cite{DBLP:journals/corr/abs-1802-01751} (see paragraph before Lemma 2.2) they manage to obtain a coreset (with equal weights) of size $\sqrt{d \log(1/\eps)}/\eps$ for any kernel with certain properties. The do so by considering a matrix whose rows correspond to all the vectors in an $\eps$-net over the space, and columns correspond to the $n$ data points. Calling that matrix $A$, $A_{q,x} = K(q,x)$. They bound the discrepancy of the matrix defined as $\min_s \|As\|_\infty$ where $s$ is a sign vector by using a bound 
+$$ \min_s \|As\|_\infty \leq \sqrt{\log(N)} \|A\|_{\gamma_2} $$
+Here, $N$ is the size of the $\eps$ net and the $\gamma_2$ norm is 
+$$ \|A\|_{\gamma_2} = \min_{B,C: A=BC^T} \text{max norm of a row of B or C}$$
+They prove that for psd kernel $K$, $\|A\|_{\gamma_2} \leq 1$ (in fact it is equal to 1). Now, back to our case. For any fixed power $k$ we know that $K(x,q)=\ip{x,q}^k$ is a psd kernel, hence its corresponding matrix $A_k$ has $\gamma_2$ norm bounded by $1$. Now, the logistic function can be written in a taylor expansion whose coefficients, in absolute value, sum to a constant $C$. It follows that the $A$ matrix for the logistic function has a $\gamma_2$ norm bounded by $C$. The same arguments as in  \cite{DBLP:journals/corr/abs-1802-01751} can now prove that its discrepancy is bounded by $\sqrt{\log(N)} \approx \sqrt{d\log(1/\eps)}$
 
 %\paragraph{Reduction to the Kernel case}
 %This is really the Kernel density estimation problem with $K(x,y) = \ip{x,y}^2$. We might be able to squeeze a bit more due to the fact that $\phi(x) = xx^T$ is a very special $d \times d$ matrix: a rank $1$ matrix. That being said, a coreset of $1/\eps^2$ can be obtained by simply using the kernel technique. The special structure can either give better dependence on $\eps$ or exploit low rank structure e.g.\ if the vectors form a nearly rank $k$ matrix.
@@ -534,6 +540,11 @@ The first equality is due to $\sum_i \alpha_i x_i = 0$. The second used $\E[\sig
 The last inequality holds because the values $\alpha^*_i$ are non-integer in at most $d$ places. 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
+
+Extension to the apx low rank case: The vectors are $[x_1,y_1],\ldots,[x_n,y_n]$. The dimension of $x$'s is $d$ and of $y$'s is infinite. Both $\|x_i\|, \|y\| \leq 1$. However, the overall norm of the $y$'s is bounded $\sum \|y_i\|^2 \leq \rho n$. Naively we can ignore the $y$'s and get a bound on the norm of $\sqrt{d + \sqrt{\rho} n}$ or something like that. If $y$ is obtained as the low components of PCA we can squeeze some more.
+Consider another approach: Asking for $\sum x_i \alpha_i =0 $ gives $d$ linear restrictions. Let $\alpha^{(1)}$ be a feasible point. Let $\alpha^{(2)}$ be another feasible point that is restricted to being orthogonal to $\alpha^{(1)}$, and so on up to $\alpha^{(d)}$. For all these $\alpha$'s we have a bound of $2d$ to their rounding w.r.t to $x$. Now, for the $y$'s we can choose any one of these $\alpha$'s
+
+However, we can search for $\alpha \in [-1,1]^n$ minimizing
 
 
 %\section{Attempt at Cleaner Definitions}
