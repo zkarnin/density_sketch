@@ -390,7 +390,7 @@ Using the framework above this provides a streaming coreset construction for ker
 $\forall \;q\;\; |\tilde \rho(q) - \rho(q)| \le \eps n$.
 This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}.
 \el{The running time of this algorithm is amortized.... I hope it will be better than Jeff's result, especially in the randomized shrinking buffers setting.}
-
+\zk{We actually ended up using the Radamacher complexity, at least for the bound. Namely, we used random signs. Perhaps there is a kernel for which it is easy to prove something better? One that comes to mind is apx low rank data. By low rank I mean in the kernel space, meaning the $z_i$'s. To find the core-set we can first run PCA on the $z_i$'s, reduce their dimension from $n$ to being the minimal such that we suffer a loss of $\eps$. Then, we use theory on the sum of unit vectors of low dimension giving $\sqrt{k}/\eps$ where $k$ is the dimension we got. In the worst case if the kernel matrix is isotropic we will get $k \approx n$ and gain nothing, but this way we can squeeze something from the data that wasn't squeezed before.. We can take this further and look into the details of the proof that we can balance unit vectors to have a norm of $\sqrt{d}$ regardless of the number of vectors. The key in that proof is that by considering continuous $s_i$'s we can have the sum equal to zero while keeping only $d$ points with non $\{-1,1\}$ $s_i$'s. Consider a split of top $k$ and bottom rest directions. If we restrict the $s_i$'s to only have the sum to be zero in the top $k$ we get $k$ non integral $s_i$'s but possibly horrible performance on the bottom $k$. What if only restrict $d-2k$ and not $d-k$ points? Then we get some freedom in choosing the integer $s_i$'s. The bound on the bottom singular values can become smaller than the trivial one.}
 
 
 
@@ -424,13 +424,13 @@ Banaszczyk's theorem says that there exist signs $s_i$ such that $\sum s_i \oper
 In other words $\| \sum s_i X_i\| = \| \operatorname{stack}( \sum s_i \operatorname{flatten}(x_i x_i^T)) \| \le 10 C \sqrt{d}$. 
 \end{proof}
 \el{The algorithm for finding the signs reduces to random choice for $s_i$ and then checking the norm of $\sum s_i x_i x_i^T$.
-This suffices according to \cite{DBLP:conf/approx/DadushGLN16} and the corresponding convex body $\mathcal K$ being symmetric. TODO Replace with Bansal's paper}
+This suffices according to \cite{DBLP:conf/approx/DadushGLN16} and the corresponding convex body $\mathcal K$ being symmetric. TODO Replace with Bansal's paper} \zk{Taking random $s_i$'s cannot be enough. If $d=1$ and we have $n \gg 1$ vectors this fails miserably. Does Bansal have a paper giving a constructive proof of this Theorem?}
 Using the general framework above gives a matrix covariance coreset of cardinality $O(\sqrt{d}/\eps)$.
 Alternatively, we obtain a streaming mergeable algorithm for creating coresets of size $\log^{2}(\min(n, \log(1/\delta)) \sqrt{d}/\eps$.
 
 
 
-\el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} \zk{We can get $1/\eps^2$ though which is better than $\sqrt{d}/\eps$ as long as $\eps > 1/\sqrt{d}$. If $\eps < 1/\sqrt{d}$ then $\sqrt{d}/\eps > d$ - shouldn't it be trivial to get a coreset of size $d$?}
+\el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} 
 
 \subsection{Streaming Graph Approximation}
 Streaming graphs have received a lot of attention in the last several years \cite{}. 
@@ -516,6 +516,11 @@ The first equality is due to $\sum_i \alpha_i x_i = 0$. The second used $\E[s_i]
 The last inequality holds because the values $\alpha^*_i$ are non-integer in at most $d$ places. 
 Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
 \end{proof}
+
+Extension to the apx low rank case: The vectors are $[x_1,y_1],\ldots,[x_n,y_n]$. The dimension of $x$'s is $d$ and of $y$'s is infinite. Both $\|x_i\|, \|y\| \leq 1$. However, the overall norm of the $y$'s is bounded $\sum \|y_i\|^2 \leq \rho n$. Naively we can ignore the $y$'s and get a bound on the norm of $\sqrt{d + \sqrt{\rho} n}$ or something like that. If $y$ is obtained as the low components of PCA we can squeeze some more.
+Consider another approach: Asking for $\sum x_i \alpha_i =0 $ gives $d$ linear restrictions. Let $\alpha^{(1)}$ be a feasible point. Let $\alpha^{(2)}$ be another feasible point that is restricted to being orthogonal to $\alpha^{(1)}$, and so on up to $\alpha^{(d)}$. For all these $\alpha$'s we have a bound of $2d$ to their rounding w.r.t to $x$. Now, for the $y$'s we can choose any one of these $\alpha$'s
+
+However, we can search for $\alpha \in [-1,1]^n$ minimizing
 
 
 %\section{Attempt at Cleaner Definitions}
