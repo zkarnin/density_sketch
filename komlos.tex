@@ -1,23 +1,53 @@
-\documentclass{article} % For LaTeX2e
+\documentclass[anon,12pt]{colt2019} % Anonymized submission
+% \documentclass[12pt]{colt2019} % Include author names
+
+% The following packages will be automatically loaded:
+% amsmath, amssymb, natbib, graphicx, url, algorithm2e
+
+\title[Komols Complexity, Coresets, and Sketches in Machine Learning]{Komols Complexity, Coresets, and Sketches in Machine Learning}
+\usepackage{times}
+% Use \Name{Author Name} to specify the name.
+% If the surname contains spaces, enclose the surname
+% in braces, e.g. \Name{John {Smith Jones}} similarly
+% if the name has a "von" part, e.g \Name{Jane {de Winter}}.
+% If the first letter in the forenames is a diacritic
+% enclose the diacritic in braces, e.g. \Name{{\'E}louise Smith}
+
+% Two authors with the same address
+% \coltauthor{\Name{Author Name1} \Email{abc@sample.com}\and
+%  \Name{Author Name2} \Email{xyz@sample.com}\\
+%  \addr Address}
+
+% Three or more authors with the same address:
+% \coltauthor{\Name{Author Name1} \Email{an1@sample.com}\\
+%  \Name{Author Name2} \Email{an2@sample.com}\\
+%  \Name{Author Name3} \Email{an3@sample.com}\\
+%  \addr Address}
+
 \usepackage{amsmath}
-\usepackage{amsthm}
+%\usepackage{amsthm}
 \usepackage[noend]{algorithmic}
 \usepackage{algorithm}
-\usepackage[margin=1in]{geometry}
+%\usepackage[margin=1in]{geometry}
 \usepackage{xcolor}
 \usepackage{amsfonts}
 \usepackage{ amssymb }
 
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{conjecture}{Conjecture}[section]
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem{conjecture}{Conjecture}[section]
 %\newtheorem{claim}[theorem]{Claim}
-\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{lemma}[theorem]{Lemma}
 %\newtheorem{remark}[theorem]{Remark}
 %\newtheorem{definition}[theorem]{Definition}
 %\newtheorem{observation}[theorem]{Observation}
 \newtheorem{corollary}[theorem]{Corollary}
 %\newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{fact}[theorem]{Fact}
+%\newtheorem*{definition*}{Definition}
+%\newtheorem{definition}{Definition}
+%\newtheorem{claim}{Claim}
+%\newtheorem{theorem}{Theorem}
+
 
 \newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
 \newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
@@ -37,20 +67,15 @@
 
 
 
-%\newtheorem*{definition*}{Definition}
-\newtheorem{definition}{Definition}
-\newtheorem{claim}{Claim}
-%\newtheorem{theorem}{Theorem}
 
 
-\title{Sketching for Density Estimation}
-\date{\nonumber}
-
-\author{
-Zohar Karnin\\Amazon\\zkarnin@amazon.com
-\and
-Edo Liberty\\Amazon\\libertye@amazon.com
+% Authors with different addresses:
+\coltauthor{%
+ \Name{Zohar Karnin} \Email{zkarnin@amazon.com}%\\ \addr Address 1
+ \AND
+ \Name{Edo Liberty} \Email{libertye@amazon.com}%\\ \addr Address 2%
 }
+
 
 \begin{document}
 
@@ -231,7 +256,7 @@ Halting the compression at $\Theta(c/\eps)$ or $\Theta(c/\eps^2)$ items respecti
 
 
 
-\el{I believe we that the correctness of the Komlos conjecture implies equivalence between coresets limited to the input and general coresets. Specifically, a constructive positive resolution will give an algorithm for converting any coresets to signs $\sigma$ and select inputs from a sequence.}
+\el{I believe that the correctness of the Komlos conjecture implies equivalence between coresets limited to the input and general coresets. Specifically, a constructive positive resolution will give an algorithm for converting any coresets to signs $\sigma$ and select inputs from a sequence.}
 
 \subsection{General Framework for Sketching}
 
@@ -499,7 +524,7 @@ In the optimal design setting, they require keeping the covariance matrix. We co
 The following paper claims no streaming algorithms or coresets are available \cite{DBLP:journals/corr/abs-1805-08571}.
 This paper claims to have done that \cite{DBLP:conf/nips/HugginsCB16}.
 
-In \cite{DBLP:journals/corr/abs-1802-01751} (see paragraph before Lemma 2.2) they manage to obtain a coreset (with equal weights) of size $\sqrt{d \log(1/\eps)}/\eps$ for any kernel with certain properties. The do so by considering a matrix whose rows correspond to all the vectors in an $\eps$-net over the space, and columns correspond to the $n$ data points. Calling that matrix $A$, $A_{q,x} = K(q,x)$. They bound the discrepancy of the matrix defined as $\min_s \|As\|_\infty$ where $s$ is a sign vector by using a bound 
+In \cite{DBLP:journals/corr/abs-1802-01751} (see paragraph before Lemma 2.2) they manage to obtain a coreset (with equal weights) of size $\sqrt{d \log(1/\eps)}/\eps$ for any kernel with certain properties. They do so by considering a matrix whose rows correspond to all the vectors in an $\eps$-net over the space, and columns correspond to the $n$ data points. Calling that matrix $A$, $A_{q,x} = K(q,x)$. They bound the discrepancy of the matrix defined as $\min_s \|As\|_\infty$ where $s$ is a sign vector by using a bound 
 $$ \min_s \|As\|_\infty \leq \sqrt{\log(N)} \|A\|_{\gamma_2} $$
 Here, $N$ is the size of the $\eps$ net and the $\gamma_2$ norm is 
 $$ \|A\|_{\gamma_2} = \min_{B,C: A=BC^T} \text{max norm of a row of B or C}$$
