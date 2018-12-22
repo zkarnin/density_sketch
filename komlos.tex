@@ -63,7 +63,7 @@
 %\usepackage{ntheorem}
 \newcommand{\floor}[1]{\left \lfloor #1 \right \rfloor}
 \newcommand{\ceil}[1]{\left \lceil #1 \right \rceil}
-
+%\newcommand{\Pr}{\operatorname{Pr}}
 
 
 
@@ -218,11 +218,11 @@ A function is sketch-able if $K_m(\F) = O(m^\gamma)$ for any constant $\gamma \i
 Typically we see that $K_m(\F) = O(c/m)$ or $K_m(\F)= c/\sqrt{m}$ for some $c$ which does not depend on $m$.
 
 \begin{fact}
-For any function family $\F$ which a corresponding Komlos Complexity $K_m(\F) = O(c/m)$ there exists a coreset of size 
+For any function family $\F$ with a corresponding Komlos Complexity $K_m(\F) = O(c/m)$ there exists a coreset of size 
 $O(c/\eps)$ whose error is at most $\eps n$.
 \end{fact}
 \begin{fact}
-For any function family $\F$ which a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$ there exists a coreset of size 
+For any function family $\F$ with a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$ there exists a coreset of size 
 $O(c/\eps^2)$ whose error is at most $\eps n$.
 \end{fact}
 
@@ -437,6 +437,80 @@ This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite
 
 
 
+\section{Universal Coresets for Functions of Inner Products}
+
+
+\begin{lemma}\label{uc}
+For any set of vectors $x_i \in \R^d$ there exist a set of signs $\sigma_i$ such that for all $k$ simultaneously $\|\sum_i \sigma_i x_i^{\otimes k}\| \le O(\sqrt{d k\log^{3}{k}})$ (the $3$ power of the term $\log(k)$ can be reduced to any constant power larger than $2$). Here 
+$\|X\| = \max_{q, \|q\|=1} \langle X, q^{\otimes k}\rangle$.
+
+\end{lemma}
+\begin{proof}
+The proof will use Banaszczyk's theorem. 
+Let $\mathcal K$ be a convex body in Euclidean space with Gaussian measure at least 1/2 ($\Pr[g \in \mathcal K] \ge 1/2$ where $g$ is i.i.d.\ Gaussian).
+Let $x_1,\ldots,x_n$ be vectors with $\|x_i\| =O(1)$. 
+Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some constant $C$.
+
+
+To use Banaszczyk's theorem we begin with defining our convex body.
+Define the norm $\|\psi\|_T$ of a vector $\psi$ as follows. Look at the first $d$ coordinates of $\psi$ as a vector $\psi_1$, the next $d^2$ coordinates of $\psi$ as a matrix $\psi_2$ the next $d^3$ coordinates as a three tensor $\psi_3$ etc.
+We define $\|\psi\|_T = \max_k \|\psi_k\|/\sqrt{\log(k)}$. 
+Here, $\|\cdot\|$ is a special spectral norm defined by 
+$$\|\psi\| = \max_{q, \|q\|=1} \langle   \psi_k,q^{\otimes k}\rangle  = \max_{q, \|q\|=1} \sum_{i_1,\ldots,i_k=1}^d \psi_k(i_1,\ldots,i_k)\Pi_{k'=1}^{k}q(i_{k'})$$
+%
+Since $\|\cdot\|_T$ is a norm the set $\mathcal K  = \{\psi \; | \; \|\psi\|_T \le c\sqrt{d}\}$ is convex. 
+We now need to show that the Gaussian measure of $\mathcal K$ is at least $1/2$. 
+That is, with probability at least $1/2$ a vector of random Gaussian entrees $g$ belongs to $\mathcal K$.
+
+Considering a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$. 
+A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\| \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability al least $1/2$. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
+
+We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. 
+$$\psi(x) = [x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots]$$
+Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\| = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
+
+We are now ready to apply Banaszczyk's theorem. 
+There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$.
+Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that $\max_k \|\sum_i \sigma_i  x_i^{\otimes k}\| \le \sqrt{d k \log^{3}(k)}$
+
+
+\begin{lemma}
+Let $f$ be a function of $\langle x,q\rangle$ such that $f(\langle x,q\rangle) = \sum_k \alpha_k \langle x,q\rangle^k$ is its Taylor expansion. The Komlos Complexity of the Family of functions $f$ (indexed by $q$) is bouded by
+\[
+K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) \le \sqrt{d} \sum_k  |\alpha_k|\sqrt{k\log^3(k)}
+\]
+\end{lemma}
+\begin{proof}
+The proof follows from combining the above.
+$$
+\sum_i \sigma_i f(x_i,q) = \sum_k \alpha_k \sum_i \sigma_i \langle x_i,q\rangle^k =  \sum_k \alpha_k  \langle  \sum_i \sigma_i x_i^{\otimes k},q^{\otimes k}\rangle \le \sum_k |\alpha_k| \cdot \| \sum_i \sigma_i x_i^{\otimes k}\|
+$$
+By Lemma \ref{uc} we can find signs $\sigma$ such that 
+$\| \sum_i \sigma_i x_i^{\otimes k}\| \le c\sqrt{d k \log^3(k)}$. Substituting into the above the lemma follows.
+\end{proof}
+
+\begin{lemma}
+The Komlos complexity of the Gaussian kernel in dimension $d$ is $O(\sqrt{d})$.
+\end{lemma}
+\begin{proof}
+The sum converged to a constant.
+\end{proof}
+\begin{lemma}
+The Komlos complexity of the Logistic function in dimension $d$ is $O(\sqrt{d})$.
+\end{lemma}
+\begin{proof}
+The sum converged to a constant.
+\end{proof}
+
+
+
+
+
+
+
+
+\end{proof}
+
 
 
 
@@ -492,30 +566,30 @@ $|\sum_{(i,j) \in E} (q_i - q_j)^2  - c \sum_{(i,j) \in E'} (q_i - q_j)^2| \le \
 
 \section{Linear Regression}
 
-\section{Optimal Design of Experiments}
-We discuss the problem of linear regression with mean squared error. In the classic setting we are given $n$ points $x_1,\ldots,x_n \in \R^d$ along with $n$ labels $y_1,\ldots,y_n \in \R$ and wish to find $w \in \R^d$ minimizing
-$$ \sum_i (w^Tx_i - y_i)^2 $$
-In the field of optimal design of experiments, the labels are not given with the data. Instead, the learner must choose in advance a subset of datapoints for which they query the labels. The subset is chosen to provide the least error in a generalization bound, assuming $(x_1,y_1),\ldots,(x_n,y_n)$ are i.i.d from an unknown distribution.
-
-The way this is done in optimal design of experiments is as follows. Let $X$ be the set of $n$ points and consider a subset $B \subseteq X$. The empirical risk minimizer (ERM) for $B$ is 
-$$ w_B = \left( \sum_{x \in B} xx^T \right)^{\dagger} y_B $$
-%It is known that $w_B$ is an unbiased estimator of $w^*$, the optimal regressor for the distribution, where the noise comes from the realizations of the $y_i$'s. It follows that to minimize 
-%$$ E_{x \sim {\cal D}} \ip{w-w^*,x}^2 $$
-%which is the variance of $w$ measured by the distribution of data points, it suffice to minimize the second moment
-%$$ E_{x \sim {\cal D}} \ip{w,x}^2  \approx w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
-
-
-One can show that for $w_B$,
-$$ \sum_i (w_B^Tx_i - y_i)^2 = C \cdot \text{Tr} \left(\left( \sum_{x \in B} xx^T \right)^{\dagger} \right) $$
-\zk{This only works when $\sum_{x \in B} xx^T$ is full rank, otherwise we need to introduce some regularization and then things get messy.}
-
-We can use the results above for optimal design in the case where $w$ is restricted to have a unit Euclidean norm. Something that is commonly practiced. Since we will solve the problem for the subset we choose in an optimal way for gaussian noise, we end up with an unbiased estimator for $w^*$. The error is the variance of that unbiased estimator and minimizing the variance for an unbiased estimator is the same as minimizing its second moment we can aim to minimize
-$$ F(w) = w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
-This leads to the exact same objective as in column subset selection. Meaning that an $\eps$ core-set for the $x$'s gives a guaranteed error for a subset in the optimal design setting. Specifically we get that we can obtain a core-set of size
-$$ \min(1/\eps^2, \sqrt{d}/\eps)$$
-For the case of $\eps < 1/\sqrt{d}$, which is an interesting case in linear regression, a random sample of $\sqrt{d}/\eps$ points will not give a generalization bound of $\eps$ (there are known lower bounds, http://jmlr.org/papers/volume16/shamir15a/shamir15a.pdf contradicting this), meaning that we have a provable non-trivial guarantee for active learning. I'm not sure what statements are known already. 
-
-In the optimal design setting, they require keeping the covariance matrix. We could come up with a hueristic or even sketching algorithm that avoids maintaining $d^2$ points.
+%\section{Optimal Design of Experiments}
+%We discuss the problem of linear regression with mean squared error. In the classic setting we are given $n$ points $x_1,\ldots,x_n \in \R^d$ along with $n$ labels $y_1,\ldots,y_n \in \R$ and wish to find $w \in \R^d$ minimizing
+%$$ \sum_i (w^Tx_i - y_i)^2 $$
+%In the field of optimal design of experiments, the labels are not given with the data. Instead, the learner must choose in advance a subset of datapoints for which they query the labels. The subset is chosen to provide the least error in a generalization bound, assuming $(x_1,y_1),\ldots,(x_n,y_n)$ are i.i.d from an unknown distribution.
+%
+%The way this is done in optimal design of experiments is as follows. Let $X$ be the set of $n$ points and consider a subset $B \subseteq X$. The empirical risk minimizer (ERM) for $B$ is 
+%$$ w_B = \left( \sum_{x \in B} xx^T \right)^{\dagger} y_B $$
+%%It is known that $w_B$ is an unbiased estimator of $w^*$, the optimal regressor for the distribution, where the noise comes from the realizations of the $y_i$'s. It follows that to minimize 
+%%$$ E_{x \sim {\cal D}} \ip{w-w^*,x}^2 $$
+%%which is the variance of $w$ measured by the distribution of data points, it suffice to minimize the second moment
+%%$$ E_{x \sim {\cal D}} \ip{w,x}^2  \approx w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
+%
+%
+%One can show that for $w_B$,
+%$$ \sum_i (w_B^Tx_i - y_i)^2 = C \cdot \text{Tr} \left(\left( \sum_{x \in B} xx^T \right)^{\dagger} \right) $$
+%\zk{This only works when $\sum_{x \in B} xx^T$ is full rank, otherwise we need to introduce some regularization and then things get messy.}
+%
+%We can use the results above for optimal design in the case where $w$ is restricted to have a unit Euclidean norm. Something that is commonly practiced. Since we will solve the problem for the subset we choose in an optimal way for gaussian noise, we end up with an unbiased estimator for $w^*$. The error is the variance of that unbiased estimator and minimizing the variance for an unbiased estimator is the same as minimizing its second moment we can aim to minimize
+%$$ F(w) = w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
+%This leads to the exact same objective as in column subset selection. Meaning that an $\eps$ core-set for the $x$'s gives a guaranteed error for a subset in the optimal design setting. Specifically we get that we can obtain a core-set of size
+%$$ \min(1/\eps^2, \sqrt{d}/\eps)$$
+%For the case of $\eps < 1/\sqrt{d}$, which is an interesting case in linear regression, a random sample of $\sqrt{d}/\eps$ points will not give a generalization bound of $\eps$ (there are known lower bounds, http://jmlr.org/papers/volume16/shamir15a/shamir15a.pdf contradicting this), meaning that we have a provable non-trivial guarantee for active learning. I'm not sure what statements are known already. 
+%
+%In the optimal design setting, they require keeping the covariance matrix. We could come up with a hueristic or even sketching algorithm that avoids maintaining $d^2$ points.
 
 
 \section{Logistic Regression}
