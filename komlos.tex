@@ -40,7 +40,7 @@
 %\newtheorem{remark}[theorem]{Remark}
 %\newtheorem{definition}[theorem]{Definition}
 %\newtheorem{observation}[theorem]{Observation}
-\newtheorem{corollary}[theorem]{Corollary}
+%\newtheorem{corollary}[theorem]{Corollary}
 %\newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{fact}[theorem]{Fact}
 %\newtheorem*{definition*}{Definition}
@@ -528,7 +528,7 @@ In \cite{DBLP:journals/corr/abs-1802-01751} (see paragraph before Lemma 2.2) the
 $$ \min_s \|As\|_\infty \leq \sqrt{\log(N)} \|A\|_{\gamma_2} $$
 Here, $N$ is the size of the $\eps$ net and the $\gamma_2$ norm is 
 $$ \|A\|_{\gamma_2} = \min_{B,C: A=BC^T} \text{max norm of a row of B or C}$$
-They prove that for psd kernel $K$, $\|A\|_{\gamma_2} \leq 1$ (in fact it is equal to 1). Now, back to our case. For any fixed power $k$ we know that $K(x,q)=\ip{x,q}^k$ is a psd kernel, hence its corresponding matrix $A_k$ has $\gamma_2$ norm bounded by $1$. Now, the logistic function can be written in a taylor expansion whose coefficients, in absolute value, sum to a constant $C$. It follows that the $A$ matrix for the logistic function has a $\gamma_2$ norm bounded by $C$. The same arguments as in  \cite{DBLP:journals/corr/abs-1802-01751} can now prove that its discrepancy is bounded by $\sqrt{\log(N)} \approx \sqrt{d\log(1/\eps)}$
+They use the fact that for psd kernel $K$, $\|A\|_{\gamma_2} \leq 1$ (in fact it is equal to 1). Now, back to our case. For any fixed power $k$ we know that $K(x,q)=\ip{x,q}^k$ is a psd kernel, hence its corresponding matrix $A_k$ has $\gamma_2$ norm bounded by $1$. Now, the logistic function can be written in a taylor expansion whose coefficients, in absolute value, sum to a constant $C$. It follows that the $A$ matrix for the logistic function has a $\gamma_2$ norm bounded by $C$. The same arguments as in  \cite{DBLP:journals/corr/abs-1802-01751} can now prove that its discrepancy is bounded by $\sqrt{\log(N)} \approx \sqrt{d\log(1/\eps)}$
 
 A useful fact about the $\gamma_2$ norm is that it is indeed a norm. This is proven in \cite{tomczak1989banach}. In \cite{matouvsek2014factorization} this is listed in Section 2, Proposition 2.2 along with other known properties of the $\gamma_2$ norm. 
 
@@ -552,10 +552,13 @@ A useful fact about the $\gamma_2$ norm is that it is indeed a norm. This is pro
 %
 
 
-\section{Active Learning for linear functions (based on $\gamma_2$ norm)}
+\section{Coreset for linear functions (based on $\gamma_2$ norm)}
 
 Let $x_1,\ldots,x_n \in R^d$ be and $y_1,\ldots,y_n$ be labels associated to the data points. Let $K$ be a psd kernel. Consider a problem of learning a linear function aiming to minimize the loss of 
-$$\min_w \sum_{i=1}^n L(K(x_i, w), y_i)$$
+$$\min_q \sum_{i=1}^n L(K(x_i, q), y_i)$$
+
+Our objective is to find a core-set of the $n$ data points. That is, we aim to find a set $S \subseteq [n]$ such that for every $q$ it holds that 
+$$ \left| \sum_{i=1}^n L(K(x_i, q), y_i) - \frac{n}{|S|} \sum_{i \in S} L(K(x_i, q), y_i) \right| \leq \eps n $$
 
 For a function $f(q,x)$, let $A_f$ be a matrix whose rows are an $\eps$-net over the Euclidean unit ball of $R^d$, and columns correspond to the different $x_i$'s. The value of $A_f$ at an entry corresponding to $(q,x)$ if $f(q,x)$.
 
@@ -603,7 +606,7 @@ $$\|A\|_{\gamma_2} / \log(m) \leq \disc(A) \leq \|A\|_{\gamma_2}  \sqrt{\log(m)}
 This gives a way to control the discrepancy of a matrix by representing it as a sum of matrices with known discrepency or $\gamma_2$ norm. In particular, for the logistic function we get that 
 $$\disc(A_{f_L}) \leq \sqrt{\log(|Q|)} $$
 where $Q$ is an $\eps$-net over the Euclidean unit sphere. This gives the bound of 
-$$\disc(A_{f_L}) \leq O(\sqrt{d\log(1/\eps)}/\eps) $$
+$$\disc(A_{f_L}) \leq O(\sqrt{d\log(1/\eps)}) $$
 
 Let's discuss what this means. For a logistic regression problem, by observing the weights and labels we can change the signs of the inputs so that the logistic loss is always $\log(1+\exp(\ip{q,x}))$, and we can now convert the discrepancy result into a coreset of size $\sqrt{d\log(1/\eps)}/\eps$, as opposed to a random sample of $1/\eps^2$. 
 
@@ -618,13 +621,9 @@ $$\|A_{K,f_L}\|_{\gamma_2} \leq \sum_{k=0}^{\infty} |\alpha_k| $$
 For $L(z)=\log(1+\exp(z))$ and $L(z) = z^2$, and any psd kernel $K:\R^d \times \R^d \to \R$ we have
 $$\|A_{K,f_L}\|_{\gamma_2} \leq 1 $$ 
 and
-$$\disc(A_{K,f_L}) \leq O(\sqrt{d\log(1/\eps)}/\eps) $$ 
+$$\disc(A_{K,f_L}) \leq O(\sqrt{d\log(1/\eps)}) $$ 
 \end{corollary}
 
-
-%Let's discuss what this means. For a logistic regression problem, by observing the weights we can change the signs of the inputs so that the logistic loss is always $\log(1+\exp(\ip{q,x}))$, and we can now convert the discrepancy result into a coreset of size $\sqrt{d\log(1/\eps)}/\eps$, as opposed to a random sample of $1/\eps^2$. This has a limitation where we need the labels to determine the coreset. We now proceed to see how we can remove that need.
-%
-%We will require an assumption regarding the labels of the data: We assume that for some $q \in Q$, there exist at most $\rho n$ data point label pairs $(x,y) \in X \times \{-1,1\}$ such that $\text{sign}(\ip{q,x}) \neq y$. 
 
 \bibliographystyle{plain}
 \bibliography{density}
