@@ -441,15 +441,17 @@ This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite
 We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$. The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$. 
 
 We start some notation and trivial properties. For a vector $q \in \R^d$ let $q^{\otimes k}$ to represent the $k$-dimensional tensor obtained from the outer product of $q$ with itself in all the dimensions. For a $k$ dimensional tensor with $d^k$ entries $X$ we consider the measure
-$\|X\| = \max_{q \in \R^d, \|q\|=1} \left| \langle X, q^{\otimes k}\rangle \right|$.
+$\|X\|_{T_k} = \max_{q \in \R^d, \|q\|=1} \left| \langle X, q^{\otimes k}\rangle \right|$.
 \begin{lemma}
-$\|X\|$ is a norm
+$\|X\|_{T_k}$ is a norm
 \end{lemma}
 \begin{proof}
-Notice that for any $X \neq 0$, $\ip{X, q^{\otimes}}$ is a non-zero polynomial in $q$. It follows that there must be $q$ for which it's value is non-zero. This means that $\|X\|=0$ iff $X=0$. For a scalar $a$, we clearly have by definition that
-$$ \|aX\| = |a|\|X\| $$
+We prove the claim directly from the definition of a norm.
+Notice that for any $X \neq 0$, $\ip{X, q^{\otimes}}$ is a non-zero polynomial in $q$. It follows that there must be $q$ for which it's value is non-zero, meaning that $\|X\|_{T_k}=0$ iff $X=0$. For a scalar $a$, we clearly have by definition that
+$$ \|aX\|_{T_k} = |a|\|X\|_{T_k} $$
 Lastly, by the max definition we clearly have
-$$ \|X+Y\| =  \max_{q \in \R^d, \|q\|=1} \left| \langle X+Y, q^{\otimes k}\rangle \right| \leq \max_{q \in \R^d, \|q\|=1} \left| \langle X, q^{\otimes k}\rangle \right| + \max_{q \in \R^d, \|q\|=1} \left| \langle Y, q^{\otimes k}\rangle \right| = \|X\| + \|Y\|$$
+$$ \|X+Y\|_{T_k} =  \max_{q \in \R^d, \|q\|=1} \left| \langle X+Y, q^{\otimes k}\rangle \right| \leq $$
+$$\max_{q \in \R^d, \|q\|=1} \left| \langle X, q^{\otimes k}\rangle \right| + \max_{q \in \R^d, \|q\|=1} \left| \langle Y, q^{\otimes k}\rangle \right| = \|X\|_{T_k} + \|Y\|_{T_k}$$
 \end{proof}
 
 
@@ -457,43 +459,41 @@ We are now ready for the lemma controlling all powers of inner products simultan
 
 
 \begin{lemma}\label{uc}
-For any set of vectors $x_i \in \R^d$ there exist a set of signs $\sigma_i$ such that for all $k$ simultaneously $\|\sum_i \sigma_i x_i^{\otimes k}\| \le O(\sqrt{d k\log^{3}{k}})$ (the $3$ power of the term $\log(k)$ can be reduced to any constant power larger than $2$). 
+For any set of vectors $x_i \in \R^d$ there exist a set of signs $\sigma_i$ such that for all $k$ simultaneously $\left\| \sum_i \sigma_i x_i^{\otimes k} \right\|_{T_k} \le O(\sqrt{d k\log^{3}{k}})$ (the $3$ power of the term $\log(k)$ can be reduced to any constant power larger than $2$). 
 \end{lemma}
 \begin{proof}
 The proof will use Banaszczyk's theorem. 
 Let $\mathcal K$ be a convex body in Euclidean space with Gaussian measure at least 1/2 ($\Pr[g \in \mathcal K] \ge 1/2$ where $g$ is i.i.d.\ Gaussian).
-Let $x_1,\ldots,x_n$ be vectors with $\|x_i\|_2 =O(1)$. 
+Let $x_1,\ldots,x_n$ be vectors with $\|x_i\| =O(1)$. 
 Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some constant $C$.
 
 
 To use Banaszczyk's theorem we begin with defining our convex body.
 Define the norm $\|\psi\|_T$ of a vector $\psi$ as follows. Look at the first $d$ coordinates of $\psi$ as a vector $\psi_1$, the next $d^2$ coordinates of $\psi$ as a matrix $\psi_2$ the next $d^3$ coordinates as a three tensor $\psi_3$ etc.
-We define $\|\psi\|_T = \max_k \|\psi_k\|/\sqrt{\log(k)}$. 
-Here, $\|\cdot\|$ is the special spectral norm defined in the beginning of the section 
-%$$\|\psi\| = \max_{q, \|q\|=1} \langle   \psi_k,q^{\otimes k}\rangle  = \max_{q, \|q\|=1} \sum_{i_1,\ldots,i_k=1}^d \psi_k(i_1,\ldots,i_k)\Pi_{k'=1}^{k}q(i_{k'})$$
-%
+We define $\|\psi\|_T = \max_k \|\psi_k\|_{T_k} /\sqrt{\log(k)}$. 
+Here, $\|\cdot\|_{T_k}$ is the special spectral norm defined in the beginning of the section 
 The maximum over norms of subvectors is clearly a norm in itself, meaning that $\|\cdot \|_T$ is indeed a norm. It follows that  the set $\mathcal K  = \{\psi \; | \; \|\psi\|_T \le c\sqrt{d}\}$ is convex. 
 
 We now need to show that the Gaussian measure of $\mathcal K$ is at least $1/2$. 
 That is, with probability at least $1/2$ a vector of random Gaussian entrees $g$ belongs to $\mathcal K$.
 Considering a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$. 
-A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\| \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$, where the reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability al least $1/2$. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
+A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$, where the reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability al least $1/2$. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
 
 We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. 
 $$\psi(x) = [x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots]$$
-Finally, note that for $\|x\|_2 \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
+Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
 
 We are now ready to apply Banaszczyk's theorem. 
 There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$.
-Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that $\max_k \|\sum_i \sigma_i  x_i^{\otimes k}\| \le \sqrt{d k \log^{3}(k)}$
+Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that $\max_k \|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k} \le \sqrt{d k \log^{3}(k)}$
 
 
 \begin{lemma} \label{lem:komlos anl}
-Let $f$ be a function of $\langle x,q\rangle$ such that $f(\langle x,q\rangle) = \sum_k \alpha_k \langle x,q\rangle^k$ is its Taylor expansion. The Komlos Complexity of the Family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\|_2 \leq 1$, is bounded by
+Let $f$ be a function of $\langle x,q\rangle$ such that $f(\langle x,q\rangle) = \sum_k \alpha_k \langle x,q\rangle^k$ is its Taylor expansion. The Komlos Complexity of the Family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq 1$, is bounded by
 \[
 K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) \le \sqrt{d} \sum_k  |\alpha_k|\sqrt{k\log^3(k)}
 \]
-For general $\|q\|_2 \leq R$ we get
+For general $\|q\| \leq R$ we get
 \[
 K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) \le \sqrt{d} \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)}
 \]
@@ -501,25 +501,25 @@ K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) \le \sqrt{d} \sum_k  |\alpha_k| R^k \
 \begin{proof}
 The proof follows from combining the above.
 $$
-\sum_i \sigma_i f(x_i,q) = \sum_k \alpha_k \sum_i \sigma_i \langle x_i,q\rangle^k =  \sum_k \alpha_k  \langle  \sum_i \sigma_i x_i^{\otimes k},q^{\otimes k}\rangle \le \sum_k |\alpha_k| \cdot \| \sum_i \sigma_i x_i^{\otimes k}\| \cdot \|q\|_2^k
+\sum_i \sigma_i f(x_i,q) = \sum_k \alpha_k \sum_i \sigma_i \langle x_i,q\rangle^k =  \sum_k \alpha_k  \langle  \sum_i \sigma_i x_i^{\otimes k},q^{\otimes k}\rangle \le \sum_k |\alpha_k| \cdot \| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \cdot \|q\|^k
 $$
 By Lemma \ref{uc} we can find signs $\sigma$ such that 
-$\| \sum_i \sigma_i x_i^{\otimes k}\| \le c\sqrt{d k \log^3(k)}$. Substituting into the above the lemma follows.
+$\| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \le c\sqrt{d k \log^3(k)}$. Substituting into the above the lemma follows.
 \end{proof}
 
 \begin{theorem}
-Let $\tilde{f}$ be an analytical one dimension function over $\R$. There exist a radius $R$ such that for $\|q\|_2 \leq R$ the function family of functions $f_q(x) = \tilde{f}(\ip{q,x})$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d})$ 
+Let $\tilde{f}$ be an analytical one dimension function over $\R$. There exist a radius $R$ such that for $\|q\| \leq R$ the function family of functions $f_q(x) = \tilde{f}(\ip{q,x})$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d})$ 
 \end{theorem}
 \begin{proof}
 Recall that for analytical functions $f$ we have 
-$$\left| \frac{d^k \tilde{f}}{dx^k}(x) \right| / k! \leq C^{k+1} $$
+$$\left| \frac{d^k \tilde{f}}{dz^k}(z) \right|  \leq C^{k+1} k! $$
 for some constant $C$. Considering the taylor expansion of $\tilde{f}$ near zero we get that for $R < 1/C$, the sum
-$$ \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)} $$
+$$ \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)} \leq C \sum_k  (CR)^k \sqrt{ k\log^3(k)}$$
 corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result follows.
 \end{proof}
 
 \begin{corollary}
-The Komlos complexity of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\|_2 \leq 1$ is $O(\sqrt{d})$.
+The Komlos complexity of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d})$.
 \end{corollary}
 
 Notice that by transforming $x$ to $\tilde{x} = (-x, \|x\|^2, 1)$ and $q$ to $\tilde{q} = (q, 1, \|q\|^2)$ we get $\ip{\tilde{x},\tilde{q}} = \|x-q\|^2$. This implies that our results for functions of $\ip{q,x}$ apply for functions of $\|q-x\|^2$. In particular we get
