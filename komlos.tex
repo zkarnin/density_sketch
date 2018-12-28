@@ -292,28 +292,29 @@ $O\left(c\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error 
 %\end{fact}
 
 \begin{lemma} \label{lem:compactor}
-Let $m$ be an integer and assume we have black box access to a solver that for any $m$ inputs $x_1,\ldots,x_m$ obtains $m$ signs $\sigma_1,\ldots,\sigma_m$ such that
-$$\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \in O(K_m)$$
+Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $\sigma_1,\ldots,\sigma_k$ such that
+$$\max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$$
 Note that such signs are guarantied to exist by the definition of the Komols Complexity. 
-In fact, the quantity above is likely much smaller than $K_m$ because it is computed for a specific set of points $x_i$ and the worst such possible set.
+In fact, the quantity above is potentially much smaller than the Komlos Complexity because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set.
 
 
 Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
 \begin{itemize}
 \item $\{z_i\}_i$ is a subset of $\{x_i\}$
 \item $\E[m] = n/2$
+\item $\Pr[m \geq (1+1/\log^2(n))n/2] \leq \exp \left( -O\left(\frac{n}{k\log(n)^4}\right)\right)$
 \item For any fixed query $q$, the error associated with $q$, defined as
 $$\text{Err}(q) = 2\sum_{i=1}^m f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
 Can be decomposed as a sum
 $$\text{Err}(q) = \sum_{j=1}^{n/k} \text{Err}_j(q)$$
-where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{Err}_j(q)| \leq \rho k$
+where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{Err}_j(q)| \leq K_k$
 \end{itemize}
-The last property ensures that deterministically $|\text{Err}(q)| \leq \rho n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
+The last property ensures that deterministically $|\text{Err}(q)| \leq (K_k/k) n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
 $$|\text{Err}(q)| \lesssim \rho k\sqrt{n/k} = \rho \sqrt{kn}$$
 \end{lemma}
 \begin{proof}
 The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
-$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq \rho k$$
+$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_k$$
 Then, the algorithm output to the stream the with probability $1/2$ each data points $\{x_i \; | \; \sigma_i = 1\}$ or $\{x_i \; | \; \sigma_i = -1\}$ with twice the weight.
 $$\sum_{i ,\; \sigma_i=1} 2f(x_i, q) = \sum_{i} f(x_i, q) +  \sum_{i} \sigma_i f(x_i, q)$$
 $$\sum_{i ,\; \sigma_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} \sigma_i f(x_i, q)$$
@@ -323,9 +324,9 @@ $$\sum_{i ,\; \sigma_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} \sigma_i f
 %$$ -\sum_i \sigma_i f(x_i, q) = \sum_i -\sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
 %Thus, we draw a random coin and either output to the stream the data points of $P$ or $N$. We call this operation a single compaction. 
 %\el{this is clunky way to say this...}
-The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. 
+The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. Moreover, the output length is a sum of $n/k$ independent random variables with mean $k/2$ and a maximum value of $k$. Chernoff-Hoeffding's bound can guarantee the stated concentration around $\E[m]$.
 As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
-$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Bernoulli r.v. with magnitude of at most $\rho k$ as required.
+$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
 \end{proof}
 
 
@@ -379,6 +380,97 @@ $$ \rho^{\dagger}(c \eps / \log\log(1/\delta)) \log\log(1/\delta) $$
 \end{proof}
 
 
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+
+\subsubsection{take 3}
+
+
+\begin{proof} [Proof of Theorem~\ref{thm:streaming}]
+Denote the streaming algorithm of Lemma~\ref{lem:compactor} as a compactor. The streaming algorithm operates as follows. At any given time it maintains a hierarchy of compactors where the hierarchy is measured in levels, starting from 0. The Compactor of level $h$ receives inputs of weight $2^h$ and outputs items of weight $2^{h+1}$. In the beginning we have a single compactor at level $h=0$. Once it outputs items to its output stream we open a compactor at level $h=1$ and so on. After observing $n$ items let $H$ be the level of the final compactor, meaning the compactor that never began an output stream.
+
+The sketch at that point contains all the data points contained in the buffers of the different compactors, weighted according to the level of the compactor. For a query $q$ and hierarchy level $h$ we analyze the error
+$$\text{Err}_h(q) = 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \ .$$
+Here, $k_h$ is the capacity of the buffers at level $h$, $n_h$ is the length of the stream observed at level $h$. The multiplier of $2^h$ is there since level $h$ observes items of weight $2^h$. The sum over $j$ is over the number of compactions at level $h$. $K_h$ is used to denote the discrepancy of each compaction using a buffer of $k_h$ points. Finally, the $Y_{ij}$ are independent random variables with mean zero and absolute value of at most $1$. The overall error for the query $q$ is the sum over all levels of its errors
+$$ \text{Err}(q) = \sum_{h=0}^H \text{Err}_h(q)$$
+
+To achieve a deterministic bound we set all $k_h=k$, and set the compactors to choose the signed set with the least cardinality, ensuring $n_h \leq n_{h-1}/2$ and $H \leq \log_2(n/k)$, thus
+$$ \text{Err}(q) \leq (K_k/k) \log_2(n/k) n $$
+
+We are however interested in a high probability bound. Specifically we would like to guarantee for $\delta_1,\delta_2 > 0$ that for any set of queries $Q$ the error is bounded by $\eps n$ w.p.\ $\delta_1|Q| + \delta_2$. To this end we consider a different analysis for the top and bottom layers. For the top layers, the length of the stream can be arbitrarily short so we will use the deterministic analysis as above. For the bottom layers, we can guarantee a minimal length to the stream and obtain tighter bounds.
+
+The bottom layers will be those of height $h=0$ up to $h=H'$ with 
+\begin{equation} \label{eq:Htag}
+H' = \ceil{\log\left( \frac{n}{k\log\left(1/\left(c \delta_1 \delta_2 \log^3(n)\right)\right)} \right)}
+\end{equation}
+for some constant $c$ that will be determined later.
+
+According to Lemma~\ref{lem:compactor} we have for $ h\geq 0$ that irrespective of $q$,
+$$ \Pr[n_{h+1} \geq (1+1/\log(n))n_{h}/2] \leq \exp\left( -O\left(\frac{n_{h}}{k \log^2(n)} \right) \right) = \delta_2 / H' $$
+for a sufficiently small constant $c$ in Equation~\eqref{eq:Htag}. 
+It follows by taking a union bound and noticing that $H' \leq \log(n)$ that irrespective of $q$ we have w.p. at least $1-\delta_2$ that 
+$$\forall h \leq H', \ \ n_{h} \leq 3 \cdot n/2^{h}$$
+
+Let's proceed to bound the error of layer $h$. Since this error is a sum of i.i.d bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
+$$ \Pr\left[   \left| 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( O\left( -\frac{ \eps^2 n^2}{ 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } K_h^2}   \right)\right) =$$
+$$\exp \left( -O\left(\frac{\eps^2 n^2}{n_h 2^{2h} K_h^2/k_h  } \right) \right) 
+$$
+We now make use of the above union bound applied to the bound on $n_h$. Notice that the random events determining the length $n_h$ do not affect the realization of the random variables used in layer $h$, so we can indeed use the bound on $n_h$ for controlling the error at level $h$. We get that since $n_h \leq 3n/2^h$
+$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq 
+\exp \left( -O\left(\frac{\eps^2 n}{ 2^h K_h^2/k_h  } \right) \right) 
+$$
+In particular, for $\eps_h = \sqrt{\frac{c 2^h K_h^2 \log((H'-h+1)^2/\delta_1)}{k_h n}}$ for some sufficiently large constant $c$ it holds that
+$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq \delta_1/(H'-h+1)^2$$
+and a union bound ensures that with probability at least $1-\delta_1$, for any fixed query $q$ it holds for all $h \leq H'$ that
+$$\left| \text{Err}_h(q) \right| \geq \eps_h n$$
+and 
+$$\left| \sum_{h=0}^{H'} \text{Err}_h(q) \right| \leq \left(\sum_{h=0}^{H'} \eps_h\right)n $$
+
+We start by dealing with the setting where $K_k = \min\{d,k\}$ where $d$ is independent of $k$. We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. Since $k_{H'} = k$ by using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
+$$\eps_h \leq \sqrt{\frac{2c \cdot K_h^2 k_{H'}\log(H'-h+1)}{2^{H'-h} K_{H'} k_{h}}} \cdot \sqrt{\frac{2^{H'} K_{H'}^2 \log(1/\delta_1)}{k_{H'} n}} = $$
+$$
+\frac{K_k}{k} \cdot O\left( \sqrt{\frac{K_h^2 k_{H'}\log(H'-h+1)}{2^{H'-h} K_{H'}^2 k_{h}}}  \right)
+$$ 
+We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$
+$$
+\frac{K_h^2 k_{H'}\log(H'-h+1)}{2^{H'-h} K_{H'}^2 k_{h}} \leq \frac{d^2 k\log(H'-h+1)}{2^{H'-h} d^2 (2/3)^{H'-h}k} =
+\frac{\log(H'-h+1)}{ (4/3)^{H'-h}}
+$$
+If follows that 
+$$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(d/k) $$
+and we have a bound of $O(d/k)$ for the bottom layers.
+
+For the top layers we set $k_h=k$ and obtain the deterministic bound of 
+$$ \sum_{h=H'+1}^H \text{Err}_h(q) \leq (H-H')(d/k)n $$
+Since we $n_{h+1} \leq n_h$ for $h \geq H'$ we get that $H-H' \leq \log(n/(kn_{H'}))$. According to our analysis above we are in an event (of probability $1-\delta_2$) where $n_{H'} \leq 3 \cdot n/2^{H'}  $ meaning that
+$$ n/(kn_{H'}) = O\left((\log\left(1/\left(c \delta_1 \delta_2 \log^3(n)\right)\right)\right) $$
+leading to the bound of 
+$$ \sum_{h=H'+1}^H \text{Err}_h(q) \leq O\left( \log \log\left( 1/\left( \delta_1\delta_2\log(n) \right)\right)(d/k)n \right)$$
+The latter is the bound for the total sum of errors $\text{Err}(q)$ as well.
+
+To conclude the case of $K_k=d$ we obtain an error of 
+$$O\left( \log \log\left( 1/\left( \delta_1\delta_2\log(n) \right)\right)(d/k)n \right)$$
+by using $O(k\log \log\left( 1/\left( \delta_1\delta_2\log(n) \right)\right))$ memory. The memory analysis follows from a trivial bound to the upper layers, and noticing that for the smaller layers, all layers with $k=2$ can be implemented in $O(1)$ memory by uniformly sampling. By setting $\delta=\delta_1=\delta_2 < 1/\log(n)$ we get that for 
+$$ k=O(d\log\log(1/\delta)/\eps) $$
+the overall error is bounded by $\eps n$ and the memory is bounded by 
+$$ O(d\log\log(1/\delta)^2/\eps) $$
+
+Let's now consider the case where $K_k = d\sqrt{k}$ with $d$ independent of $k$. Here, we set $k_{H'}=k$ and $k_h=2$ for all $h<H'$.
+
+\zk{need to finish the analysis for the above $K_k$..}
+\end{proof}
+
+
 
 
 \section{Connections to streaming Counting and Quantiles}
@@ -402,7 +494,8 @@ where $\lambda$ is a scaling parameter. What we discuss in what follows applies 
 Using our framework, we need to bound $K_m = \frac{1}{m}\sum_{i=1}^m \sigma_i K(x_i,y)$. For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
 $$ K(x,y) = \ip{\phi(x), \phi(y)} $$
 Using this function $\phi$ our objective function becomes
-$$\sum_{i=1}^m \sigma_i K(x_i,y) = \sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(y)} =  \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(y)} \leq \|\phi(y)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| \leq  \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| $$
+$$\sum_{i=1}^m \sigma_i K(x_i,y) = \sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(y)} =  \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(y)} \leq $$
+$$ \|\phi(y)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| \leq \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| $$
 This upper bound allows us to find values for $\sigma_i$ which bound $K_n$ using a simple algorithm.
 Given $m$ vectors $z_1,\ldots,z_m$ in an inner product space, compute signs minimizing $\| \sum_i \sigma_i z_i \|$.
 We first notice that for i.i.d.\ uniform signs, it holds that
@@ -438,7 +531,7 @@ This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite
 
 \section{Universal Coresets for Analytical Functions}
 
-We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$. The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$. 
+We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or distance $\|q-x\|$. The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
 
 We start some notation and trivial properties. For a vector $q \in \R^d$ let $q^{\otimes k}$ to represent the $k$-dimensional tensor obtained from the outer product of $q$ with itself in all the dimensions. For a $k$ dimensional tensor with $d^k$ entries $X$ we consider the measure
 $\|X\|_{T_k} = \max_{q \in \R^d, \|q\|=1} \left| \langle X, q^{\otimes k}\rangle \right|$.
@@ -480,7 +573,7 @@ Considering a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$.
 A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$, where the reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability al least $1/2$. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
 
 We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. 
-$$\psi(x) = [x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots]$$
+$$\psi(x) = \left[x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots \right]$$
 Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
 
 We are now ready to apply Banaszczyk's theorem. 
@@ -576,7 +669,7 @@ Alternatively, we obtain a streaming mergeable algorithm for creating coresets o
 \el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} 
 
 \subsection{Streaming Graph Approximation}
-Streaming graphs have received a lot of attention in the last several years \cite{}. 
+Streaming graphs have received a lot of attention in the last several years \zk{cite something here \cite{}}. 
 In the standard setting, the edges of a graph $G(V,E)$ are given to an algorithm one ofter the other in arbitrary order.
 Here we show how to approximate all quadratic forms $\sum_{(i,j) \in E} (q_i - q_j)^2$ where the values $q$ are not known in advance.
 Let $L_e$ be the graph Laplacian of the edge $e$. More accurately, $L_e(i,i) = L_e(j,j) = 1$ and  $L_e(i,j) = L_e(j,i) = -1$ and all other values are zeros.
