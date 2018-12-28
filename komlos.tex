@@ -80,14 +80,12 @@
 \maketitle
 
 \begin{abstract}
-This paper presents the Komlos complexity for families of functions.
-We argue that this measure of complexity captures properties like minimal coreset sizes, streaming mergable sketches, and batch active learning.  
-We show that for many well known problems the Komlos complexity is asymptotically lower than their Rademacher complexity.
-This proves the existence smaller coresets than those achievable by random sampling. 
-These include frequent item counting, quantile approximation, kernel density estimation, matrix covariance approximation, and linear and logistic regression.
-For all of the above we match the state of the art or improve on it with the above generic framework.
+This paper defines the Komlos complexity for families of functions which is intimately related to its discrepancy properties.
+We argue that this measure of complexity captures properties like minimal coreset sizes for different problems in machine learning. We show that for many well known problems the Komlos complexity is asymptotically lower than their Rademacher complexity. This proves the existence smaller coresets than those achievable by random sampling. 
+New results for coresets for kernel density estimation, matrix covariance approximation, and logistic regression are presented both as examples of for providing mechanisms to compute the Komlos complexity of other classes.
+For all of the above we match the state of the art or improve on it.
 This makes an explicit connection between low discrepancy, streaming algorithms, coresets, and learnability. 
-We also asymptotically improve on the generic merge-reduce framework for creating mergeable sketches for all the above problems. 
+%We also asymptotically improve on the generic merge-reduce framework for creating mergeable sketches for all the above problems. 
 \end{abstract}
 
 
@@ -439,7 +437,6 @@ This matches the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite
 
 \section{Universal Coresets for Functions of Inner Products}
 
-
 \begin{lemma}\label{uc}
 For any set of vectors $x_i \in \R^d$ there exist a set of signs $\sigma_i$ such that for all $k$ simultaneously $\|\sum_i \sigma_i x_i^{\otimes k}\| \le O(\sqrt{d k\log^{3}{k}})$ (the $3$ power of the term $\log(k)$ can be reduced to any constant power larger than $2$). Here 
 $\|X\| = \max_{q, \|q\|=1} \langle X, q^{\otimes k}\rangle$.
@@ -464,11 +461,11 @@ That is, with probability at least $1/2$ a vector of random Gaussian entrees $g$
 
 Considering a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$. 
 A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\| \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability al least $1/2$. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
-
+%
 We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. 
 $$\psi(x) = [x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots]$$
-Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\| = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
-
+Note that for $\|x\| \le 1$ we have $\|\psi(x)\| = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
+%
 We are now ready to apply Banaszczyk's theorem. 
 There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$.
 Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that $\max_k \|\sum_i \sigma_i  x_i^{\otimes k}\| \le \sqrt{d k \log^{3}(k)}$
