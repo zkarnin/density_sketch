@@ -79,6 +79,7 @@
 \maketitle
 
 \begin{abstract}
+\el{I need to rewrite the abstract}
 This paper defines the Komlos complexity for families of functions which is intimately related to its discrepancy properties.
 We argue that this measure of complexity captures properties like minimal coreset sizes for different problems in machine learning. We show that for many well known problems the Komlos complexity is asymptotically lower than their Rademacher complexity. This proves the existence smaller coresets than those achievable by random sampling. 
 New results for coresets for kernel density estimation, matrix covariance approximation, and logistic regression are presented both as examples of for providing mechanisms to compute the Komlos complexity of other classes.
@@ -90,6 +91,7 @@ This makes an explicit connection between low discrepancy, streaming algorithms,
 
 \section{Introduction}
 
+\el{I need to rewrite this section.}
 In many machine learning and sketching problems our goal is often to approximate the sum (or expectation) of functions.
 Specifically, function of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i \in \mathcal X$ are either training examples or stream items and $q \in \mathcal Q$ is either the model parameters or a query from a possible set $\Q$ which is known in advance. For simplicity and throughout this manuscript we will assume $f:\X\times\Q\rightarrow [0,1]$.
 The goal is to produce weights $w$ with at most $k \ll n$ non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
@@ -115,29 +117,7 @@ Moreover, if the resulting sketches or coresets are mergable, this could be done
 
 
 
-\newcommand{\ccc}[1]{\parbox}
-\begin{table}[htp]
-\begin{center}
-\begin{tabular}{|c|c|c|c|} \hline
-Problem				& $f$ 											& $R_m$ 			& $K_m$ \\ \hline
-Counting 				& $f(x, q) = 1$ if $x=q$ and zero else 					& $1/\sqrt{m}$		& $1/m$ \\ \hline
-Quantiles				& $f(x, q) = 1$ if $x\le q$ and zero else  					& $1/\sqrt{m}$		& $1/m$ \\ \hline
-Column Selection		& $f(x, q) = \langle x,q \rangle ^2$ where  $q,x\in \R^d$		& $1/\sqrt{m}$		& $\sqrt{d}/m$ \\ \hline
-Gaussian Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\lambda^2)$ where  $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
-Laplacian Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2/\lambda)$ where  $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
-Positive Kernel Density 			& $f(x, q) = k(x,q)$ for any positive kernel $k$ and $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
 
-%Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ where  $q,x\in \R^d$ 						& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
-%Hinge Regression     		& $f(x, q) = [1-q^T x]_+$ where  $q,x\in \R^d$							& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
-Linear Regression		& $f(x,q) = (z^Tq - y)^2$ where $x = (z\in\R^d,y\in \R)$ and $q\in \R^d$					& ?				& ? \\ \hline
-Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else. $q,x\in \R^d$					& ?				& ? \\ \hline
-Graph Laplacian 		& $f(x, q) = w_{ij}(q_i - q_i)^2$ for $x = (w_{ij},i,j)$, $q \in \R^n$ & ?				& ? \\ \hline
-Matrix Approximation  	& $f(x, q) = a_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q = (u,v)$ 	& ?				& ? \\ \hline
-\end{tabular}
-\caption{Example problems in machine learning and sketching that fall into this framework.}
-\end{center}
-\label{default}
-\end{table}%
 
 
 
@@ -284,6 +264,328 @@ $O\left(c\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error 
 %For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists a fully-mergeable deterministic streaming coreset algorithms of size 
 %$O(\log^2(n)/\eps^2)$ whose error is at most $\eps n$.
 %\end{fact}
+
+
+\section{The Complexity of Analytic Functions of Dot Products}
+
+We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or distance $\|q-x\|$. The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
+
+
+We start with some notation and trivial properties. 
+For a vector $q \in \R^d$ let $q^{\otimes k}$ represent the $k$-dimensional tensor obtained from the outer product of $q$ with itself $k$ times. For a $k$ dimensional tensor with $d^k$ entries $X$ we consider the measure
+$\|X\|_{T_k} = \max_{q \in \R^d, \|q\|=1} \left| \langle X, q^{\otimes k}\rangle \right|$.
+\begin{fact}
+$\|X\|_{T_k}$ is a norm
+\end{fact}
+\begin{proof}
+We prove the claim directly from the definition of a norm.
+Notice that for any $X \neq 0$, $\ip{X, q^{\otimes}}$ is a non-zero polynomial in $q$. It follows that there must be $q$ for which its value is non-zero, meaning that $\|X\|_{T_k}=0$ iff $X=0$. For a scalar $a$, we clearly have by definition that
+$\|aX\|_{T_k} = |a|\|X\|_{T_k}$.  Lastly, by the max definition we clearly have
+$ \|X+Y\|_{T_k} =  \max_q \left| \langle X+Y, q^{\otimes k}\rangle \right| \leq 
+\max_q \left| \langle X, q^{\otimes k}\rangle \right| + \max_q\left| \langle Y, q^{\otimes k}\rangle \right| = \|X\|_{T_k} + \|Y\|_{T_k}$
+\end{proof}
+
+We are now ready for the lemma controlling all powers of inner products simultaneously. 
+
+\begin{lemma}\label{uc}
+For any set of vectors $x_i \in \R^d$ there exist a set of signs $\sigma_i$ such that for all $k$ simultaneously $\left\| \sum_i \sigma_i x_i^{\otimes k} \right\|_{T_k} \le O(\sqrt{d k\log^{3}{k}})$ (the $3$ power of the term $\log(k)$ can be reduced to any constant power larger than $2$). 
+\end{lemma}
+\begin{proof}
+The proof will use Banaszczyk's theorem. 
+Let $\mathcal K$ be a convex body in Euclidean space with Gaussian measure at least 1/2 ($\Pr[g \in \mathcal K] \ge 1/2$ when $g$ is i.i.d.\ Gaussian).
+Let $x_1,\ldots,x_n$ be vectors with $\|x_i\| =O(1)$. 
+Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some constant $C$.
+
+To use Banaszczyk's theorem we begin with defining our convex body.
+Define the norm $\|\psi\|_T$ of a vector $\psi$ as follows. Look at the first $d$ coordinates of $\psi$ as a vector $\psi_1$, the next $d^2$ coordinates of $\psi$ as a matrix $\psi_2$ the next $d^3$ coordinates as a three tensor $\psi_3$ etc.
+We define $\|\psi\|_T = \max_k \|\psi_k\|_{T_k} /\sqrt{\log(k)}$. 
+Here, $\|\cdot\|_{T_k}$ is the special spectral norm defined in the beginning of the section 
+The maximum over norms of subvectors is clearly a norm in itself, meaning that $\|\cdot \|_T$ is indeed a norm. It follows that  the set $\mathcal K  = \{\psi \; | \; \|\psi\|_T \le c\sqrt{d}\}$ is convex. 
+
+We now need to show that the Gaussian measure of $\mathcal K$ is at least $1/2$. 
+That is, with probability at least $1/2$ a vector of random Gaussian entrees $g$ belongs to $\mathcal K$.
+Consider a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$. 
+
+A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$, where the reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability at least $1/2$. 
+%
+We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
+$$\psi(x) = [x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots]$$
+
+Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
+
+
+We are now ready to apply Banaszczyk's theorem. 
+There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$.
+Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that $\max_k \|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k} \le \sqrt{d k \log^{3}(k)}$
+\end{proof}
+
+\begin{lemma} \label{lem:komlos anl}
+Let $f$ be a function of $\langle x,q\rangle$ such that $f(\langle x,q\rangle) = \sum_k \alpha_k \langle x,q\rangle^k$ is its Taylor expansion. The Komlos Complexity of the Family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq 1$, is bounded by
+\[
+K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) =O\left( \sqrt{d} \sum_k  |\alpha_k|\sqrt{k\log^3(k)}\right)
+\]
+For general $\|q\| \leq R$ we get
+\[
+K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) =O\left( \sqrt{d} \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)}\right)
+\]
+\end{lemma}
+\begin{proof}
+The proof follows from combining the above.
+$$
+\sum_i \sigma_i f(x_i,q) = \sum_k \alpha_k \sum_i \sigma_i \langle x_i,q\rangle^k =  \sum_k \alpha_k  \langle  \sum_i \sigma_i x_i^{\otimes k},q^{\otimes k}\rangle \le \sum_k |\alpha_k| \cdot \| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \cdot \|q\|^k
+$$
+By Lemma \ref{uc} we can find signs $\sigma$ such that 
+$\| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \le c\sqrt{d k \log^3(k)}$. Substituting into the above the lemma follows.
+\end{proof}
+
+\begin{theorem}\label{analitic1}
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d}/m)$. 
+\end{theorem}
+\begin{proof}
+Recall that for analytic functions $f$ we have $\left| \frac{d^k f}{dz^k}(z) \right|  \leq C^{k+1} k! $
+for some constant $C$. Considering the taylor expansion of $f$ near zero. For $R < 1/C$, the sum
+$ \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)} \leq C \sum_k  (CR)^k \sqrt{ k\log^3(k)}$
+corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result follows.
+\end{proof}
+
+\begin{corollary}
+The Komlos complexity of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
+\end{corollary}
+
+\begin{corollary}
+The Komlos complexity of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescales columns of the matrix $X$.
+\end{corollary}
+
+
+
+\begin{theorem}
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq \sqrt{R}$, has Komlos complexity of $O(\sqrt{d}/m)$. 
+\end{theorem}
+\begin{proof}
+By transforming $x$ to $\tilde{x} = (x, \|x\|^2, 1)$ and $q$ to $\tilde{q} = (-2q, 1, \|q\|^2)$ we get $\ip{\tilde{x},\tilde{q}} = \|x-q\|^2$. Moreover, $\|q\| \le \sqrt{R}$ gives $\|\tilde q\| \le R$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$ apply for functions of $\|q-x\|^2$.
+\end{proof}
+
+\begin{corollary}
+The Komlos complexity of the Gaussian kernel in dimension $d$ is $O(\sqrt{d}/m)$.
+This improves upon the recent result of \el{\cite{??}} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density.
+This resolves the open problem raised by \el{\cite{??}} and matches their lower bound.   
+\end{corollary}
+%\end{proof}
+
+
+\section{A Simple Algorithm for Kernel Density Estimation}
+
+From section \ref{} we know that the Komlos complexity of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. Here, we show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is better when $d > m$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
+Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as 
+$$ f(q) = \sum_{i=1}^{n} K(x_i,q) $$
+Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
+$$ K(x,q) = \exp(- \|x-y\|_2^2/\lambda^2)\;\;\; K(x,q) = \exp(- \|x-q\|/\lambda) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
+where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \leq 1$ for all data points. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
+
+Using our framework, we need to bound $K_m = \frac{1}{m}\sum_{i=1}^m \sigma_i K(x_i,q)$. For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
+$$ K(x,q) = \ip{\phi(x), \phi(q)} $$
+Using this function $\phi$ our objective function becomes
+\[
+\sum_{i=1}^m \sigma_i K(x_i,q) = \sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} =  \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)} \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| %\leq \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
+\]
+This upper bound allows us to find values for $\sigma_i$ which bound $K_n$ using a simple algorithm.
+Set $\sigma_1 = 1$. Then for $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
+We will show by induction that $\| \sum_{j=1}^i \sigma_j \phi(x_j) \|^2 \le \sum_{j=1}^i \|\phi(x_j)\|^2$ for all $i$.
+This is trivially true for $i=1$. 
+Assume by induction that $\| \sum_{j=1}^{i-1} \sigma_j \phi(x_j)\|^2 \le \sum_{j=1}^{i-1} \|\phi(x_j)\|^2$.
+
+\begin{eqnarray*}
+\| \sum_{j=1}^{i}\sigma_j \phi(x_j)\|^2 &=& \|\sum_{j=1}^{i-1}\sigma_j \phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\langle \sum_{j=1}^{i-1}\sigma_j \phi(x_j), \sigma_i \phi(x_i)\rangle \\
+&\le& \sum_{j=1}^{i-1} \|\phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i) \mbox{\;\;\; by the induction assumption}\\ 
+&=& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2
+\end{eqnarray*}
+This completes the proof that $\| \sum_{j=1}^{m}\sigma_j \phi(x_j)\| \le \sqrt{\sum_{j=1}^{i} \|\phi(x_j)\|^2} \le \sqrt{m}$ for our choice of values for $\sigma$ and shows that the Komlos complexity of any positive kernel is $O(1/\sqrt{m})$. 
+
+Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde f(q) - f(q)| \le \eps n$. This matches, and greatly simplifies, the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}.
+
+
+
+
+
+
+
+
+
+\section{Linear Regression}
+
+%\section{Optimal Design of Experiments}
+%We discuss the problem of linear regression with mean squared error. In the classic setting we are given $n$ points $x_1,\ldots,x_n \in \R^d$ along with $n$ labels $y_1,\ldots,y_n \in \R$ and wish to find $w \in \R^d$ minimizing
+%$$ \sum_i (w^Tx_i - y_i)^2 $$
+%In the field of optimal design of experiments, the labels are not given with the data. Instead, the learner must choose in advance a subset of datapoints for which they query the labels. The subset is chosen to provide the least error in a generalization bound, assuming $(x_1,y_1),\ldots,(x_n,y_n)$ are i.i.d from an unknown distribution.
+%
+%The way this is done in optimal design of experiments is as follows. Let $X$ be the set of $n$ points and consider a subset $B \subseteq X$. The empirical risk minimizer (ERM) for $B$ is 
+%$$ w_B = \left( \sum_{x \in B} xx^T \right)^{\dagger} y_B $$
+%%It is known that $w_B$ is an unbiased estimator of $w^*$, the optimal regressor for the distribution, where the noise comes from the realizations of the $y_i$'s. It follows that to minimize 
+%%$$ E_{x \sim {\cal D}} \ip{w-w^*,x}^2 $$
+%%which is the variance of $w$ measured by the distribution of data points, it suffice to minimize the second moment
+%%$$ E_{x \sim {\cal D}} \ip{w,x}^2  \approx w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
+%
+%
+%One can show that for $w_B$,
+%$$ \sum_i (w_B^Tx_i - y_i)^2 = C \cdot \text{Tr} \left(\left( \sum_{x \in B} xx^T \right)^{\dagger} \right) $$
+%\zk{This only works when $\sum_{x \in B} xx^T$ is full rank, otherwise we need to introduce some regularization and then things get messy.}
+%
+%We can use the results above for optimal design in the case where $w$ is restricted to have a unit Euclidean norm. Something that is commonly practiced. Since we will solve the problem for the subset we choose in an optimal way for gaussian noise, we end up with an unbiased estimator for $w^*$. The error is the variance of that unbiased estimator and minimizing the variance for an unbiased estimator is the same as minimizing its second moment we can aim to minimize
+%$$ F(w) = w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
+%This leads to the exact same objective as in column subset selection. Meaning that an $\eps$ core-set for the $x$'s gives a guaranteed error for a subset in the optimal design setting. Specifically we get that we can obtain a core-set of size
+%$$ \min(1/\eps^2, \sqrt{d}/\eps)$$
+%For the case of $\eps < 1/\sqrt{d}$, which is an interesting case in linear regression, a random sample of $\sqrt{d}/\eps$ points will not give a generalization bound of $\eps$ (there are known lower bounds, http://jmlr.org/papers/volume16/shamir15a/shamir15a.pdf contradicting this), meaning that we have a provable non-trivial guarantee for active learning. I'm not sure what statements are known already. 
+%
+%In the optimal design setting, they require keeping the covariance matrix. We could come up with a hueristic or even sketching algorithm that avoids maintaining $d^2$ points.
+
+
+\section{Logistic Regression}
+The following paper claims no streaming algorithms or coresets are available \cite{DBLP:journals/corr/abs-1805-08571}.
+This paper claims to have done that \cite{DBLP:conf/nips/HugginsCB16}.
+
+In \cite{DBLP:journals/corr/abs-1802-01751} (see paragraph before Lemma 2.2) they manage to obtain a coreset (with equal weights) of size $\sqrt{d \log(1/\eps)}/\eps$ for any kernel with certain properties. They do so by considering a matrix whose rows correspond to all the vectors in an $\eps$-net over the space, and columns correspond to the $n$ data points. Calling that matrix $A$, $A_{q,x} = K(q,x)$. They bound the discrepancy of the matrix defined as $\min_s \|As\|_\infty$ where $s$ is a sign vector by using a bound 
+$$ \min_s \|As\|_\infty \leq \sqrt{\log(N)} \|A\|_{\gamma_2} $$
+Here, $N$ is the size of the $\eps$ net and the $\gamma_2$ norm is 
+$$ \|A\|_{\gamma_2} = \min_{B,C: A=BC^T} \text{max norm of a row of B or C}$$
+They use the fact that for psd kernel $K$, $\|A\|_{\gamma_2} \leq 1$ (in fact it is equal to 1). Now, back to our case. For any fixed power $k$ we know that $K(x,q)=\ip{x,q}^k$ is a psd kernel, hence its corresponding matrix $A_k$ has $\gamma_2$ norm bounded by $1$. Now, the logistic function can be written in a taylor expansion whose coefficients, in absolute value, sum to a constant $C$. It follows that the $A$ matrix for the logistic function has a $\gamma_2$ norm bounded by $C$. The same arguments as in  \cite{DBLP:journals/corr/abs-1802-01751} can now prove that its discrepancy is bounded by $\sqrt{\log(N)} \approx \sqrt{d\log(1/\eps)}$
+
+A useful fact about the $\gamma_2$ norm is that it is indeed a norm. This is proven in \cite{tomczak1989banach}. In \cite{matouvsek2014factorization} this is listed in Section 2, Proposition 2.2 along with other known properties of the $\gamma_2$ norm. 
+
+
+
+
+
+\section{Coreset for linear functions (based on $\gamma_2$ norm)}
+
+Let $x_1,\ldots,x_n \in R^d$ be and $y_1,\ldots,y_n$ be labels associated to the data points. Let $K$ be a psd kernel. Consider a problem of learning a linear function aiming to minimize the loss of 
+$$\min_q \sum_{i=1}^n L(K(x_i, q), y_i)$$
+
+Our objective is to find a core-set of the $n$ data points. That is, we aim to find a set $S \subseteq [n]$ such that for every $q$ it holds that 
+$$ \left| \sum_{i=1}^n L(K(x_i, q), y_i) - \frac{n}{|S|} \sum_{i \in S} L(K(x_i, q), y_i) \right| \leq \eps n $$
+
+For a function $f(q,x)$, let $A_f$ be a matrix whose rows are an $\eps$-net over the Euclidean unit ball of $R^d$, and columns correspond to the different $x_i$'s. The value of $A_f$ at an entry corresponding to $(q,x)$ if $f(q,x)$.
+
+\begin{definition}
+For a matrix $A$,
+$$ \|A\|_{\gamma_2} = \min_{B,C: A=BC^T} \|B\|_{2 \to \infty} \|C\|_{2 \to \infty}$$
+is the $\gamma_2$ norm of $A$. 
+\end{definition}
+ \cite{tomczak1989banach} prove that this is indeed a norm, in particular that 
+ $\|A_1+A_2\|_{\gamma_2} \leq \|A_1\|_{\gamma_2} + \|A_2\|_{\gamma_2}$. 
+
+
+\begin{lemma} \label{lem:powers}
+For $k \geq 0$ let $f_k(q,x) = \ip{q,x}^k$. If holds that $\|A_{f_k}\|_{\gamma_2} \leq 1$
+\end{lemma}
+\begin{proof}
+For $k=0$ the statement is obvious. For $k>0$, notice that $f_k$ is a kernel, and in particular there exists a mapping $\phi_k: \R^d \to \R^{d^k}$ such that
+$$ \ip{q,x}^k = \ip{\phi_k(q), \phi_k(x)} $$
+Furthermore, 
+$$ \|\phi_k(x)\| = \sqrt{\ip{\phi_k(x), \phi_k(x)}} = \sqrt{\|x\|^{2k}} = \|x\|^k \leq 1 $$
+Since all $x,q$ have at most unit norm we get a bound over the $\gamma_2$ norm by viewing the $B,C$ matrices obtained from the $\phi_k$ embeddings of the different $x,q$'s
+\end{proof}
+
+\begin{lemma}
+Let $L:\R \to \R$ be a function that can be written as 
+$$ L(z) = \sum_{k=0}^\infty \alpha_k z^k$$
+with $\sum_{k=0}^{\infty} |\alpha_k| \leq C$. For $f_L(q,x) = L(\ip{q,x})$ it holds that 
+$$ \|A_{f_L}\|_{\gamma_2} \leq C $$
+\end{lemma}
+\begin{proof}
+This is a direct corollary from $\gamma_2$ being a norm, and Lemma~\ref{lem:powers}
+\end{proof}
+
+This lemma in particular holds for the logistic function as its Taylor series has elements that converge. In particular, evaluating the function at $i$ and summing the real and imaginary parts of the result gives the sum of the absolute values of the coefficients, which is (roughly) $0.461$
+\begin{corollary}
+For $L(z) = \log(1+e^z)$ we have $\|A_{f_L}\|_{\gamma_2} \leq 0.5$
+\end{corollary}
+
+\begin{definition}
+For a matrix $A$ of dimensions $m \times n$, $\disc(A)$ is defined as 
+$$ \min_{s \in \{-1,1\}^n} \|As\|_\infty $$
+\end{definition}
+In \cite{matouvsek2014factorization} they prove that 
+$$\|A\|_{\gamma_2} / \log(m) \leq \disc(A) \leq \|A\|_{\gamma_2}  \sqrt{\log(m)}$$
+This gives a way to control the discrepancy of a matrix by representing it as a sum of matrices with known discrepency or $\gamma_2$ norm. In particular, for the logistic function we get that 
+$$\disc(A_{f_L}) \leq \sqrt{\log(|Q|)} $$
+where $Q$ is an $\eps$-net over the Euclidean unit sphere. This gives the bound of 
+$$\disc(A_{f_L}) \leq O(\sqrt{d\log(1/\eps)}) $$
+
+Let's discuss what this means. For a logistic regression problem, by observing the weights and labels we can change the signs of the inputs so that the logistic loss is always $\log(1+\exp(\ip{q,x}))$, and we can now convert the discrepancy result into a coreset of size $\sqrt{d\log(1/\eps)}/\eps$, as opposed to a random sample of $1/\eps^2$. 
+
+Let $K$ be a psd kernel, meaning for $x,q \in \R^d$ we have for some mapping $\phi$ into a Hilbert space $K(q,x) = \ip{\phi_K(q), \phi_K(x)}$. Notice that for $\phi_k$ defined above
+$$ \ip{\phi_k(\phi_K(q)), \phi_k(\phi_K(x))} = \ip{\phi_K(q), \phi_K(x)}^k = K(q,x)^k $$
+meaning that $K^k(q,x)$ is a psd kernel for all $k \geq 0$. By using the exact same arguments before we can define $A_{K,k} \in \R^{|Q|,n}$ with $A_{K,k}(q,i) = K(q, x_i)^k$ and conclude that $\|A_{K,k}\|_{\gamma_2} \leq 1$. Then, for the matrix $A_{K,f_L}$ with
+$$ L(z) = \sum_{k=0}^\infty \alpha_k z^k, A_{K,f_L}(q,i) = L(K(q,x_i))$$
+we have 
+$$\|A_{K,f_L}\|_{\gamma_2} \leq \sum_{k=0}^{\infty} |\alpha_k| $$
+
+\begin{corollary}
+For $L(z)=\log(1+\exp(z))$ and $L(z) = z^2$, and any psd kernel $K:\R^d \times \R^d \to \R$ we have
+$$\|A_{K,f_L}\|_{\gamma_2} \leq 1 $$ 
+and
+$$\disc(A_{K,f_L}) \leq O(\sqrt{d\log(1/\eps)}) $$ 
+\end{corollary}
+
+
+%\bibliographystyle{plain}
+\bibliography{density}
+
+\section{Appendix 1}
+For completeness we recap a result from \cite{barany2008}.
+\begin{theorem}[Simplified from B\'ar\'any \cite{barany2008} Theorem 4.1] \label{thm:random tensor}
+For any set of vector $x_1,...,x_n$ in $\R^d$ such that $\|x_i\| \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i \sigma_i x_i || \le \sqrt{d}$.
+\end{theorem}
+\begin{proof}
+Consider the feasible region for $\sum_i \alpha_i x_i = 0$ and all $\alpha_i \in [-1,1]$.
+This feasible region is not empty because it contains the origin. 
+Consider an extreme point $\alpha^*_i$ and set $\sigma_i = 1$ w.p.\ $(1+\alpha^*_i)/2$ and $\sigma_i = -1$ w.p.\ $(1-\alpha^*_i)/2$.
+$$
+\E[\|\sum \sigma_i x_i\|^2] =  \E[\|\sum (\sigma_i - \alpha^*_i) x_i\|^2] = \sum \E[(\sigma_i - \alpha^*_i)^2] \|x_i\|^2= \sum (1-(\alpha_i^*)^2) \le d
+$$
+The first equality is due to $\sum_i \alpha_i x_i = 0$. The second used $\E[\sigma_i] = \alpha^*_i $.
+The last inequality holds because the values $\alpha^*_i$ are non-integer in at most $d$ places. 
+Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
+\end{proof}
+
+Extension to the apx low rank case: The vectors are $[x_1,y_1],\ldots,[x_n,y_n]$. The dimension of $x$'s is $d$ and of $y$'s is infinite. Both $\|x_i\|, \|y\| \leq 1$. However, the overall norm of the $y$'s is bounded $\sum \|y_i\|^2 \leq \rho n$. Naively we can ignore the $y$'s and get a bound on the norm of $\sqrt{d + \sqrt{\rho} n}$ or something like that. If $y$ is obtained as the low components of PCA we can squeeze some more.
+Consider another approach: Asking for $\sum x_i \alpha_i =0 $ gives $d$ linear restrictions. Let $\alpha^{(1)}$ be a feasible point. Let $\alpha^{(2)}$ be another feasible point that is restricted to being orthogonal to $\alpha^{(1)}$, and so on up to $\alpha^{(d)}$. For all these $\alpha$'s we have a bound of $2d$ to their rounding w.r.t to $x$. Now, for the $y$'s we can choose any one of these $\alpha$'s
+
+However, we can search for $\alpha \in [-1,1]^n$ minimizing
+
+
+%\section{Attempt at Cleaner Definitions}
+%Let $\mathcal F$ be a family functions from a domain $\X$ to $\R$.
+%We define the discrepancy of $\F$. Let $f \subset{\F}$ to a subset of $\F$.
+%$$\mathcal D_m(\F) := \sup_{x\in\X} \min_{s\in \{0,1\}^m} \sup_{f\subset \F, |f|=m}  \sum_{i}\sigma_i f_i (x)$$  \el{need to double check the order here...}
+%
+%We claim that a very common task is to approximate the function $F = \sum_i f_i$ using a concise representation.  
+%Specifically, using coresets we can approximate $F$ with $\tilde F = \sum_i w_i f_i$ where $w$ is non-zero in at most $k$ places.
+%
+%In this paper we show that if a family of functions exhibits low discrepancy then finding a good coreset is always possible.
+%The size of the coresets we find with the proposed algorithm is always smaller than that achievable by uniform sampling.
+%Moreover, we show that this framework includes a wide variety of problems including quantile approximation, approximate counting, machine learning classification and regressing, kernel density estimation and many more. 
+%Finally, we show that coresets can always be created in a streaming fashion using fully mergable sketches with only a $\operatorname{poly}\log\log$ factor loss in space.
+%
+%
+%In what follows, we subscript the function $f$ with its parametrization.
+%\begin{itemize}
+%\item In approximate counting we have $f_a(x) = 1$ if $a=x$ and zero else. Here both $a$ and $x$ belong to some finite domain.
+%\item In quantile approximation we have $f_a(x) = 1$ if $a<x$ and zero else. Here, $a$ and $x$ belong to a set which exhibits total ordering.
+%\item In matrix column subset selection we have $f_z(a,q) = \langle z,x \rangle ^2$ where $a,x \R^d$. For simplicity, we assume $\|a\| = \|x\| = 1$.
+%\item In density estimation $f_a(x) = \exp(- \|a-x\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
+%\item In logistic regression $f_a(x) = \operatorname{loss}(a,x) = \log(1 + \exp(-a^T x))$. 
+%Here $x$ is the parameters of the linear model and $a$ is a training example vector multiplied by its label ($1$ or $-1$).
+%\item Linear Classification $f_a(x) = 1$ if $a^Tx > 0$ and $0$ else. Here, like in Logistic Regression, $a$ is the example point multiplied by its label and $x$ is the weights of the linear classifier.
+%\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
+%\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
+%\item Probably also good for matrix approximation when we get entry updates. 
+%\end{itemize}
+%
+
+\appendix
+
+\section{Proofs for Streaming Coresets}
 
 \begin{lemma} \label{lem:compactor}
 Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $\sigma_1,\ldots,\sigma_k$ such that
@@ -461,156 +763,38 @@ $$ O(d\log\log(1/\delta)^2/\eps) $$
 
 Let's now consider the case where $K_k = d\sqrt{k}$ with $d$ independent of $k$. Here, we set $k_{H'}=k$ and $k_h=2$ for all $h<H'$.
 
-\zk{need to finish the analysis for the above $K_k$..}
-\end{proof}
-
-
-\section{A Simple Algorithm for Kernel Density Estimation}
-
-From section \ref{} we know that the Komlos complexity of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. Here, we show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is better when the $d > m$. More importantly though, there is a very simple and deterministic algorithm for computing the signs $\sigma$. 
-Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as 
-$$ f(q) = \sum_{i=1}^{n} K(x_i,q) $$
-Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
-$$ K(x,q) = \exp(- \|x-y\|_2^2/\lambda^2)\;\;\; K(x,q) = \exp(- \|x-q\|/\lambda) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
-where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \leq 1$ for all data points. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
-
-Using our framework, we need to bound $K_m = \frac{1}{m}\sum_{i=1}^m \sigma_i K(x_i,q)$. For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
-$$ K(x,q) = \ip{\phi(x), \phi(q)} $$
-Using this function $\phi$ our objective function becomes
-\[
-\sum_{i=1}^m \sigma_i K(x_i,q) = \sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} =  \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)} \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| %\leq \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
-\]
-This upper bound allows us to find values for $\sigma_i$ which bound $K_n$ using a simple algorithm.
-Set $\sigma_1 = 1$. Then for $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
-We will show by induction that $\| \sum_{j=1}^i \sigma_j \phi(x_j) \|^2 \le \sum_{j=1}^i \|\phi(x_j)\|^2$ for all $i$.
-This is trivially true for $i=1$. 
-For another value assume by induction that $\| \sum_{j=1}^{i-1} \sigma_j \phi(x_j)\|^2 \le \sum_{j=1}^{i-1} \|\phi(x_j)\|^2$.
-
-\begin{eqnarray*}
-\| \sum_{j=1}^{i}\sigma_j \phi(x_j)\|^2 &=& \|\sum_{j=1}^{i-1}\sigma_j \phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\langle \sum_{j=1}^{i-1}\sigma_j \phi(x_j), \sigma_i \phi(x_i)\rangle \\
-&\le& \sum_{j=1}^{i-1} \|\phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i) \mbox{\;\;\; by the induction assumption}\\ 
-&=& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2
-\end{eqnarray*}
-This completes the proof that $\| \sum_{j=1}^{m}\sigma_j \phi(x_j)\| \le \sqrt{\sum_{j=1}^{i} \|\phi(x_j)\|^2} \le \sqrt{m}$ for our choice of values for $\sigma$ and shows that the Komlos complexity of any positive kernel is $O(1/\sqrt{m})$. 
-%
-%Let us now translate this to an algorithm w.r.t.\ the $d$ dimensional points $x_1,\ldots, x_k$. 
-%The sign of $x_1$ is set arbitrarily as $s_1=1$. For $i>1$, we choose 
-%$$ \sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j \langle \phi(x_j), \phi(x_i) \rangle) = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$$
-%This guarantees that 
-%$$ \forall y \in \R^d \;\;\; \sum \sigma_i K(x_i, y) \leq \sqrt{ \sum \|\phi(x_i)\|^2 } = \sqrt{m} $$
-
-Using the framework above this provides a coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde f(q) - f(q)| \le \eps n$. This matches, and greatly simplifies, the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}.
-%\el{The running time of this algorithm is amortized.... I hope it will be better than Jeff's result, especially in the randomized shrinking buffers setting.}
-%\zk{We actually ended up using the Radamacher complexity, at least for the bound. Namely, we used random signs. Perhaps there is a kernel for which it is easy to prove something better? One that comes to mind is apx low rank data. By low rank I mean in the kernel space, meaning the $\phi(x_j)$'s. To find the core-set we can first run PCA on the $z_i$'s, reduce their dimension from $n$ to being the minimal such that we suffer a loss of $\eps$. Then, we use theory on the sum of unit vectors of low dimension giving $\sqrt{k}/\eps$ where $k$ is the dimension we got. In the worst case if the kernel matrix is isotropic we will get $k \approx n$ and gain nothing, but this way we can squeeze something from the data that wasn't squeezed before.. We can take this further and look into the details of the proof that we can balance unit vectors to have a norm of $\sqrt{d}$ regardless of the number of vectors. The key in that proof is that by considering continuous $s_i$'s we can have the sum equal to zero while keeping only $d$ points with non $\{-1,1\}$ $s_i$'s. Consider a split of top $k$ and bottom rest directions. If we restrict the $s_i$'s to only have the sum to be zero in the top $k$ we get $k$ non integral $s_i$'s but possibly horrible performance on the bottom $k$. What if only restrict $d-2k$ and not $d-k$ points? Then we get some freedom in choosing the integer $s_i$'s. The bound on the bottom singular values can become smaller than the trivial one.}
-
-
-
-\section{Universal Coresets for Analytic Functions of Dot Products}
-
-We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or distance $\|q-x\|$. The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
-
-
-We start with some notation and trivial properties. 
-For a vector $q \in \R^d$ let $q^{\otimes k}$ represent the $k$-dimensional tensor obtained from the outer product of $q$ with itself $k$ times. For a $k$ dimensional tensor with $d^k$ entries $X$ we consider the measure
-$\|X\|_{T_k} = \max_{q \in \R^d, \|q\|=1} \left| \langle X, q^{\otimes k}\rangle \right|$.
-\begin{fact}
-$\|X\|_{T_k}$ is a norm
-\end{fact}
-\begin{proof}
-We prove the claim directly from the definition of a norm.
-Notice that for any $X \neq 0$, $\ip{X, q^{\otimes}}$ is a non-zero polynomial in $q$. It follows that there must be $q$ for which its value is non-zero, meaning that $\|X\|_{T_k}=0$ iff $X=0$. For a scalar $a$, we clearly have by definition that
-$\|aX\|_{T_k} = |a|\|X\|_{T_k}$.  Lastly, by the max definition we clearly have
-$ \|X+Y\|_{T_k} =  \max_q \left| \langle X+Y, q^{\otimes k}\rangle \right| \leq 
-\max_q \left| \langle X, q^{\otimes k}\rangle \right| + \max_q\left| \langle Y, q^{\otimes k}\rangle \right| = \|X\|_{T_k} + \|Y\|_{T_k}$
+\zk{need to finish the analysis for the above $K_k$.}
 \end{proof}
 
 
 
-We are now ready for the lemma controlling all powers of inner products simultaneously. 
 
 
-\begin{lemma}\label{uc}
-For any set of vectors $x_i \in \R^d$ there exist a set of signs $\sigma_i$ such that for all $k$ simultaneously $\left\| \sum_i \sigma_i x_i^{\otimes k} \right\|_{T_k} \le O(\sqrt{d k\log^{3}{k}})$ (the $3$ power of the term $\log(k)$ can be reduced to any constant power larger than $2$). 
-\end{lemma}
-\begin{proof}
-The proof will use Banaszczyk's theorem. 
-Let $\mathcal K$ be a convex body in Euclidean space with Gaussian measure at least 1/2 ($\Pr[g \in \mathcal K] \ge 1/2$ when $g$ is i.i.d.\ Gaussian).
-Let $x_1,\ldots,x_n$ be vectors with $\|x_i\| =O(1)$. 
-Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some constant $C$.
+\section{Table of Complexities for Common Classes}
 
+\newcommand{\ccc}[1]{\parbox}
+\begin{table}[htp]
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+Problem				& $f$ 											& $R_m$ 			& $K_m$ \\ \hline
+Counting 				& $f(x, q) = 1$ if $x=q$ and zero else 					& $1/\sqrt{m}$		& $1/m$ \\ \hline
+Quantiles				& $f(x, q) = 1$ if $x\le q$ and zero else  					& $1/\sqrt{m}$		& $1/m$ \\ \hline
+Column Selection		& $f(x, q) = \langle x,q \rangle ^2$ where  $q,x\in \R^d$		& $1/\sqrt{m}$		& $\sqrt{d}/m$ \\ \hline
+Gaussian Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2^2/\lambda^2)$ where  $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
+Laplacian Kernel Density 			& $f(x, q) = \exp(- \|x-y\|_2/\lambda)$ where  $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
+Positive Kernel Density 			& $f(x, q) = k(x,q)$ for any positive kernel $k$ and $q,x\in \R^d$				& ? 		& $1/\sqrt{m}$ \\ \hline
 
-To use Banaszczyk's theorem we begin with defining our convex body.
-Define the norm $\|\psi\|_T$ of a vector $\psi$ as follows. Look at the first $d$ coordinates of $\psi$ as a vector $\psi_1$, the next $d^2$ coordinates of $\psi$ as a matrix $\psi_2$ the next $d^3$ coordinates as a three tensor $\psi_3$ etc.
-We define $\|\psi\|_T = \max_k \|\psi_k\|_{T_k} /\sqrt{\log(k)}$. 
-Here, $\|\cdot\|_{T_k}$ is the special spectral norm defined in the beginning of the section 
-The maximum over norms of subvectors is clearly a norm in itself, meaning that $\|\cdot \|_T$ is indeed a norm. It follows that  the set $\mathcal K  = \{\psi \; | \; \|\psi\|_T \le c\sqrt{d}\}$ is convex. 
-
-We now need to show that the Gaussian measure of $\mathcal K$ is at least $1/2$. 
-That is, with probability at least $1/2$ a vector of random Gaussian entrees $g$ belongs to $\mathcal K$.
-Consider a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$. 
-
-A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$, where the reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability at least $1/2$. 
-%
-We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
-$$\psi(x) = [x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots]$$
-
-Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
-
-
-We are now ready to apply Banaszczyk's theorem. 
-There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$.
-Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that $\max_k \|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k} \le \sqrt{d k \log^{3}(k)}$
-
-
-\begin{lemma} \label{lem:komlos anl}
-Let $f$ be a function of $\langle x,q\rangle$ such that $f(\langle x,q\rangle) = \sum_k \alpha_k \langle x,q\rangle^k$ is its Taylor expansion. The Komlos Complexity of the Family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq 1$, is bounded by
-\[
-K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) \le \sqrt{d} \sum_k  |\alpha_k|\sqrt{k\log^3(k)}
-\]
-For general $\|q\| \leq R$ we get
-\[
-K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) \le \sqrt{d} \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)}
-\]
-\end{lemma}
-\begin{proof}
-The proof follows from combining the above.
-$$
-\sum_i \sigma_i f(x_i,q) = \sum_k \alpha_k \sum_i \sigma_i \langle x_i,q\rangle^k =  \sum_k \alpha_k  \langle  \sum_i \sigma_i x_i^{\otimes k},q^{\otimes k}\rangle \le \sum_k |\alpha_k| \cdot \| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \cdot \|q\|^k
-$$
-By Lemma \ref{uc} we can find signs $\sigma$ such that 
-$\| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \le c\sqrt{d k \log^3(k)}$. Substituting into the above the lemma follows.
-\end{proof}
-
-\begin{theorem}
-Let $\tilde{f}$ be an analytical one dimension function over $\R$. There exist a radius $R$ such that for $\|q\| \leq R$ the function family of functions $f_q(x) = \tilde{f}(\ip{q,x})$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d})$ 
-\end{theorem}
-\begin{proof}
-Recall that for analytical functions $f$ we have 
-$$\left| \frac{d^k \tilde{f}}{dz^k}(z) \right|  \leq C^{k+1} k! $$
-for some constant $C$. Considering the taylor expansion of $\tilde{f}$ near zero we get that for $R < 1/C$, the sum
-$$ \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)} \leq C \sum_k  (CR)^k \sqrt{ k\log^3(k)}$$
-corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result follows.
-\end{proof}
-
-\begin{corollary}
-The Komlos complexity of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d})$.
-\end{corollary}
-
-Notice that by transforming $x$ to $\tilde{x} = (-x, \|x\|^2, 1)$ and $q$ to $\tilde{q} = (q, 1, \|q\|^2)$ we get $\ip{\tilde{x},\tilde{q}} = \|x-q\|^2$. This implies that our results for functions of $\ip{q,x}$ apply for functions of $\|q-x\|^2$. In particular we get
-\begin{corollary}
-The Komlos complexity of the Gaussian kernel in dimension $d$ is $O(\sqrt{d})$.
-\end{corollary}
-
-
-
-
-
-
-
-
-\end{proof}
-
-
+%Logistic Regression     	& $f(x, q) = \log(1 + \exp(q^T x))$ where  $q,x\in \R^d$ 						& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+%Hinge Regression     		& $f(x, q) = [1-q^T x]_+$ where  $q,x\in \R^d$							& $1/\sqrt{m}$ 		& $\sqrt{d}/m$ \\ \hline
+Linear Regression		& $f(x,q) = (z^Tq - y)^2$ where $x = (z\in\R^d,y\in \R)$ and $q\in \R^d$					& ?				& ? \\ \hline
+Linear Classification		& $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else. $q,x\in \R^d$					& ?				& ? \\ \hline
+Graph Laplacian 		& $f(x, q) = w_{ij}(q_i - q_i)^2$ for $x = (w_{ij},i,j)$, $q \in \R^n$ & ?				& ? \\ \hline
+Matrix Approximation  	& $f(x, q) = a_{ij}u_iv_j$ for $x = (a_{ij},i,j)$  and $q = (u,v)$ 	& ?				& ? \\ \hline
+\end{tabular}
+\caption{Example problems in machine learning and sketching that fall into this framework.}
+\end{center}
+\label{default}
+\end{table}%
 
 
 
@@ -638,7 +822,10 @@ Due to $\operatorname{stack}$ being linear it is obvious that $\mathcal K$ is co
 Moreover $\Pr[g \in \mathcal K] \ge 1/2$ due to standard results on the operator norm of random Gaussian matrices (see Theorem~\ref{thm:random tensor}).
 Banaszczyk's theorem says that there exist signs $\sigma_i$ such that $\sum \sigma_i \operatorname{flatten}(X_i) \in C \mathcal K$.
 In other words $\| \sum \sigma_i X_i\| = \| \operatorname{stack}( \sum \sigma_i \operatorname{flatten}(x_i x_i^T)) \| \le C \sqrt{d}$. 
+
 \end{proof}
+
+
 The algorithm for finding the signs above is, unfortunately, not as simple as with kernels. 
 In fact, Banaszczyk's theorem was not constructive and a matching algorithms is a very recent breakthrough result by Bansal, Dadush, Garg, and Lovett \cite{DBLP:conf/stoc/BansalDGL18}.
 
@@ -649,7 +836,7 @@ Alternatively, we obtain a streaming mergeable algorithm for creating coresets o
 
 \el{Selecting $o(1/\eps^2)$ is claimed to be hard by \cite{DBLP:conf/focs/DeshpandeR10} and \cite{DBLP:conf/soda/DeshpandeRVW06}. We need to see if these hold in our setting or only hold for sampling.  Also, \cite{DBLP:conf/soda/GhashamiP14} showed that the impossibility result is limited to frequent directions like settings. Their assumptions don't hold here.} 
 
-\subsection{Streaming Graph Approximation}
+\section{Streaming Graph Approximation}
 Streaming graphs have received a lot of attention in the last several years \zk{cite something here \cite{}}. 
 In the standard setting, the edges of a graph $G(V,E)$ are given to an algorithm one ofter the other in arbitrary order.
 Here we show how to approximate all quadratic forms $\sum_{(i,j) \in E} (q_i - q_j)^2$ where the values $q$ are not known in advance.
@@ -660,196 +847,6 @@ Note that $L_e = v_ev_e^T$ where $v_e(i) = 1$, $v_e(j)=-1$ and zero else.
 Applying the results of the last section we get a streaming mergeable algorithm of approximating graph quadratic forms.
 The number of retained edges in the coreset $E'$ is $|E'| = O(\log^{2}(n) \sqrt{n}/\eps)$ and it guaranties that 
 $|\sum_{(i,j) \in E} (q_i - q_j)^2  - c \sum_{(i,j) \in E'} (q_i - q_j)^2| \le \eps n$ for all unit norm vectors $q$.
-
-
-
-\section{Linear Regression}
-
-%\section{Optimal Design of Experiments}
-%We discuss the problem of linear regression with mean squared error. In the classic setting we are given $n$ points $x_1,\ldots,x_n \in \R^d$ along with $n$ labels $y_1,\ldots,y_n \in \R$ and wish to find $w \in \R^d$ minimizing
-%$$ \sum_i (w^Tx_i - y_i)^2 $$
-%In the field of optimal design of experiments, the labels are not given with the data. Instead, the learner must choose in advance a subset of datapoints for which they query the labels. The subset is chosen to provide the least error in a generalization bound, assuming $(x_1,y_1),\ldots,(x_n,y_n)$ are i.i.d from an unknown distribution.
-%
-%The way this is done in optimal design of experiments is as follows. Let $X$ be the set of $n$ points and consider a subset $B \subseteq X$. The empirical risk minimizer (ERM) for $B$ is 
-%$$ w_B = \left( \sum_{x \in B} xx^T \right)^{\dagger} y_B $$
-%%It is known that $w_B$ is an unbiased estimator of $w^*$, the optimal regressor for the distribution, where the noise comes from the realizations of the $y_i$'s. It follows that to minimize 
-%%$$ E_{x \sim {\cal D}} \ip{w-w^*,x}^2 $$
-%%which is the variance of $w$ measured by the distribution of data points, it suffice to minimize the second moment
-%%$$ E_{x \sim {\cal D}} \ip{w,x}^2  \approx w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
-%
-%
-%One can show that for $w_B$,
-%$$ \sum_i (w_B^Tx_i - y_i)^2 = C \cdot \text{Tr} \left(\left( \sum_{x \in B} xx^T \right)^{\dagger} \right) $$
-%\zk{This only works when $\sum_{x \in B} xx^T$ is full rank, otherwise we need to introduce some regularization and then things get messy.}
-%
-%We can use the results above for optimal design in the case where $w$ is restricted to have a unit Euclidean norm. Something that is commonly practiced. Since we will solve the problem for the subset we choose in an optimal way for gaussian noise, we end up with an unbiased estimator for $w^*$. The error is the variance of that unbiased estimator and minimizing the variance for an unbiased estimator is the same as minimizing its second moment we can aim to minimize
-%$$ F(w) = w^T \left( \frac{1}{n} \sum_{i=1}^n x_ix_i^T \right) w $$
-%This leads to the exact same objective as in column subset selection. Meaning that an $\eps$ core-set for the $x$'s gives a guaranteed error for a subset in the optimal design setting. Specifically we get that we can obtain a core-set of size
-%$$ \min(1/\eps^2, \sqrt{d}/\eps)$$
-%For the case of $\eps < 1/\sqrt{d}$, which is an interesting case in linear regression, a random sample of $\sqrt{d}/\eps$ points will not give a generalization bound of $\eps$ (there are known lower bounds, http://jmlr.org/papers/volume16/shamir15a/shamir15a.pdf contradicting this), meaning that we have a provable non-trivial guarantee for active learning. I'm not sure what statements are known already. 
-%
-%In the optimal design setting, they require keeping the covariance matrix. We could come up with a hueristic or even sketching algorithm that avoids maintaining $d^2$ points.
-
-
-\section{Logistic Regression}
-The following paper claims no streaming algorithms or coresets are available \cite{DBLP:journals/corr/abs-1805-08571}.
-This paper claims to have done that \cite{DBLP:conf/nips/HugginsCB16}.
-
-In \cite{DBLP:journals/corr/abs-1802-01751} (see paragraph before Lemma 2.2) they manage to obtain a coreset (with equal weights) of size $\sqrt{d \log(1/\eps)}/\eps$ for any kernel with certain properties. They do so by considering a matrix whose rows correspond to all the vectors in an $\eps$-net over the space, and columns correspond to the $n$ data points. Calling that matrix $A$, $A_{q,x} = K(q,x)$. They bound the discrepancy of the matrix defined as $\min_s \|As\|_\infty$ where $s$ is a sign vector by using a bound 
-$$ \min_s \|As\|_\infty \leq \sqrt{\log(N)} \|A\|_{\gamma_2} $$
-Here, $N$ is the size of the $\eps$ net and the $\gamma_2$ norm is 
-$$ \|A\|_{\gamma_2} = \min_{B,C: A=BC^T} \text{max norm of a row of B or C}$$
-They use the fact that for psd kernel $K$, $\|A\|_{\gamma_2} \leq 1$ (in fact it is equal to 1). Now, back to our case. For any fixed power $k$ we know that $K(x,q)=\ip{x,q}^k$ is a psd kernel, hence its corresponding matrix $A_k$ has $\gamma_2$ norm bounded by $1$. Now, the logistic function can be written in a taylor expansion whose coefficients, in absolute value, sum to a constant $C$. It follows that the $A$ matrix for the logistic function has a $\gamma_2$ norm bounded by $C$. The same arguments as in  \cite{DBLP:journals/corr/abs-1802-01751} can now prove that its discrepancy is bounded by $\sqrt{\log(N)} \approx \sqrt{d\log(1/\eps)}$
-
-A useful fact about the $\gamma_2$ norm is that it is indeed a norm. This is proven in \cite{tomczak1989banach}. In \cite{matouvsek2014factorization} this is listed in Section 2, Proposition 2.2 along with other known properties of the $\gamma_2$ norm. 
-
-%\paragraph{Reduction to the Kernel case}
-%This is really the Kernel density estimation problem with $K(x,y) = \ip{x,y}^2$. We might be able to squeeze a bit more due to the fact that $\phi(x) = xx^T$ is a very special $d \times d$ matrix: a rank $1$ matrix. That being said, a coreset of $1/\eps^2$ can be obtained by simply using the kernel technique. The special structure can either give better dependence on $\eps$ or exploit low rank structure e.g.\ if the vectors form a nearly rank $k$ matrix.
-
-
-%
-%\subsection{notes about row selection}
-%The problem is 
-%$$ \min_s \| \sum_i \sigma_i x_ix_i^T\| $$
-%where $\|x_i\| \leq 1$. Consider the following greedy approach: At point $x_i$, let
-%$$ C_i = \sum_{j<i} \sigma_j x_j x_j^T, \ \  l_+ = \|C_i + x_i x_i^T \|, \ l_- = \|C_i - x_i x_i^T\|$$
-%We choose $\sigma_i = 1$ if $l_+ < l_i$, otherwise $\sigma_i=-1$.
-%
-%This approach can be shown to be better than random. Random will result in an answer of up to 
-%
-%Consider the following example. 
-%$$x_1=e_1, x_2=e_2*\eps, x_3=e_2, x_4=e_1/\sqrt{2} + e_2/\sqrt{2}$$
-%where $\eps \to 0$. We get that the covariance matrix after inserting $x_3$ has two eigenvalues of +1 and -1. Now when inserting $x_4$ we have to increase the magnitude of one of them and we exceed the limit of 1. 
-%
-
-
-\section{Coreset for linear functions (based on $\gamma_2$ norm)}
-
-Let $x_1,\ldots,x_n \in R^d$ be and $y_1,\ldots,y_n$ be labels associated to the data points. Let $K$ be a psd kernel. Consider a problem of learning a linear function aiming to minimize the loss of 
-$$\min_q \sum_{i=1}^n L(K(x_i, q), y_i)$$
-
-Our objective is to find a core-set of the $n$ data points. That is, we aim to find a set $S \subseteq [n]$ such that for every $q$ it holds that 
-$$ \left| \sum_{i=1}^n L(K(x_i, q), y_i) - \frac{n}{|S|} \sum_{i \in S} L(K(x_i, q), y_i) \right| \leq \eps n $$
-
-For a function $f(q,x)$, let $A_f$ be a matrix whose rows are an $\eps$-net over the Euclidean unit ball of $R^d$, and columns correspond to the different $x_i$'s. The value of $A_f$ at an entry corresponding to $(q,x)$ if $f(q,x)$.
-
-\begin{definition}
-For a matrix $A$,
-$$ \|A\|_{\gamma_2} = \min_{B,C: A=BC^T} \|B\|_{2 \to \infty} \|C\|_{2 \to \infty}$$
-is the $\gamma_2$ norm of $A$. 
-\end{definition}
- \cite{tomczak1989banach} prove that this is indeed a norm, in particular that 
- $\|A_1+A_2\|_{\gamma_2} \leq \|A_1\|_{\gamma_2} + \|A_2\|_{\gamma_2}$. 
-
-
-\begin{lemma} \label{lem:powers}
-For $k \geq 0$ let $f_k(q,x) = \ip{q,x}^k$. If holds that $\|A_{f_k}\|_{\gamma_2} \leq 1$
-\end{lemma}
-\begin{proof}
-For $k=0$ the statement is obvious. For $k>0$, notice that $f_k$ is a kernel, and in particular there exists a mapping $\phi_k: \R^d \to \R^{d^k}$ such that
-$$ \ip{q,x}^k = \ip{\phi_k(q), \phi_k(x)} $$
-Furthermore, 
-$$ \|\phi_k(x)\| = \sqrt{\ip{\phi_k(x), \phi_k(x)}} = \sqrt{\|x\|^{2k}} = \|x\|^k \leq 1 $$
-Since all $x,q$ have at most unit norm we get a bound over the $\gamma_2$ norm by viewing the $B,C$ matrices obtained from the $\phi_k$ embeddings of the different $x,q$'s
-\end{proof}
-
-\begin{lemma}
-Let $L:\R \to \R$ be a function that can be written as 
-$$ L(z) = \sum_{k=0}^\infty \alpha_k z^k$$
-with $\sum_{k=0}^{\infty} |\alpha_k| \leq C$. For $f_L(q,x) = L(\ip{q,x})$ it holds that 
-$$ \|A_{f_L}\|_{\gamma_2} \leq C $$
-\end{lemma}
-\begin{proof}
-This is a direct corollary from $\gamma_2$ being a norm, and Lemma~\ref{lem:powers}
-\end{proof}
-
-This lemma in particular holds for the logistic function as its Taylor series has elements that converge. In particular, evaluating the function at $i$ and summing the real and imaginary parts of the result gives the sum of the absolute values of the coefficients, which is (roughly) $0.461$
-\begin{corollary}
-For $L(z) = \log(1+e^z)$ we have $\|A_{f_L}\|_{\gamma_2} \leq 0.5$
-\end{corollary}
-
-\begin{definition}
-For a matrix $A$ of dimensions $m \times n$, $\disc(A)$ is defined as 
-$$ \min_{s \in \{-1,1\}^n} \|As\|_\infty $$
-\end{definition}
-In \cite{matouvsek2014factorization} they prove that 
-$$\|A\|_{\gamma_2} / \log(m) \leq \disc(A) \leq \|A\|_{\gamma_2}  \sqrt{\log(m)}$$
-This gives a way to control the discrepancy of a matrix by representing it as a sum of matrices with known discrepency or $\gamma_2$ norm. In particular, for the logistic function we get that 
-$$\disc(A_{f_L}) \leq \sqrt{\log(|Q|)} $$
-where $Q$ is an $\eps$-net over the Euclidean unit sphere. This gives the bound of 
-$$\disc(A_{f_L}) \leq O(\sqrt{d\log(1/\eps)}) $$
-
-Let's discuss what this means. For a logistic regression problem, by observing the weights and labels we can change the signs of the inputs so that the logistic loss is always $\log(1+\exp(\ip{q,x}))$, and we can now convert the discrepancy result into a coreset of size $\sqrt{d\log(1/\eps)}/\eps$, as opposed to a random sample of $1/\eps^2$. 
-
-Let $K$ be a psd kernel, meaning for $x,q \in \R^d$ we have for some mapping $\phi$ into a Hilbert space $K(q,x) = \ip{\phi_K(q), \phi_K(x)}$. Notice that for $\phi_k$ defined above
-$$ \ip{\phi_k(\phi_K(q)), \phi_k(\phi_K(x))} = \ip{\phi_K(q), \phi_K(x)}^k = K(q,x)^k $$
-meaning that $K^k(q,x)$ is a psd kernel for all $k \geq 0$. By using the exact same arguments before we can define $A_{K,k} \in \R^{|Q|,n}$ with $A_{K,k}(q,i) = K(q, x_i)^k$ and conclude that $\|A_{K,k}\|_{\gamma_2} \leq 1$. Then, for the matrix $A_{K,f_L}$ with
-$$ L(z) = \sum_{k=0}^\infty \alpha_k z^k, A_{K,f_L}(q,i) = L(K(q,x_i))$$
-we have 
-$$\|A_{K,f_L}\|_{\gamma_2} \leq \sum_{k=0}^{\infty} |\alpha_k| $$
-
-\begin{corollary}
-For $L(z)=\log(1+\exp(z))$ and $L(z) = z^2$, and any psd kernel $K:\R^d \times \R^d \to \R$ we have
-$$\|A_{K,f_L}\|_{\gamma_2} \leq 1 $$ 
-and
-$$\disc(A_{K,f_L}) \leq O(\sqrt{d\log(1/\eps)}) $$ 
-\end{corollary}
-
-
-%\bibliographystyle{plain}
-\bibliography{density}
-
-\section{Appendix 1}
-For completeness we recap a result from \cite{barany2008}.
-\begin{theorem}[Simplified from B\'ar\'any \cite{barany2008} Theorem 4.1] \label{thm:random tensor}
-For any set of vector $x_1,...,x_n$ in $\R^d$ such that $\|x_i\| \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i \sigma_i x_i || \le \sqrt{d}$.
-\end{theorem}
-\begin{proof}
-Consider the feasible region for $\sum_i \alpha_i x_i = 0$ and all $\alpha_i \in [-1,1]$.
-This feasible region is not empty because it contains the origin. 
-Consider an extreme point $\alpha^*_i$ and set $\sigma_i = 1$ w.p.\ $(1+\alpha^*_i)/2$ and $\sigma_i = -1$ w.p.\ $(1-\alpha^*_i)/2$.
-$$
-\E[\|\sum \sigma_i x_i\|^2] =  \E[\|\sum (\sigma_i - \alpha^*_i) x_i\|^2] = \sum \E[(\sigma_i - \alpha^*_i)^2] \|x_i\|^2= \sum (1-(\alpha_i^*)^2) \le d
-$$
-The first equality is due to $\sum_i \alpha_i x_i = 0$. The second used $\E[\sigma_i] = \alpha^*_i $.
-The last inequality holds because the values $\alpha^*_i$ are non-integer in at most $d$ places. 
-Assuming otherwise would entail more than $d$ linearly independent vectors in $\R^d$ due to $\alpha^*$ being an extreme point.
-\end{proof}
-
-Extension to the apx low rank case: The vectors are $[x_1,y_1],\ldots,[x_n,y_n]$. The dimension of $x$'s is $d$ and of $y$'s is infinite. Both $\|x_i\|, \|y\| \leq 1$. However, the overall norm of the $y$'s is bounded $\sum \|y_i\|^2 \leq \rho n$. Naively we can ignore the $y$'s and get a bound on the norm of $\sqrt{d + \sqrt{\rho} n}$ or something like that. If $y$ is obtained as the low components of PCA we can squeeze some more.
-Consider another approach: Asking for $\sum x_i \alpha_i =0 $ gives $d$ linear restrictions. Let $\alpha^{(1)}$ be a feasible point. Let $\alpha^{(2)}$ be another feasible point that is restricted to being orthogonal to $\alpha^{(1)}$, and so on up to $\alpha^{(d)}$. For all these $\alpha$'s we have a bound of $2d$ to their rounding w.r.t to $x$. Now, for the $y$'s we can choose any one of these $\alpha$'s
-
-However, we can search for $\alpha \in [-1,1]^n$ minimizing
-
-
-%\section{Attempt at Cleaner Definitions}
-%Let $\mathcal F$ be a family functions from a domain $\X$ to $\R$.
-%We define the discrepancy of $\F$. Let $f \subset{\F}$ to a subset of $\F$.
-%$$\mathcal D_m(\F) := \sup_{x\in\X} \min_{s\in \{0,1\}^m} \sup_{f\subset \F, |f|=m}  \sum_{i}\sigma_i f_i (x)$$  \el{need to double check the order here...}
-%
-%We claim that a very common task is to approximate the function $F = \sum_i f_i$ using a concise representation.  
-%Specifically, using coresets we can approximate $F$ with $\tilde F = \sum_i w_i f_i$ where $w$ is non-zero in at most $k$ places.
-%
-%In this paper we show that if a family of functions exhibits low discrepancy then finding a good coreset is always possible.
-%The size of the coresets we find with the proposed algorithm is always smaller than that achievable by uniform sampling.
-%Moreover, we show that this framework includes a wide variety of problems including quantile approximation, approximate counting, machine learning classification and regressing, kernel density estimation and many more. 
-%Finally, we show that coresets can always be created in a streaming fashion using fully mergable sketches with only a $\operatorname{poly}\log\log$ factor loss in space.
-%
-%
-%In what follows, we subscript the function $f$ with its parametrization.
-%\begin{itemize}
-%\item In approximate counting we have $f_a(x) = 1$ if $a=x$ and zero else. Here both $a$ and $x$ belong to some finite domain.
-%\item In quantile approximation we have $f_a(x) = 1$ if $a<x$ and zero else. Here, $a$ and $x$ belong to a set which exhibits total ordering.
-%\item In matrix column subset selection we have $f_z(a,q) = \langle z,x \rangle ^2$ where $a,x \R^d$. For simplicity, we assume $\|a\| = \|x\| = 1$.
-%\item In density estimation $f_a(x) = \exp(- \|a-x\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
-%\item In logistic regression $f_a(x) = \operatorname{loss}(a,x) = \log(1 + \exp(-a^T x))$. 
-%Here $x$ is the parameters of the linear model and $a$ is a training example vector multiplied by its label ($1$ or $-1$).
-%\item Linear Classification $f_a(x) = 1$ if $a^Tx > 0$ and $0$ else. Here, like in Logistic Regression, $a$ is the example point multiplied by its label and $x$ is the weights of the linear classifier.
-%\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
-%\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
-%\item Probably also good for matrix approximation when we get entry updates. 
-%\end{itemize}
-%
 
 
 
