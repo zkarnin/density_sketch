@@ -343,7 +343,7 @@ Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the func
 \end{theorem}
 \begin{proof}
 Recall that for analytic functions $f$ we have $\left| \frac{d^k f}{dz^k}(z) \right|  \leq C^{k+1} k! $
-for some constant $C$. Considering the taylor expansion of $f$ near zero. For $R < 1/C$, the sum
+for some constant $C$. Considering the taylor expansion of $f$ near zero, for $R < 1/C$ the sum
 $ \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)} \leq C \sum_k  (CR)^k \sqrt{ k\log^3(k)}$
 corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result follows.
 \end{proof}
@@ -358,18 +358,23 @@ The Komlos complexity of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in d
 
 
 
-\begin{theorem}
+\begin{theorem} \label{thm:analytic2}
 Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq \sqrt{R}$, has Komlos complexity of $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
-By transforming $x$ to $\tilde{x} = (1, x, \|x\|^2)$ and $q$ to $\tilde{q} = (\|q\|^2, -2q, 1)$ we get $\ip{\tilde{x},\tilde{q}} = \|q-x\|^2$. Moreover, $\|q\| \le \sqrt{R}$ gives $\|\tilde q\| \le R$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$.
+By transforming $x$ to $\tilde{x} = (1, \sqrt{2}x, \|x\|^2)$ and $q$ to $\tilde{q} = (\|q\|^2, -\sqrt{2}q, 1)$ we get $\ip{\tilde{x},\tilde{q}} = \|q-x\|^2$. Moreover, $\|q\| \le \sqrt{R}$ gives $\|\tilde q\| \le R+1$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$.
 \end{proof}
 
 \begin{corollary}
-The Komlos complexity of the Gaussian kernel in dimension $d$ is $O(\sqrt{d}/m)$.
-This improves upon the recent result of \el{\cite{??}} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density.
-This resolves the open problem raised by \el{\cite{??}} and matches their lower bound.   
-\end{corollary}
+The Komlos complexity of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
+This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. For the constant $\gamma$ setting this resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
+\end{corollary} 
+\begin{proof}
+W.l.o.g. the maximum distance $\|q-x\|$ is 1. The taylor series of $K$ becomes
+$$ \sum_{k=0}^\infty \frac{(-\gamma)^k}{k!} $$
+Plugging into the equation in the proof of Theorem~\ref{thm:analytic2} we get that the sum determining the constant is upper bounded by
+$$ \sum_{k=0}^\infty \frac{\gamma^{k}\sqrt{ k\log^3(k)}}{k!} = O\left((1+\gamma) \exp(\gamma)\right)$$
+\end{proof}
 %\end{proof}
 
 
@@ -703,70 +708,102 @@ $$ \text{Err}(q) = \sum_{h=0}^H \text{Err}_h(q)$$
 To achieve a deterministic bound we set all $k_h=k$, and set the compactors to choose the signed set with the least cardinality, ensuring $n_h \leq n_{h-1}/2$ and $H \leq \log_2(n/k)$, thus
 $$ \text{Err}(q) \leq (K_k/k) \log_2(n/k) n $$
 
-We are however interested in a high probability bound. Specifically we would like to guarantee for $\delta_1,\delta_2 > 0$ that for any set of queries $Q$ the error is bounded by $\eps n$ w.p.\ $\delta_1|Q| + \delta_2$. To this end we consider a different analysis for the top and bottom layers. For the top layers, the length of the stream can be arbitrarily short so we will use the deterministic analysis as above. For the bottom layers, we can guarantee a minimal length to the stream and obtain tighter bounds.
+We are however interested in a high probability bound. Specifically we would like to guarantee for $\delta > 0$ that for any query $q$ the error is bounded by $\eps n$ w.p.\ at least $1-\delta$. To this end we consider a different analysis for the top and bottom layers. For the top layers, the stream can be arbitrarily short so we will use the deterministic analysis as above. For the bottom layers, we can guarantee a minimal length to the stream and obtain tighter bounds.
 
-The bottom layers will be those of height $h=0$ up to $h=H'$ with 
-\begin{equation} \label{eq:Htag}
-H' = \ceil{\log\left( \frac{n}{k\log\left(1/\left(c \delta_1 \delta_2 \log^3(n)\right)\right)} \right)}
+The bottom layers will be those of height $h=0$ up to $h=H'$ where $H'$ is set adaptively in a way that $H'$ is the maximum integer such that for all $h \leq H'$, 
+\begin{equation} \label{eq:Htag_nh}
+ \forall h \leq H' , \ \ n_h \geq c_1 k \log^2(n) \log(1/(c_2 \delta \log(n)))
 \end{equation}
-for some constant $c$ that will be determined later.
+for some sufficiently large constant $c_1$ and small constant $c_2$ to be determined later.
 
-According to Lemma~\ref{lem:compactor} we have for $ h\geq 0$ that irrespective of $q$,
-$$ \Pr[n_{h+1} \geq (1+1/\log(n))n_{h}/2] \leq \exp\left( -O\left(\frac{n_{h}}{k \log^2(n)} \right) \right) = \delta_2 / H' $$
-for a sufficiently small constant $c$ in Equation~\eqref{eq:Htag}. 
-It follows by taking a union bound and noticing that $H' \leq \log(n)$ that irrespective of $q$ we have w.p. at least $1-\delta_2$ that 
-$$\forall h \leq H', \ \ n_{h} \leq 3 \cdot n/2^{h}$$
+According to Lemma~\ref{lem:compactor} we have for $ h\leq H'$ that for some appropriate constant $c_1$ in  \eqref{eq:Htag_nh},
+$$ \Pr[n_{h+1} \geq (1+1/\log(n))n_{h}/2] \leq \exp\left( -\frac{n_{h}}{k_h \log^2(n)}  \right) \leq c_2\delta / \log(n) $$
+We can now union bound over all 
+$$h \leq \log_2\left( n / \left( c_1 k \log^2(n) \log(1/(c_2 \delta\log(n))) \right)\right) + 2 \leq \log_2(n)$$
+and conclude that w.p.\ at least $1-\delta/2$
+\begin{equation} \label{eq:Htag}
+H' \leq \log_2\left( n / \left( c_1 k \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) + 2 \leq \log_2(n)
+\end{equation}
+and
+\begin{equation} \label{eq:nh small}
+\forall h \leq H', \ \ n_{h} \leq 3 \cdot n/2^{h}
+\end{equation}
+
 
 Let's proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
 $$ \Pr\left[   \left| 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( O\left( -\frac{ \eps^2 n^2}{ 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } K_h^2}   \right)\right) =$$
 $$\exp \left( -O\left(\frac{\eps^2 n^2}{n_h 2^{2h} K_h^2/k_h  } \right) \right) 
 $$
-We now make use of the above union bound applied to the bound on $n_h$. Notice that the random events determining the length $n_h$ do not affect the realization of the random variables used in layer $h$, so we can indeed use the bound on $n_h$ for controlling the error at level $h$. We get that since $n_h \leq 3n/2^h$
+We now make use of the the bound on $n_h$ in Equation~\eqref{eq:nh small}. Notice that the random events determining the length $n_h$ do not affect the realization of the random variables used in layer $h$, so we can indeed use the bound on $n_h$ for controlling the error at level $h$. We get that since $n_h \leq 3n/2^h$
 $$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq 
 \exp \left( -O\left(\frac{\eps^2 n}{ 2^h K_h^2/k_h  } \right) \right) 
 $$
-In particular, for $\eps_h = \sqrt{\frac{c 2^h K_h^2 \log((H'-h+1)^2/\delta_1)}{k_h n}}$ for some sufficiently large constant $c$ it holds that
-$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq \delta_1/(H'-h+1)^2$$
-and a union bound ensures that with probability at least $1-\delta_1$, for any fixed query $q$ it holds for all $h \leq H'$ that
-$$\left| \text{Err}_h(q) \right| \geq \eps_h n$$
+In particular, for $\eps_h = \sqrt{\frac{c 2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}}$ for some sufficiently large constant $c$ it holds that
+$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq \delta/4(H'-h+1)^2$$
+and a union bound ensures that with probability at least $1-\delta$, in addition to Equations~\eqref{eq:Htag} and~\eqref{eq:nh small} we have for all $h \leq H'$ that
+$$\left| \text{Err}_h(q) \right| \leq \eps_h n$$
 and 
 $$\left| \sum_{h=0}^{H'} \text{Err}_h(q) \right| \leq \left(\sum_{h=0}^{H'} \eps_h\right)n $$
 
-We start by dealing with the setting where $K_k = \min\{d,k\}$ where $d$ is independent of $k$. We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. Since $k_{H'} = k$ by using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
-$$\eps_h \leq \sqrt{\frac{2c \cdot K_h^2 k_{H'}\log(H'-h+1)}{2^{H'-h} K_{H'} k_{h}}} \cdot \sqrt{\frac{2^{H'} K_{H'}^2 \log(1/\delta_1)}{k_{H'} n}} = $$
+Let's proceed to bound the error on the top layers $H'+1$ to $H$. In these top layers we use a deterministic algorithm guaranteeing the stream is cut at least times 2 from layer to layer. We assign all top layers a budget of $k_h=k$ for the compactors. Since $2^{H+1} < n/k$ this gives a bound of 
 $$
-\frac{K_k}{k} \cdot O\left( \sqrt{\frac{K_h^2 k_{H'}\log(H'-h+1)}{2^{H'-h} K_{H'}^2 k_{h}}}  \right)
-$$ 
-We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$
+H-H' \leq \log_2(n/k2^{H'}) = O\left( \log\left( c_1 \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) = 
 $$
-\frac{K_h^2 k_{H'}\log(H'-h+1)}{2^{H'-h} K_{H'}^2 k_{h}} \leq \frac{d^2 k\log(H'-h+1)}{2^{H'-h} d^2 (2/3)^{H'-h}k} =
-\frac{\log(H'-h+1)}{ (4/3)^{H'-h}}
 $$
+O\left( \log \log(n/\delta) \right)
+$$
+leading to a bound of 
+$$ \left| \sum_{h=H'+1}^H \text{Err}_h(q) \right| \leq O\left( \log \log(n/\delta) (K_k/k) n \right) $$
+and an overall bound of
+\begin{equation}
+|\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(K_k/k) + \sum_{h=0}^{H'} \eps_h \right)
+\end{equation}
+
+We are now left with the task of defining $k_h$ for the lower layers; we do so differently depending on the value of $K_k$ as a function of $k$. Recall that we aim to deal with two settings. In the first $K_k=\min\{d,k\}$ and in the second $K_k=\min\{d\sqrt{k}, k\}$. In both cases  $d$ is independent of $k$. We start by dealing with the first scenario.
+
+We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. Since $k_{H'} = k$ by using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
+\begin{align*}
+\eps_h = & O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k^2 \log((H'-h+1)^2/\delta)}{k_h K_k^2 n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)) \\
+  	   &  O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k }{k_h K_k^2 2^{H'}}} \right)  \\
+    	   &  O\left( \frac{K_k}{k} \sqrt{\frac{K_h^2 k }{k_h K_k^2 2^{H'-h}}} \right)
+\end{align*}
+We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$. For $k_h \geq d$
+$$
+\frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} \leq \frac{d^2 k}{2^{H'-h} d^2 (2/3)^{H'-h}k} =
+(3/4)^{H'-h}
+$$
+For $k_h \leq d$ we must have $h \leq H''$ with $(2/3)^{H'-H''} \leq d/k$, meaning that $2^{H'-H''} \geq k/d$. For such $h$ we get
+\begin{align*}
+ \frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} = &  O\left( \frac{ k_h k}{2^{H'-h} d^2 } \right) =  \\
+    	   &  O\left( \frac{ k_h k}{2^{H''-h} kd } \right) = & k_h \leq d\\
+	   &  O\left( (1/2)^{H''-h}   \right) 
+\end{align*}
+
 If follows that 
 $$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(d/k) $$
-and we have a bound of $O(d/k)$ for the bottom layers.
+translating to an overall bound for the error of
+$$ |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(d/k)  \right)$$
+The overall memory consumption for the bottom layers is $O(k)$ since all layers of size 2 can be implemented jointly by sampling. The top layers require $O(\log\log(n/\delta)k)$ memory. If follows that by setting $k=c d \log\log(n/\delta) / \eps$ for sufficiently large $c$, the error is bounded by $\eps n$ w.p. $1-\delta$ and the overall memory requirement is 
+$$ O\left( \log \log(n/\delta)^2 (d/\eps)  \right) $$
 
-For the top layers we set $k_h=k$ and obtain the deterministic bound of 
-$$ \sum_{h=H'+1}^H \text{Err}_h(q) \leq (H-H')(d/k)n $$
-Since we $n_{h+1} \leq n_h$ for $h \geq H'$ we get that $H-H' \leq \log(n/(kn_{H'}))$. According to our analysis above we are in an event (of probability $1-\delta_2$) where $n_{H'} \leq 3 \cdot n/2^{H'}  $ meaning that
-$$ n/(kn_{H'}) = O\left((\log\left(1/\left(c \delta_1 \delta_2 \log^3(n)\right)\right)\right) $$
-leading to the bound of 
-$$ \sum_{h=H'+1}^H \text{Err}_h(q) \leq O\left( \log \log\left( 1/\left( \delta_1\delta_2\log(n) \right)\right)(d/k)n \right)$$
-The latter is the bound for the total sum of errors $\text{Err}(q)$ as well.
 
-To conclude the case of $K_k=d$ we obtain an error of 
-$$O\left( \log \log\left( 1/\left( \delta_1\delta_2\log(n) \right)\right)(d/k)n \right)$$
-by using $O(k\log \log\left( 1/\left( \delta_1\delta_2\log(n) \right)\right))$ memory. The memory analysis follows from a trivial bound to the upper layers, and noticing that for the smaller layers, all layers with $k=2$ can be implemented in $O(1)$ memory by uniformly sampling. By setting $\delta=\delta_1=\delta_2 < 1/\log(n)$ we get that for 
-$$ k=O(d\log\log(1/\delta)/\eps) $$
-the overall error is bounded by $\eps n$ and the memory is bounded by 
-$$ O(d\log\log(1/\delta)^2/\eps) $$
-
-Let's now consider the case where $K_k = d\sqrt{k}$ with $d$ independent of $k$. Here, we set $k_{H'}=k$ and $k_h=2$ for all $h<H'$.
-
-\zk{need to finish the analysis for the above $K_k$.}
+We are now ready for the case where $K_k = d\sqrt{k}$. We assume that $\sqrt{k} > d$ as otherwise we can result to a random sample. Here we set $H'' = H' - \ceil{\log_2(k/d^2)}$. For $h \geq H''$ we set $k_h=k$ and for $k \leq H''$ we set $k_h=2$. For $k \leq H''$ we have
+\begin{align*}
+\eps_h = & O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)), \ k_h=k=2 \\
+  	   &  O\left( \sqrt{2^{h-H'}} \right)  = & 2^{H'-H''} \geq k/d^2 \\
+    	   &  O\left(\frac{\sqrt{k}}{d} \sqrt{2^{h-H''}} \right)  
+\end{align*}
+and 
+$$ \sum_{h=0}^{H''} \eps_h= O(\sqrt{k}/d) $$
 \end{proof}
-
-
+For $H'' \leq h \leq H'$ we use the deterministic algorithm and its error bound of
+$$\sum_{h=H''}^{H'} |\text{Err}_h(q)| \leq O(\log(k/d^2) d/\sqrt{k})$$
+Summing the errors of all layers we obtain a bound of
+$$|\text{Err}(q)| \leq \frac{d}{\sqrt{k}} \cdot O(\log(k/d^2) + \log\log(n/\delta))$$
+The memory requirement is $k \cdot O(\log(k/d^2) + \log\log(n/\delta))$ hence by setting 
+$$k \approx \frac{d^2\left(\log^2(1/\eps)+ \log^2\log(n/\delta) \right)}{\eps^2}$$ 
+we get a bound of $\eps n$ for the error and a memory usage of 
+$$ O\left( \frac{d^2\left( \log^3(1/\eps) + \log^3\log(n/\delta) \right)}{\eps^2}\right) $$
 
 
 
