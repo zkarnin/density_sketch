@@ -335,7 +335,7 @@ $$
 \sum_i \sigma_i f(x_i,q) = \sum_k \alpha_k \sum_i \sigma_i \langle x_i,q\rangle^k =  \sum_k \alpha_k  \langle  \sum_i \sigma_i x_i^{\otimes k},q^{\otimes k}\rangle \le \sum_k |\alpha_k| \cdot \| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \cdot \|q\|^k
 $$
 By Lemma \ref{uc} we can find signs $\sigma$ such that 
-$\| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \le c\sqrt{d k \log^3(k)}$. Substituting into the above the lemma follows.
+$\| \sum_i \sigma_i x_i^{\otimes k}\|_{T_k} \le c\sqrt{d k \log^3(k)}$. Substituting into the above, the lemma follows.
 \end{proof}
 
 \begin{theorem}\label{analitic1}
@@ -362,7 +362,7 @@ The Komlos complexity of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in d
 Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq \sqrt{R}$, has Komlos complexity of $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
-By transforming $x$ to $\tilde{x} = (x, \|x\|^2, 1)$ and $q$ to $\tilde{q} = (-2q, 1, \|q\|^2)$ we get $\ip{\tilde{x},\tilde{q}} = \|x-q\|^2$. Moreover, $\|q\| \le \sqrt{R}$ gives $\|\tilde q\| \le R$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$ apply for functions of $\|q-x\|^2$.
+By transforming $x$ to $\tilde{x} = (1, x, \|x\|^2)$ and $q$ to $\tilde{q} = (\|q\|^2, -2q, 1)$ we get $\ip{\tilde{x},\tilde{q}} = \|q-x\|^2$. Moreover, $\|q\| \le \sqrt{R}$ gives $\|\tilde q\| \le R$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$.
 \end{proof}
 
 \begin{corollary}
@@ -411,7 +411,7 @@ Using the framework above this provides a deterministic coreset construction for
 
 
 
-\section{Linear Regression}
+%\section{Linear Regression}
 
 %\section{Optimal Design of Experiments}
 %We discuss the problem of linear regression with mean squared error. In the classic setting we are given $n$ points $x_1,\ldots,x_n \in \R^d$ along with $n$ labels $y_1,\ldots,y_n \in \R$ and wish to find $w \in \R^d$ minimizing
@@ -810,7 +810,7 @@ $$E(q) = \sum_i \sigma_i \langle x_i,q \rangle ^2 = q^T (\sum_i \sigma_i x_i x_i
 For any set of matrices $X_1,...,X_n$ in $\R^{d_1 \times d_2}$ such that $\|X_i\|_{F} \le 1$ there exists a set of signs $s_1,...,s_n$ such that $||\sum_i \sigma_i X_i||_{2} \le O(\sqrt{d_1 + d_2})$.
 \end{theorem}
 \begin{proof}
-First, recount Banaszczyk's theorem. 
+First, recount Banaszczyk's Theorem~\cite{Banaszczyk}.
 Let $\mathcal K$ be a convex body in $\R^d$ with Gaussian measure at least 1/2 ($\Pr[g \in \mathcal K] \ge 1/2$ where $g$ is i.i.d.\ Gaussian).
 Let $x_1,\ldots,x_n$ be vectors in $\R^d$ with $\|x_i\| \le 1$. 
 Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some universal constant $C$.
@@ -847,7 +847,6 @@ Note that $L_e = v_ev_e^T$ where $v_e(i) = 1$, $v_e(j)=-1$ and zero else.
 Applying the results of the last section we get a streaming mergeable algorithm of approximating graph quadratic forms.
 The number of retained edges in the coreset $E'$ is $|E'| = O(\log^{2}(n) \sqrt{n}/\eps)$ and it guaranties that 
 $|\sum_{(i,j) \in E} (q_i - q_j)^2  - c \sum_{(i,j) \in E'} (q_i - q_j)^2| \le \eps n$ for all unit norm vectors $q$.
-
 
 
 \end{document}
