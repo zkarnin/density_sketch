@@ -66,6 +66,9 @@
 \newcommand{\disc}{\text{disc}}
 \renewcommand{\Pr}{\operatorname{Pr}}
 
+\newcommand{\komconstant}{c}
+
+
 % Authors with different addresses:
 \coltauthor{%
  \Name{Zohar Karnin} \Email{zkarnin@amazon.com}%\\ \addr Address 1
@@ -242,13 +245,15 @@ This is made formal with the following definitions:
 In what follows, we prove the following.
 \begin{theorem} \label{thm:streaming}
 For any function $f$ with a corresponding Komlos Complexity $K_m = O(c/m)$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
-$O\left(c\log^2\left(\min(n, \log(1/\delta)) \right)/\eps\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
+$$O\left(c\log^2\left(\min(\eps n/c, \log(n/\delta)) \right)/\eps\right)$$ 
+whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
 \end{theorem}
 
 
-\begin{theorem}
+\begin{theorem} \label{thm:streaming2}
 For any function $f$ with a corresponding Komlos Complexity of $K_m = O(c/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
-$O\left(c\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
+$$O\left(c\log^3\left(\min(\eps^2 n/c, \log(n/\delta)) \right)/\eps^2\right)$$ 
+whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
 \end{theorem}
 %
 %\begin{fact}
@@ -630,74 +635,74 @@ As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors
 $\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
 \end{proof}
 
-
-\begin{proof} [Proof of Theorem~\ref{thm:streaming}]
-Denote the streaming algorithm of Lemma~\ref{lem:compactor} as a compactor. The streaming algorithm operates as follows. At any given time it maintains a hierarchy of compactors where the hierarchy is measured in levels, starting from 0. The Compactor of level $h$ receives inputs of weight $2^h$ and outputs items of weight $2^{h+1}$. In the beginning we have a single compactor at level $h=0$. Once it outputs items to its output stream we open a compactor at level $h=1$ and so on. After observing $n$ items let $H$ be the level of the final compactor, meaning the compactor that never began an output stream.
-
-The sketch at that point contains all the data points contained in the buffers of the different compactors, weighted according to the level of the compactor. For a query $q$ we analyze the error
-$$\text{Err}(q) = \sum_{h=0}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \ .$$
-Here, $k_h$ is the capacity of the buffers at level $h$, $n_h$ is the length of the stream observed at level $h$. The multiplier of $2^h$ is there since level $h$ observes items of weight $2^h$. The sum over $j$ is over the number of compactions at level $h$. Finally, the $Y_{ij}$ are independent random variables with mean zero and absolute value of at most $1$. 
-
-To achieve a deterministic bound we set all $k_h=k$, and set the compactors to choose the signed set with the least cardinality, ensuring $n_h \leq n_{h-1}/2$ and $H \leq \log_2(n/k)$, thus
-$$ \text{Err}(q) \leq \rho(k) \log_2(n/k) n $$
-
-If however, we are interested in a smaller sketch with high probability of success of $1-\delta$, we decompose the error to two components
-$$\text{Err}(q) = \sum_{h=0}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho k_h Y_{ij} + \sum_{h=H'+1}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij}$$
- Here, $H' = H - \ceil{\log(c \log(1/ \delta))}$ where $c$ is some universal constant we set later. Notice that the right summand contains roughly $\log(1/\delta)$ random variables. Since they are all Bernoulli we get that any combination of them is possible with probability $\geq \delta$ hence we must use a deterministic bound for these upper layers. We thus set $k_h=k$ for $h > H'$ and use the bound
-$$ \text{Err}^{\text{top}}(q) = \left|\sum_{h=H'+1}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij}\right| \leq O\left( \rho(k) \left(H-H'\right) n \right) =  O\left( \rho(k) \log \log(1/ \delta) n \right) $$
-Now, for the bottom layers we use Chernoffs bound
-$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -\frac{c' \eps^2 n^2}{\sum_{h=h}^{H'} 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h)^2 k_h^2}   \right) =$$
-$$\exp \left( -\frac{c' \eps^2 n^2}{\sum_{h=h}^{H'} 2^{2h} \rho(k_h)^2 k_h^2 \floor{n_h/k_h} } \right) $$
-
-\zk{$n_h$ being random is a problem. The weight of the stream might increase with time. The analysis now works for a completely balanced case }
-Consider the sum in the denominator. 
-$$ \sum_{h=h}^{H'} 2^{2h} \rho(k_h)^2 k_h^2 \floor{n_h/k_h} = O(\sum_{h=0}^{H'} 2^{2h} \rho(k_h)^2 k_h n_h ) $$
-Since $n_h \leq n_{h-1}/2$ and we have $k_h \leq k$ we have 
-$$  = n  \cdot O(\sum_{h=0}^{H'} 2^h k_h \rho(k_h)^2  ) $$
-Now, if $\rho(k_h) \geq 1/\sqrt{k_h}$ we set $k_h = 2$ for all $h \leq H'$ and obtain
-$$  = n  \cdot O(\sum_{h=0}^{H'} 2^h  ) = O(n^2/ (k \log(1/\delta))) $$
-and we get
-$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -O\left( \eps^2 k \log(1/\delta) \right)   \right) $$
-Hence, by setting $k \geq c/\eps^2$ for sufficiently large constant $c$ the probability is upper bounded by $\delta$.
-
-Now, for $\rho(k) < 1/\sqrt{k}$ we have $\eta(k) = \rho(k)^2 k = o(1)$. We can exploit that to allow for $k = o(1/\eps^2)$. For $\eta(k)=O(k^{-p})$ we\footnote{We do not discuss other scenarios as we are not aware of any setting where they occur. Also, extending the analysis to them is a purely technical exercise} use $k_h = \max(2, \ceil{(2/3)^{H'-h}k})$, leading to a bound of
-$$\sum_{h=0}^{H'} 2^h k_h \rho(k_h)^2 \leq \sum_{h=0}^{H'} 2^h \eta(k) \cdot (3/2)^{H'-h} = (3/2)^{H'} \eta(k) \sum_{h=0}^{H'} (4/3)^h \leq  $$
-$$(3/2)^{H'} \eta(k) \cdot (4/3)^{H'} \cdot 3 = 3 \cdot 2^{H'} \eta(k) = O(\eta(k)n/(k\log(1/\delta))$$
-Plugging this in the probability bound gives
-$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -O\left( \eps^2 k \log(1/\delta) / \eta(k) \right)   \right) = $$
-$$ \exp \left( -O\left( \eps^2 \log(1/\delta) / \rho(k)^2 \right)   \right) $$
-Hence, setting $k$ large enough so that $\rho(k) \leq c\eps$ for some universal constant $c$ leads to the required bound.
-
-In particular for $\rho(k) = O(1/k)$ we see that $k=1/\eps$ suffices, for general $p>1/2$ with $\rho(k) = k^{-p}$ we require $k=\eps^{-1/p}$.
-
-
-Now, consider the overall error and memory of the entire process. For the bottom layers, for any $\rho(k)$ we require $O(k+H')=O(k+\log(n))$ memory. A closer inspection actually shows that once $k_h=2$ we are simply performing uniform sampling, and all of those layers can be done with constant memory. Hence, the memory footprint of the bottom layers is $O(k)$. The top layers require $O(\log\log(1/\delta)k)$ memory leading to a total memory usage of $O(\log\log(1/\delta)k)$.
-
-The error for the bottom layers is $O(\min\{\rho(k), 1/\sqrt{k}\} n)$. The error of the top layers is $O(\log\log(1/\delta) \rho(k) n)$, meaning that the overall error is $O(\log\log(1/\delta) \rho(k) n)$.
-
-Hence, if we aim for an error of $\eps n$ w.p.\ $1-\delta$ we set $k$ large enough such that $\rho(k) \leq c \eps / \log\log(1/\delta)$. Denoting by $\rho^{\dagger}$ the inverse function to $\rho$ this leads to a total memory requirement of 
-$$ \rho^{\dagger}(c \eps / \log\log(1/\delta)) \log\log(1/\delta) $$
-
-\end{proof}
-
-
+%
+%\begin{proof} [Proof of Theorem~\ref{thm:streaming}]
+%Denote the streaming algorithm of Lemma~\ref{lem:compactor} as a compactor. The streaming algorithm operates as follows. At any given time it maintains a hierarchy of compactors where the hierarchy is measured in levels, starting from 0. The Compactor of level $h$ receives inputs of weight $2^h$ and outputs items of weight $2^{h+1}$. In the beginning we have a single compactor at level $h=0$. Once it outputs items to its output stream we open a compactor at level $h=1$ and so on. After observing $n$ items let $H$ be the level of the final compactor, meaning the compactor that never began an output stream.
+%
+%The sketch at that point contains all the data points contained in the buffers of the different compactors, weighted according to the level of the compactor. For a query $q$ we analyze the error
+%$$\text{Err}(q) = \sum_{h=0}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \ .$$
+%Here, $k_h$ is the capacity of the buffers at level $h$, $n_h$ is the length of the stream observed at level $h$. The multiplier of $2^h$ is there since level $h$ observes items of weight $2^h$. The sum over $j$ is over the number of compactions at level $h$. Finally, the $Y_{ij}$ are independent random variables with mean zero and absolute value of at most $1$. 
+%
+%To achieve a deterministic bound we set all $k_h=k$, and set the compactors to choose the signed set with the least cardinality, ensuring $n_h \leq n_{h-1}/2$ and $H \leq \log_2(n/k)$, thus
+%$$ \text{Err}(q) \leq \rho(k) \log_2(n/k) n $$
+%
+%If however, we are interested in a smaller sketch with high probability of success of $1-\delta$, we decompose the error to two components
+%$$\text{Err}(q) = \sum_{h=0}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho k_h Y_{ij} + \sum_{h=H'+1}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij}$$
+% Here, $H' = H - \ceil{\log(c \log(1/ \delta))}$ where $c$ is some universal constant we set later. Notice that the right summand contains roughly $\log(1/\delta)$ random variables. Since they are all Bernoulli we get that any combination of them is possible with probability $\geq \delta$ hence we must use a deterministic bound for these upper layers. We thus set $k_h=k$ for $h > H'$ and use the bound
+%$$ \text{Err}^{\text{top}}(q) = \left|\sum_{h=H'+1}^H 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij}\right| \leq O\left( \rho(k) \left(H-H'\right) n \right) =  O\left( \rho(k) \log \log(1/ \delta) n \right) $$
+%Now, for the bottom layers we use Chernoffs bound
+%$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -\frac{c' \eps^2 n^2}{\sum_{h=h}^{H'} 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h)^2 k_h^2}   \right) =$$
+%$$\exp \left( -\frac{c' \eps^2 n^2}{\sum_{h=h}^{H'} 2^{2h} \rho(k_h)^2 k_h^2 \floor{n_h/k_h} } \right) $$
+%
+%\zk{$n_h$ being random is a problem. The weight of the stream might increase with time. The analysis now works for a completely balanced case }
+%Consider the sum in the denominator. 
+%$$ \sum_{h=h}^{H'} 2^{2h} \rho(k_h)^2 k_h^2 \floor{n_h/k_h} = O(\sum_{h=0}^{H'} 2^{2h} \rho(k_h)^2 k_h n_h ) $$
+%Since $n_h \leq n_{h-1}/2$ and we have $k_h \leq k$ we have 
+%$$  = n  \cdot O(\sum_{h=0}^{H'} 2^h k_h \rho(k_h)^2  ) $$
+%Now, if $\rho(k_h) \geq 1/\sqrt{k_h}$ we set $k_h = 2$ for all $h \leq H'$ and obtain
+%$$  = n  \cdot O(\sum_{h=0}^{H'} 2^h  ) = O(n^2/ (k \log(1/\delta))) $$
+%and we get
+%$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -O\left( \eps^2 k \log(1/\delta) \right)   \right) $$
+%Hence, by setting $k \geq c/\eps^2$ for sufficiently large constant $c$ the probability is upper bounded by $\delta$.
+%
+%Now, for $\rho(k) < 1/\sqrt{k}$ we have $\eta(k) = \rho(k)^2 k = o(1)$. We can exploit that to allow for $k = o(1/\eps^2)$. For $\eta(k)=O(k^{-p})$ we\footnote{We do not discuss other scenarios as we are not aware of any setting where they occur. Also, extending the analysis to them is a purely technical exercise} use $k_h = \max(2, \ceil{(2/3)^{H'-h}k})$, leading to a bound of
+%$$\sum_{h=0}^{H'} 2^h k_h \rho(k_h)^2 \leq \sum_{h=0}^{H'} 2^h \eta(k) \cdot (3/2)^{H'-h} = (3/2)^{H'} \eta(k) \sum_{h=0}^{H'} (4/3)^h \leq  $$
+%$$(3/2)^{H'} \eta(k) \cdot (4/3)^{H'} \cdot 3 = 3 \cdot 2^{H'} \eta(k) = O(\eta(k)n/(k\log(1/\delta))$$
+%Plugging this in the probability bound gives
+%$$ \Pr\left[   \left|\sum_{h=h}^{H'} 2^h \sum_{j=1}^{\floor{n_h/k_h} } \rho(k_h) k_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( -O\left( \eps^2 k \log(1/\delta) / \eta(k) \right)   \right) = $$
+%$$ \exp \left( -O\left( \eps^2 \log(1/\delta) / \rho(k)^2 \right)   \right) $$
+%Hence, setting $k$ large enough so that $\rho(k) \leq c\eps$ for some universal constant $c$ leads to the required bound.
+%
+%In particular for $\rho(k) = O(1/k)$ we see that $k=1/\eps$ suffices, for general $p>1/2$ with $\rho(k) = k^{-p}$ we require $k=\eps^{-1/p}$.
 %
 %
+%Now, consider the overall error and memory of the entire process. For the bottom layers, for any $\rho(k)$ we require $O(k+H')=O(k+\log(n))$ memory. A closer inspection actually shows that once $k_h=2$ we are simply performing uniform sampling, and all of those layers can be done with constant memory. Hence, the memory footprint of the bottom layers is $O(k)$. The top layers require $O(\log\log(1/\delta)k)$ memory leading to a total memory usage of $O(\log\log(1/\delta)k)$.
+%
+%The error for the bottom layers is $O(\min\{\rho(k), 1/\sqrt{k}\} n)$. The error of the top layers is $O(\log\log(1/\delta) \rho(k) n)$, meaning that the overall error is $O(\log\log(1/\delta) \rho(k) n)$.
+%
+%Hence, if we aim for an error of $\eps n$ w.p.\ $1-\delta$ we set $k$ large enough such that $\rho(k) \leq c \eps / \log\log(1/\delta)$. Denoting by $\rho^{\dagger}$ the inverse function to $\rho$ this leads to a total memory requirement of 
+%$$ \rho^{\dagger}(c \eps / \log\log(1/\delta)) \log\log(1/\delta) $$
+%
+%\end{proof}
 %
 %
+%%
+%%
+%%
+%%
+%%
+%%
+%%
+%%
+%%
+%%
+%%
 %
 %
-%
-%
-%
-%
+%\subsubsection{take 3}
 %
 
-
-\subsubsection{take 3}
-
-
-\begin{proof} [Proof of Theorem~\ref{thm:streaming}]
+\begin{proof} [Proof of Theorems~\ref{thm:streaming} and~\ref{thm:streaming2}]
 Denote the streaming algorithm of Lemma~\ref{lem:compactor} as a compactor. The streaming algorithm operates as follows. At any given time it maintains a hierarchy of compactors where the hierarchy is measured in levels, starting from 0. The Compactor of level $h$ receives inputs of weight $2^h$ and outputs items of weight $2^{h+1}$. In the beginning we have a single compactor at level $h=0$. Once it outputs items to its output stream we open a compactor at level $h=1$ and so on. After observing $n$ items let $H$ be the level of the final compactor, meaning the compactor that never began an output stream.
 
 The sketch at that point contains all the data points contained in the buffers of the different compactors, weighted according to the level of the compactor. For a query $q$ and hierarchy level $h$ we analyze the error
@@ -739,7 +744,7 @@ We now make use of the the bound on $n_h$ in Equation~\eqref{eq:nh small}. Notic
 $$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq 
 \exp \left( -O\left(\frac{\eps^2 n}{ 2^h K_h^2/k_h  } \right) \right) 
 $$
-In particular, for $\eps_h = \sqrt{\frac{c 2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}}$ for some sufficiently large constant $c$ it holds that
+In particular, for $\eps_h = O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right)$  it holds that
 $$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq \delta/4(H'-h+1)^2$$
 and a union bound ensures that with probability at least $1-\delta$, in addition to Equations~\eqref{eq:Htag} and~\eqref{eq:nh small} we have for all $h \leq H'$ that
 $$\left| \text{Err}_h(q) \right| \leq \eps_h n$$
@@ -760,7 +765,7 @@ and an overall bound of
 |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(K_k/k) + \sum_{h=0}^{H'} \eps_h \right)
 \end{equation}
 
-We are now left with the task of defining $k_h$ for the lower layers; we do so differently depending on the value of $K_k$ as a function of $k$. Recall that we aim to deal with two settings. In the first $K_k=\min\{d,k\}$ and in the second $K_k=\min\{d\sqrt{k}, k\}$. In both cases  $d$ is independent of $k$. We start by dealing with the first scenario.
+We are now left with the task of defining $k_h$ for the lower layers; we do so differently depending on the value of $K_k$ as a function of $k$. Recall that we aim to deal with two settings. In the first $K_k=\min\{\komconstant,k\}$ and in the second $K_k=\min\{\komconstant \sqrt{k}, k\}$. In both cases  $\komconstant$ is independent of $k$. We start by dealing with the first scenario.
 
 We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. By using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
 \begin{align*}
@@ -768,27 +773,27 @@ We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. By using the definition of $H'$ 
   	   &  O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k }{k_h K_k^2 2^{H'}}} \right) = \\
     	   &  O\left( \frac{K_k}{k} \sqrt{\frac{K_h^2 k }{k_h K_k^2 2^{H'-h}}} \right)
 \end{align*}
-We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$. For $k_h \geq d$
+We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$. For $k_h \geq \komconstant$
 $$
-\frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} \leq \frac{d^2 k}{2^{H'-h} d^2 (2/3)^{H'-h}k} =
+\frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} \leq \frac{\komconstant^2 k}{2^{H'-h} \komconstant^2 (2/3)^{H'-h}k} =
 (3/4)^{H'-h}
 $$
-For $k_h \leq d$ we must have $h \leq H''$ with $(2/3)^{H'-H''} \leq d/k$, meaning that $2^{H'-H''} \geq k/d$. For such $h$ we get
+For $k_h \leq \komconstant$ we must have $h \leq H''$ with $(2/3)^{H'-H''} \leq \komconstant/k$, meaning that $2^{H'-H''} \geq k/\komconstant$. For such $h$ we get
 \begin{align*}
- \frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} = &  O\left( \frac{ k_h k}{2^{H'-h} d^2 } \right) =  \\
-    	   &  O\left( \frac{ k_h k}{2^{H''-h} kd } \right) = & k_h \leq d\\
+ \frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} = &  O\left( \frac{ k_h k}{2^{H'-h} \komconstant^2 } \right) =  \\
+    	   &  O\left( \frac{ k_h k}{2^{H''-h} k\komconstant } \right) = & k_h \leq \komconstant\\
 	   &  O\left( (1/2)^{H''-h}   \right) 
 \end{align*}
 
 If follows that 
-$$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(d/k) $$
+$$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(\komconstant/k) $$
 translating to an overall bound for the error of
-$$ |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(d/k)  \right)$$
-The overall memory consumption for the bottom layers is $O(k)$ since all layers of size 2 can be implemented jointly by sampling. The top layers require $O(\log\log(n/\delta)k)$ memory. If follows that by setting $k=c d \log\log(n/\delta) / \eps$ for sufficiently large $c$, the error is bounded by $\eps n$ w.p. $1-\delta$ and the overall memory requirement is 
-$$ O\left( \log \log(n/\delta)^2 (d/\eps)  \right) $$
+$$ |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(\komconstant/k)  \right)$$
+The overall memory consumption for the bottom layers is $O(k)$ since all layers of size 2 can be implemented jointly by sampling. The top layers require $O(\log\log(n/\delta)k)$ memory. If follows that by setting $k= O\left(\komconstant \log\log(n/\delta) / \eps\right)$ the error is bounded by $\eps n$ w.p. $1-\delta$ and the overall memory requirement is 
+$$ O\left( \log \log(n/\delta)^2 (\komconstant/\eps)  \right) $$
 
 
-We are now ready for the case where $K_k = \min\{k, d\sqrt{k}\}$. We set $k_h=2$, resulting in $K_h=2$, for all $h \leq H'$ and obtain
+We are now ready for the case where $K_k = \min\{k, \komconstant\sqrt{k}\}$. We set $k_h=2$, resulting in $K_h=2$, for all $h \leq H'$ and obtain
 \begin{align*}
 \eps_h = & O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)), \ K_h^2/k_h=O(1) \\
   	   &  O\left( \sqrt{2^{h-H'}/k} \right) 
@@ -796,12 +801,12 @@ We are now ready for the case where $K_k = \min\{k, d\sqrt{k}\}$. We set $k_h=2$
 and 
 $$ \sum_h \eps_h = O\left(1/\sqrt{k}\right) $$
 Plugging this to the overall error in Equation~\eqref{eq:err total} we get
-$$ \text{Err}(q) = n \cdot O\left( \frac{\log \log(n/\delta)d + 1}{\sqrt{k}}  \right) =  n \cdot O\left( \frac{\log \log(n/\delta)d }{\sqrt{k}}  \right) $$
+$$ \text{Err}(q) = n \cdot O\left( \frac{\log \log(n/\delta)\komconstant + 1}{\sqrt{k}}  \right) =  n \cdot O\left( \frac{\log \log(n/\delta)\komconstant }{\sqrt{k}}  \right) $$
 
 Since layers of $k_h=2$ can all be implemented in constant memory the memory requirement is dominated by the top layers and is in the order of $k \cdot \log\log(n/\delta)$, hence by setting 
-$$k \approx \frac{d^2 \log^2\log(n/\delta)}{\eps^2}$$ 
+$$k \approx \frac{\komconstant^2 \log^2\log(n/\delta)}{\eps^2}$$ 
 we get a bound of $\eps n$ for the error and a memory usage of 
-$$ O\left( \frac{d^2 \log^3\log(n/\delta)}{\eps^2}\right) $$
+$$ O\left( \frac{\komconstant^2 \log^3\log(n/\delta)}{\eps^2}\right) $$
 \end{proof}
 
 
