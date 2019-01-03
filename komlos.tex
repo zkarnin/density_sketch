@@ -712,12 +712,12 @@ We are however interested in a high probability bound. Specifically we would lik
 
 The bottom layers will be those of height $h=0$ up to $h=H'$ where $H'$ is set adaptively in a way that $H'$ is the maximum integer such that for all $h \leq H'$, 
 \begin{equation} \label{eq:Htag_nh}
- \forall h \leq H' , \ \ n_h \geq c_1 k \log^2(n) \log(1/(c_2 \delta \log(n)))
+ \forall h \leq H' , \ \ n_h \geq c_1 k \log^2(n) \log(\log(n)/(c_2 \delta ))
 \end{equation}
 for some sufficiently large constant $c_1$ and small constant $c_2$ to be determined later.
 
 According to Lemma~\ref{lem:compactor} we have for $ h\leq H'$ that for some appropriate constant $c_1$ in  \eqref{eq:Htag_nh},
-$$ \Pr[n_{h+1} \geq (1+1/\log(n))n_{h}/2] \leq \exp\left( -\frac{n_{h}}{k_h \log^2(n)}  \right) \leq c_2\delta / \log(n) $$
+$$ \Pr[n_{h+1} \geq (1+1/\log(n))n_{h}/2] \leq \exp\left( -\frac{n_{h}}{k_h \log^2(n)}  \right) \leq c_2\delta/  \log(n) $$
 We can now union bound over all 
 $$h \leq \log_2\left( n / \left( c_1 k \log^2(n) \log(1/(c_2 \delta\log(n))) \right)\right) + 2 \leq \log_2(n)$$
 and conclude that w.p.\ at least $1-\delta/2$
@@ -731,6 +731,7 @@ and
 
 
 Let's proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
+$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] =$$
 $$ \Pr\left[   \left| 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( O\left( -\frac{ \eps^2 n^2}{ 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } K_h^2}   \right)\right) =$$
 $$\exp \left( -O\left(\frac{\eps^2 n^2}{n_h 2^{2h} K_h^2/k_h  } \right) \right) 
 $$
@@ -755,16 +756,16 @@ $$
 leading to a bound of 
 $$ \left| \sum_{h=H'+1}^H \text{Err}_h(q) \right| \leq O\left( \log \log(n/\delta) (K_k/k) n \right) $$
 and an overall bound of
-\begin{equation}
+\begin{equation} \label{eq:err total}
 |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(K_k/k) + \sum_{h=0}^{H'} \eps_h \right)
 \end{equation}
 
 We are now left with the task of defining $k_h$ for the lower layers; we do so differently depending on the value of $K_k$ as a function of $k$. Recall that we aim to deal with two settings. In the first $K_k=\min\{d,k\}$ and in the second $K_k=\min\{d\sqrt{k}, k\}$. In both cases  $d$ is independent of $k$. We start by dealing with the first scenario.
 
-We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. Since $k_{H'} = k$ by using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
+We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. By using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
 \begin{align*}
 \eps_h = & O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k^2 \log((H'-h+1)^2/\delta)}{k_h K_k^2 n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)) \\
-  	   &  O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k }{k_h K_k^2 2^{H'}}} \right)  \\
+  	   &  O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k }{k_h K_k^2 2^{H'}}} \right) = \\
     	   &  O\left( \frac{K_k}{k} \sqrt{\frac{K_h^2 k }{k_h K_k^2 2^{H'-h}}} \right)
 \end{align*}
 We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$. For $k_h \geq d$
@@ -787,24 +788,21 @@ The overall memory consumption for the bottom layers is $O(k)$ since all layers 
 $$ O\left( \log \log(n/\delta)^2 (d/\eps)  \right) $$
 
 
-We are now ready for the case where $K_k = d\sqrt{k}$. We assume that $\sqrt{k} > d$ as otherwise we can result to a random sample. Here we set $H'' = H' - \ceil{\log_2(k/d^2)}$. For $h \geq H''$ we set $k_h=k$ and for $k \leq H''$ we set $k_h=2$. For $k \leq H''$ we have
+We are now ready for the case where $K_k = \min\{k, d\sqrt{k}\}$. We set $k_h=2$, resulting in $K_h=2$, for all $h \leq H'$ and obtain
 \begin{align*}
-\eps_h = & O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)), \ k_h=k=2 \\
-  	   &  O\left( \sqrt{2^{h-H'}} \right)  = & 2^{H'-H''} \geq k/d^2 \\
-    	   &  O\left(\frac{\sqrt{k}}{d} \sqrt{2^{h-H''}} \right)  
+\eps_h = & O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)), \ K_h^2/k_h=O(1) \\
+  	   &  O\left( \sqrt{2^{h-H'}/k} \right) 
 \end{align*}
 and 
-$$ \sum_{h=0}^{H''} \eps_h= O(\sqrt{k}/d) $$
-\end{proof}
-For $H'' \leq h \leq H'$ we use the deterministic algorithm and its error bound of
-$$\sum_{h=H''}^{H'} |\text{Err}_h(q)| \leq O(\log(k/d^2) d/\sqrt{k})$$
-Summing the errors of all layers we obtain a bound of
-$$|\text{Err}(q)| \leq \frac{d}{\sqrt{k}} \cdot O(\log(k/d^2) + \log\log(n/\delta))$$
-The memory requirement is $k \cdot O(\log(k/d^2) + \log\log(n/\delta))$ hence by setting 
-$$k \approx \frac{d^2\left(\log^2(1/\eps)+ \log^2\log(n/\delta) \right)}{\eps^2}$$ 
-we get a bound of $\eps n$ for the error and a memory usage of 
-$$ O\left( \frac{d^2\left( \log^3(1/\eps) + \log^3\log(n/\delta) \right)}{\eps^2}\right) $$
+$$ \sum_h \eps_h = O\left(1/\sqrt{k}\right) $$
+Plugging this to the overall error in Equation~\eqref{eq:err total} we get
+$$ \text{Err}(q) = n \cdot O\left( \frac{\log \log(n/\delta)d + 1}{\sqrt{k}}  \right) =  n \cdot O\left( \frac{\log \log(n/\delta)d }{\sqrt{k}}  \right) $$
 
+Since layers of $k_h=2$ can all be implemented in constant memory the memory requirement is dominated by the top layers and is in the order of $k \cdot \log\log(n/\delta)$, hence by setting 
+$$k \approx \frac{d^2 \log^2\log(n/\delta)}{\eps^2}$$ 
+we get a bound of $\eps n$ for the error and a memory usage of 
+$$ O\left( \frac{d^2 \log^3\log(n/\delta)}{\eps^2}\right) $$
+\end{proof}
 
 
 \section{Table of Complexities for Common Classes}
