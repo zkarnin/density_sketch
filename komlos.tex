@@ -151,7 +151,7 @@ We begin by formally defining the Komols complexity and by giving some general r
 %\end{definition}
 
 \begin{definition}
-Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$ uniformly. 
+Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$ uniformly at random. 
 The Rademacher complexity of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
 R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{f \in \F}  \sum_{i=1}^{m}\sigma_i f(x_i)
@@ -175,19 +175,10 @@ The Komlos Complexity $K_m(\F)$ without a reference set $\{x_1,\ldots,x_m\}$ is 
 It is obvious that  $K_m(\F) \le R_m(\F)$ for any family $\F$. We show later that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
 
 
-%\begin{theorem}
-%Let $F(a) = \sum_i a_i$ for $a \in A$ and let $K_m(A) = O(c/m^\gamma)$ for any constant $\gamma \in (0,1]$.
-%There exist a coreset for $A$ such that $\tilde{F}(a) = \sum_{i} w_i a_i$, $\operatorname{supp}(w) \le m$ and 
-%$$
-%\forall \; a \in A \;\;\;  |F(a) - \tilde F(a)| \le \eps n
-%$$
-%\end{theorem}
-%\begin{proof}
-%By halving the points repeatedly \el{TODO}.
-%\end{proof}
 \subsection{General Framework for Coresets}
-Consider the function $F = \sum_{i=1}^{m} f(x_i,q)$ and the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
-Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$ and similarly $F_{-1}$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
+Consider the function $F = \sum_{i=1}^{m} f(x_i,q)$ and the error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
+Now consider $\tilde F(q) = F(q) + E(q) =  \sum_{i | \sigma_i=1} 2f(x_i,q)$ 
+or alternatively $\tilde F(q) = F(q) - E(q) = \sum_{i | \sigma_i=-1} 2f(x_i,q)$. We have that $\tilde F(q)$ is an approximation for $F(q)$ obtained by a coreset of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
 %
 The above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
 Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
@@ -195,18 +186,16 @@ A function is sketch-able if $K_m(\F) = O(m^\gamma)$ for any constant $\gamma \i
 Typically we see that $K_m(\F) = O(c/m)$ or $K_m(\F)= c/\sqrt{m}$ for some $c$ which does not depend on $m$.
 
 \begin{fact}
-For any function family $\F$ with a corresponding Komlos Complexity $K_m(\F) = O(c/m)$ there exists a coreset of size 
-$O(c/\eps)$ whose error is at most $\eps n$.
+Let $\F$ be a function family with a corresponding Komlos Complexity $K_m(\F) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f_i(q)$ where $f_i \in \F$. There exists a coreset for $F$ of size $k = O(c/\eps)$ whose error is at most $\eps n$.
 \end{fact}
 \begin{fact}
-For any function family $\F$ with a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$ there exists a coreset of size 
-$O(c/\eps^2)$ whose error is at most $\eps n$.
+Let $\F$ be a function family with a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$. Let $F(q) = \sum_{i=1}^{n}f_i(q)$ where $f_i \in \F$. There exists a coreset for $F$ of size $k = O(c/\eps^2)$ whose error is at most $\eps n$.
 \end{fact}
 
-\noindent Proving both facts is trivial. 
+\noindent Proving both facts is trivial and known in the folklore as ``the halving trick". 
 At step one, create a coreset of size at most $n/2$ of items of weight $2$ and incur an error of at most $c$ or $c \sqrt{n}$.
-Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c$ or $2c\sqrt{n/2}  = \sqrt{2n}$.
-Note that the sum of errors is asymptotically dominated by last iterations. 
+Then, repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c$ or $2c\sqrt{n/2}  = \sqrt{2n}$.
+Note that the sum of errors is asymptotically dominated by last iteration. 
 Halting the compression at $\Theta(c/\eps)$ or $\Theta(c/\eps^2)$ items respectively achieves the goal.
 
 
@@ -230,26 +219,34 @@ Halting the compression at $\Theta(c/\eps)$ or $\Theta(c/\eps^2)$ items respecti
 %\end{theorem}
 
 \subsection{General Framework for Sketching}
+We claim that low Komlos complexity implies concise streaming mergeable coresets. 
+This assumes the existence of an algorithm for finding low discrepancy signs $\sigma$.
+A trivial way to obtain such a construction is known as the merge-reduce trick \el{\cite{??} Har Peled?}.
+\el{What do we get from merge-reduce here? $\log(n)/\eps^2$ or $\log^2(n)/\eps^2$? Is it like MRL?)}
+The following theorems claim that a better construction is also possible.
 
-
-The high level idea is the following. 
-Consider a stream of the data points $x_i$. 
-We maintain a buffer that can hold up to $m$ points.
-Once collecting $m$ data points it performs a \emph{compact} operation that outputs at most $m/2$ data points of weight $2$ representing the original $m$ inputs. The compact operation partitions the $m$ points into two sets whose corresponding sums are very close. 
-This is made formal with the following definitions: 
-
- %
-In what follows, we prove the following.
+%
+%of function family $\F$ is low, 
+%and one has an 
+%
+%The high level idea is the following. 
+%Consider a stream of the data points $x_i$. 
+%We maintain a buffer that can hold up to $m$ points.
+%Once collecting $m$ data points it performs a \emph{compact} operation that outputs at most $m/2$ data points of weight $2$ representing the original $m$ inputs. The compact operation partitions the $m$ points into two sets whose corresponding sums are very close. 
+%This is made formal with the following definitions: 
+%
 \begin{theorem} \label{thm:streaming}
-For any function $f$ with a corresponding Komlos Complexity $K_m = O(c/m)$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+For any function $f$ with a corresponding Komlos Complexity $K_m = O(c/m)$ there exists a fully-mergeable streaming coreset algorithm of size 
 $O\left(c\log^2\left(\min(n, \log(1/\delta)) \right)/\eps\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
 \end{theorem}
 
 
 \begin{theorem}
-For any function $f$ with a corresponding Komlos Complexity of $K_m = O(c/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+For any function $f$ with a corresponding Komlos Complexity of $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset algorithm of size 
 $O\left(c\log^3\left(\min(n, \log(1/\delta)) \right)/\eps^2\right)$ whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
 \end{theorem}
+
+The proofs of the above two theorems are quite technical and not very illuminating. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. 
 %
 %\begin{fact}
 %For any function $f$ with a corresponding discrepancy of $\Delta_k = O(\sqrt{k})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
