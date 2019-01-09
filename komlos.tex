@@ -52,6 +52,10 @@
 \newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
 \newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
 
+%\newcommand{\zk}[1]{}
+%\newcommand{\el}[1]{}
+
+
 \newcommand{\ip}[1]{\left \langle #1 \right \rangle}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
@@ -130,6 +134,17 @@ Moreover, our solution creates streaming algorithms with fully mergeable sketche
 The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
 This is captured by its Komlos complexity.  
 
+
+\section{Related Work}
+\begin{itemize}
+\item coresets - motivation, some papers, streaming algorithms for coresets
+
+\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944}, There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
+
+\item Kernel density estimation. The state-of-the-art is by \cite{DBLP:journals/corr/abs-1802-01751} giving a $\sqrt{d\log(1/\eps)}/\eps$ coreset for kernel density, for Lipchitz psd kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds.
+
+\item coreset of logistic regression  \cite{DBLP:journals/corr/abs-1805-08571}, \cite{DBLP:conf/nips/HugginsCB16}. Give multiplicative approximation. This is impossible in general so they depend on a different restriction on the regressor or dataset. Based on sensitivity scores. \cite{DBLP:conf/nips/HugginsCB16} use a heuristic of using $k$-means to approximate sensitivity scores and prove that given good sensitivity scores they get a good coreset. \cite{tolochinsky2018coresets} gives a generic coreset construction for any monotonic function as long as it comes with an $\ell_2^2$ regularization. The dependence they get is, ignoring polynomial factors, $d/\eps^2$.  \cite{DBLP:journals/corr/abs-1805-08571} have a different method, relying on a measure of complexity of the dataset and obtain roughly $\sqrt{n}d^{3/2}/\eps^2$ sized dataset. 
+\end{itemize}
 
 \section{Komlos Complexity}
 We begin by formally defining the Komols complexity and by giving some general results about for problems with low Komols complexity. The Komols complexity of a sequence set is defined similarly to it Rademacher complexity.
