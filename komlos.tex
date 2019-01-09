@@ -89,42 +89,22 @@ This paper makes an explicit connection between low discrepancy, coresets, learn
 
 
 \section{Introduction}
-
-\el{I need to rewrite this section.}
-In many machine learning and sketching problems our goal is often to approximate the sum (or expectation) of functions.
-Specifically, function of the form $F(q) = \sum_{i=1}^{n} f(x_i, q)$ where $x_i \in \mathcal X$ are either training examples or stream items and $q \in \mathcal Q$ is either the model parameters or a query from a possible set $\Q$ which is known in advance. For simplicity and throughout this manuscript we will assume $f:\X\times\Q\rightarrow [0,1]$.
-The goal is to produce weights $w$ with at most $k \ll n$ non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
+In both machine learning and in streaming and sketching problems our goal is (usually) to approximate the sums or expectations of functions.
+Specifically, approximate $F = \sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either training examples or stream items.
+In this paper it will often be convenient to consider an equivalent formulation.
+$F(q) = \sum_{i=1}^{n} f(x_i, q)$  and $q \in \mathcal Q$ is either the model parameters (which acts as an ``index'' into $\F$) or a query from a possible set $\Q$. 
+Clearly, the two formulations are identical. In this manuscript we use both interchangeably.  
+For simplicity and throughout this manuscript we assume the range of $f$ is $[0,1]$.
+The goal is to produce a coreset. This is a set of weights $w$ with at most $k \ll n$ non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
 Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all possible queries $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript.
 
-Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
-Moreover, if the resulting sketches or coresets are mergable, this could be done on separate machines without the need for communication or assuming randomness in the partitioning.
-
-%Here are some examples:
-%\begin{itemize}
-%\item in approximate counting we have $f(x, q) = 1$ if $x=q$ and zero else. Here both $x$ and $q$ belong to some finite domain.
-%\item in quantile approximation we have $f(x, q) = 1$ if $x<q$ and zero else. Here, $x$ and $q$ belong to a set which exhibits total ordering.
-%\item in matrix column subset selection we have $f(x, q) = \langle x,q \rangle ^2$ where $q$ is any unit vector in $\R^d$ and $x$ are matrix rows. For simplicity, we will assume in this manuscript that $x$ is also unit norm.
-%\item in density estimation $f(x, q) = \exp(- \|x-y\|_2^2/\sigma^2)$ or any other kernel (see \cite{})
-%\item in logistic regression $f(x, q) = \operatorname{loss}(x,q) = \log(1 + \exp(-q^T x))$. 
-%Here $q$ is the parameters of the linear model and $x$ is a training example vector multiplied by its label ($1$ or $-1$).
-%\item Linear Classification $f(x,q) = 1$ if $x^Tq > 0$ and $0$ else. Here, like in Logistic Regression, $x$ is the example point multiplied by its label and $q$ is the weights of the linear classifier.
-%\item Fractional Satisfiability $f(x,q)$ if $q$ satisfies $f$ and $0$ otherwise. Here $x$ in a clause in conjunctive normal form and $q$ is a boolean value assignment to the variables. For example $f(x,q) = 1$ iff $(q_1 \vee q_5  \vee \neg q_8)$ is true.
-%\item Quadratic forms of the graph Laplacian are $f(x, q) = q^T L_x q = \sum_{i,j\in E} (q_i - q_i)^2$ where $x$ is an edge and $L_x$ is the graph laplacian corresponding to the graph with a single edge $x$ and $q$ is a test vector.
-%\item Probably also good for matrix approximation when we get entry updates. 
-%\end{itemize}
+Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient.  Moreover, if the resulting sketches or coresets are mergable, this could be done on separate machines without the need for communication or assuming randomness in the partitioning.
 
 
-
-
-
-
-
-
-
-For bounded functions $f$ like above, uniform sampling of $\ell = O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $\ell = O(\log(|\mathcal Q|)/\eps^2)$ stream items. 
+For bounded functions $f$ like above, uniform sampling of $\ell = O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $\ell = O(\log(|\mathcal Q|)/\eps^2)$ items. 
 While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
-%This is common practice in machine learning, specifically, PAC learning. However, it is often far from being the smallest cardinality coreset possible.
+%
 We argue that we can offer a solution for producing smaller coresets for all of the above problems in a unified manner. 
 Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
 The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
@@ -133,21 +113,6 @@ This is captured by its Komlos complexity.
 
 \section{Komlos Complexity}
 We begin by formally defining the Komols complexity and by giving some general results about for problems with low Komols complexity. The Komols complexity of a sequence set is defined similarly to it Rademacher complexity.
-%\begin{definition}
-%Let $A \subset [0,1]^m$ and $\sigma \in \{-1,1\}^m$ uniformly. 
-%The Rademacher complexity of $\F$ is 
-%\[
-%R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{a \in A}  \sum_{i=1}^{m}\sigma_i a_i
-%\]
-%\end{definition}
-%
-%\begin{definition}
-%Let $A \subset [0,1]^m$ and $\sigma \in \{-1,1\}^m$. 
-%The Komlos complexity of $A$ is 
-%\[
-%K_m(A) =  \frac{1}{m}\min_{\sigma} \sup_{a \in A}  \left|\sum_{i=1}^{m}\sigma_i a_i\right|
-%\]
-%\end{definition}
 
 \begin{definition}
 Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$ uniformly at random. 
@@ -167,7 +132,6 @@ K_m(\F) =  \frac{1}{m}\min_{\sigma} \sup_{f \in \F}  \left|\sum_{i=1}^{m}\sigma_
 \]
 The Komlos Complexity $K_m(\F)$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
 \end{definition}
-
 
 
 \noindent It well known that $R_m$ is a good measure for generalization when data is chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them. We claim that $K_m$ is the measure more suitable for creating coresets, and for creating mergeable sketches.
