@@ -33,6 +33,8 @@
 \usepackage{amsfonts}
 \usepackage{ amssymb }
 
+\usepackage[]{algorithm2e}
+
 %\newtheorem{theorem}{Theorem}[section]
 %\newtheorem{conjecture}{Conjecture}[section]
 %\newtheorem{claim}[theorem]{Claim}
@@ -86,8 +88,12 @@
 \maketitle
 
 \begin{abstract}
-This paper defines the Komlos complexity for families of functions and conjectures that it governs minimal coreset sizes for different problems in machine learning. Our result resolves a long standing open question regarding minimal cardinality coresets for kernel density estimation. It provides improved coreset for matrix covariance approximation, logistic regression, and any analytic function of the dot product or the squared distance. The results leverage new tools and algorithms from discrepancy theory and provide tools for improving coreset sizes for other problems. Independently of the above, we show that any problem with low Komlos complexity admits a small merge-able streaming sketch. 
-The result is an exponential improvement over the widely known merge-and-reduce construction.
+This paper defines the discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets.
+We provide general techniques for bounding the discrepancy of machine learning problems and specifically does so for matrix covariance approximation, logistic regression, kernel density and any analytic function of the dot product or the squared distance.
+Our result resolves a long standing open question regarding minimal cardinality coresets for Gaussian kernel density estimation.  
+We provide two more related but independent results. 
+First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
+Second, an extremely simple algorithm for finding coresets (low discrepancy sequences) for any positive kernel density estimation problem. 
 This paper makes an explicit connection between low discrepancy, coresets, learnability, and streaming algorithms. 
 \end{abstract}
 
@@ -234,7 +240,7 @@ $\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For th
 
 \section{The Complexity of Analytic Functions of Dot Products} \label{sec:analytic}
 
-Now that we proved the usefulness of the Komlos Complexity we move to upper bound it for interesting family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or Euclidean distance $\|q-x\|$. 
+Now that we proved the usefulness of discrepancy we move to upper bound it for common family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or squared Euclidean distance $\|q-x\|^2$. 
 
 The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
 
@@ -267,19 +273,20 @@ Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K
 To use Banaszczyk's theorem we begin with defining our convex body.
 Define the norm $\|\psi\|_T$ of a vector $\psi$ as follows. Look at the first $d$ coordinates of $\psi$ as a vector $\psi_1$, the next $d^2$ coordinates of $\psi$ as a matrix $\psi_2$ the next $d^3$ coordinates as a three tensor $\psi_3$ etc.
 We define $\|\psi\|_T = \max_k \|\psi_k\|_{T_k} /\sqrt{\log(k)}$. 
-Here, $\|\cdot\|_{T_k}$ is the special spectral norm defined in the beginning of the section 
+Here, $\|\cdot\|_{T_k}$ is the special spectral norm defined in the beginning of the section.
 The maximum over norms of subvectors is clearly a norm in itself, meaning that $\|\cdot \|_T$ is indeed a norm. It follows that  the set $\mathcal K  = \{\psi \; | \; \|\psi\|_T \le c\sqrt{d}\}$ is convex. 
 
 We now need to show that the Gaussian measure of $\mathcal K$ is at least $1/2$. 
 That is, with probability at least $1/2$ a vector of random Gaussian entrees $g$ belongs to $\mathcal K$.
 Consider a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$. 
 
-A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$, where the reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability at least $1/2$, where $\operatorname{flat}(g_k)$ is the flattening of the tensor into a one dimensional vector. 
+A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$. The reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability at least $1/2$, where $\operatorname{flat}(g_k)$ is the flattening of the tensor into a one dimensional vector. 
 %
-We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
+We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. 
+%The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
 $$\psi(x) = \left[x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots \right]$$
 
-Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
+\noindent Note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
 
 
 We are now ready to apply Banaszczyk's theorem. 
@@ -289,7 +296,8 @@ $$\max_k \frac{\|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k}}{\sqrt{k \log^{3}(k)}}
 \end{proof}
 
 \begin{lemma} \label{lem:komlos anl}
-Let $f$ be a function of $\langle x,q\rangle$ such that $f(\langle x,q\rangle) = \sum_k \alpha_k \langle x,q\rangle^k$ is its Taylor expansion. The Komlos Complexity of the Family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq 1$, is bounded by
+Let $f$ be a function of the inner product $f(x,q) = f(\langle x,q\rangle)$ and let $f = \sum_k \alpha_k \langle x,q\rangle^k$ be its Taylor expansion. 
+The discrepancy of $f$ indexed by $\|q\| \leq 1$ is bounded by
 \[
 K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) =O\left( \sqrt{d} \sum_k  |\alpha_k|\sqrt{k\log^3(k)}\right)
 \]
@@ -309,7 +317,7 @@ $\left\| \sum_i \sigma_i x_i^{\otimes k}\right\|_{T_k} \le c\sqrt{d k \log^3(k)}
 \end{proof}
 
 \begin{theorem}\label{analitic1}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 Recall that for analytic functions $f$ we have $\left| \frac{d^k f}{dz^k}(z) \right|  \leq C^{k+1} k! $
@@ -319,72 +327,87 @@ corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result 
 \end{proof}
 
 \begin{corollary}
-The Komlos complexity of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
+The discrepancy of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
 \end{corollary}
 
 \begin{corollary}
-The Komlos complexity of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescales columns of the matrix $X$.
+The discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$. \el{Is this result new? Hard to say...}
 \end{corollary}
 
 
 
 \begin{theorem} \label{thm:analytic2}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 By transforming $x$ to $\tilde{x} = (1, \sqrt{2}x, \|x\|^2)$ and $q$ to $\tilde{q} = (\|q\|^2, -\sqrt{2}q, 1)$ we get $\ip{\tilde{x},\tilde{q}} = \|q-x\|^2$. Moreover, $\|q\| \le R$ gives $\|\tilde q\| \le R^2+1$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$.
 \end{proof}
 
 \begin{corollary}
-The Komlos complexity of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
+The discrepancy of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
 \end{corollary} 
-This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. For the constant $\gamma$ setting this resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
+This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. 
+This also resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
 
 \begin{proof}
-W.l.o.g. the maximum distance $\|q-x\|$ is 1. The taylor series of $K$ becomes
-$$ \sum_{k=0}^\infty \frac{(-\gamma)^k}{k!} $$
+W.l.o.g. the maximum distance $\|q-x\|$ is 1. The Taylor series of the Gaussian kernel $K$ becomes
+$ \sum_{k=0}^\infty \frac{(-\gamma)^k}{k!} $.
 Plugging into the equation in the proof of Theorem~\ref{thm:analytic2} we get that the sum determining the constant is upper bounded by
-$$ \sum_{k=0}^\infty \frac{\gamma^{k}\sqrt{ k\log^3(k)}}{k!} = O\left((1+\gamma) \exp(\gamma)\right)$$
+$ \sum_{k=0}^\infty \frac{\gamma^{k}\sqrt{ k\log^3(k)}}{k!} = O\left((1+\gamma) \exp(\gamma)\right)$.
 \end{proof}
 %\end{proof}
 
 
 \section{A Simple Algorithm for Kernel Density Estimation}
-From section \ref{sec:analytic} we know that the Komlos complexity of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
-Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. We show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section when $d > \sqrt{m}$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
+From section \ref{sec:analytic} we know that the discrepancy of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. 
+%The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
+Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
+In fact, we show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > \sqrt{m}$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
 Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as 
-$$ f(q) = \sum_{i=1}^{n} K(x_i,q) $$
+$$ F(q) = \sum_{i=1}^{n} K(x_i,q) $$
 Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
 $$ K(x,q) = \exp(- \|x-y\|_2^2/\lambda^2)\;\;\; K(x,q) = \exp(- \|x-q\|/\lambda) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
 where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \leq 1$ for all data points. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
-The algorithm we proposed works as follows: Set $\sigma_1 = 1$. For $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
+\begin{algorithm}[H]
+ \KwData{Kernel function $K:(\R^d,\R^d)\rightarrow[0,1]$, points  $x_1,\ldots,x_m$}
+ \KwResult{$\sigma \in \{-1,1\}^m$ such that $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$}
+ $\sigma_1 = 1$;\\
+ \For{$i = 2,\ldots,m$}
+ {$\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$}
+% \EndFor
+ \caption{Low Discrepancy Algorithm for Positive Kernels}
+\end{algorithm}
+
+
+%The algorithm works as follows: Set $\sigma_1 = 1$. For $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
 \begin{theorem}
-The algorithm above achieves a set of signs $\sigma_1,\ldots,\sigma_m$ such that for any $q$,
-$$ \frac{1}{m}\sum_{i=1}^m \sigma_i K(x_i,q) \leq \sqrt{m} $$
+The algorithm above achieves $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$.
 \end{theorem}
 
 \begin{proof}
 For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
-$$ K(x,q) = \ip{\phi(x), \phi(q)} $$
+$ K(x,q) = \ip{\phi(x), \phi(q)} $.
 Using this function $\phi$ our objective function becomes
 \[
-\sum_{i=1}^m \sigma_i K(x_i,q) = \sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} =  \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)} \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
+|\sum_{i=1}^m \sigma_i K(x_i,q)| = |\sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} | = | \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)}| \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
 \]
 Since $\|\phi(q)\| \leq 1$ we reduced the problem to bounding the norm of $ \sum_{i=1}^m \sigma_i \phi(x_i) $.
 %
-We will show by induction on $i$ that 
+We show by induction on $i$ that 
 $$\left\| \sum_{j=1}^i \sigma_j \phi(x_j) \right\|^2 \le \sum_{j=1}^i \left\|\phi(x_j)\right\|^2 \leq i$$
 This is trivially true for $i=1$ since $\|\phi(x)\| \leq 1$. 
 Using our induction assumption we get
 \begin{eqnarray*}
-\left\| \sum_{j=1}^{i}\sigma_j \phi(x_j)\right\|^2 =& \left\|\sum_{j=1}^{i-1}\sigma_j \phi(x_j)\right\|^2 + \|\phi(x_i)\|^2 + 2\ip{ \sum_{j=1}^{i-1}\sigma_j \phi(x_j), \sigma_i \phi(x_i)} \leq & \text{induction assumption}\\
-& \sum_{j=1}^{i-1} \|\phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i) = & \text{choice of } \sigma_i \\
-& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2 \\
+\left\| \sum_{j=1}^{i}\sigma_j \phi(x_j)\right\|^2 &=& \left\|\sum_{j=1}^{i-1}\sigma_j \phi(x_j)\right\|^2 + \|\phi(x_i)\|^2 + 2\ip{ \sum_{j=1}^{i-1}\sigma_j \phi(x_j), \sigma_i \phi(x_i)} \\
+&\le& \sum_{j=1}^{i-1} \|\phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)\\
+&\le& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2 \\
 \end{eqnarray*}
+The first equality simply unpacks the squared vector norm, the second transition is due to the induction assumption and the last substitutes our choice of %$\sigma$. This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \sqrt{m}$ for all $q$.
 \end{proof}
 
-Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde f(q) - f(q)| \le \eps n$. This matches, and greatly simplifies, the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Along with an $\eps$-net argument, it also gives rise to a streaming algorithm for kernel density estimation with a memory requirement of $O\left(\log\left(d\log(1/\eps)\right)^3/\eps^2\right)$ vectors.
+Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches, and greatly simplifies, the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Along with an $\eps$-net argument, it also gives rise to a streaming algorithm for kernel density estimation with a memory requirement of $O\left(\log\left(d\log(1/\eps)\right)^3/\eps^2\right)$ vectors.
+\el{We should confirm this statement. I believe the Lipshitz constant of $m$ kernels can be $m$ so we might need another $d$ inside the inner $log$.}
 
 \paragraph{Note} The Theorem above provides an upper bound of $\sqrt{m}$ for the sign discrepancy. One can in fact construct an example where this upper bound is indeed what the algorithm achieves. However, for real data with vectors clustered together, as one should expect when requiring a density estimation algorithm, we expect this algorithm to perform much better than the worst-case bound. We leave it to future work to define properties of the data that ensure better guarantees by our algorithm.
 
@@ -412,7 +435,7 @@ where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{E
 \end{itemize}
 \end{lemma}
 
-Note that signs achieving $max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$ are guarantied to exist by the definition of the Komols Complexity. In fact, the quantity above is potentially much smaller than the Komlos Complexity because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
+Note that signs achieving $max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$ are guarantied to exist by the definition of the discrepancy. In fact, the quantity above is potentially much smaller than its upper bound because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
 
 \begin{proof}
 The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
