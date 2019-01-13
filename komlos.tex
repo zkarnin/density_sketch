@@ -137,7 +137,8 @@ K_m(\F) =  \frac{1}{m}\min_{\sigma} \max_{f \in \F}  \left|\sum_{i=1}^{m}\sigma_
 \]
 \end{definition}
 The discrepancy of $f$ or $\F$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
-
+Throughout the manuscript we assume a one to one mapping between $\F$ and $\Q$. 
+Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$. This is an obvious equivalence when one thinks about $q$ is the model parameters. 
 
 
 \noindent Notice that these definition are very similar to $R_m(\F)$ the Rademacher complexity.
@@ -159,29 +160,25 @@ Coming back to discrepancy. Having the ability to choose the signs arbitrarily l
 We can algorithmically choose to minimize the induced error and guaranty to have (roughly) the same performance on the entire set. 
 This set is in fact a coreset. The discrepancy of a problem helps us determine what coreset sized are possible. 
 We will show in the following sections several examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. This will be done by showing that for a wide range of interesting problems in machine learning $K_m(\F) = o(R_m(\F))$.
+This intuition is restated more explicitly in the next section.
 
 \subsection{General Framework for Coresets}
-
-In what follows it will be convenient to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We will assume from hereon that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
-
-
+In what follows it will be convenient to use the notation $f(x,q)$ and consider $K_m(f)$.
+%
+%to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We will assume from hereon that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
 Consider the function $F(q) = \sum_{i=1}^{m} f(x_i,q)$ and the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
-Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$ and similarly $F_{-1}(q)$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
+Now consider $F_1(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $F_{-1}(q) = F(q) - E(q)   = \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. We have that both $F_1(q)$ and $F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
 
 %
-The above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
-Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
-A function is sketch-able if $K_m(\F) = o(m)$.
-Typically we see that $K_m(\F) = O(c/m)$ or $K_m(\F)= c/\sqrt{m}$ for some $c$ which does not depend on $m$.
+The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
+Note that we can select signs such that $|E(q)| \le m K_m(f)$.
+Typically we can show that $K_m = O(c/m)$ or $K_m = c/\sqrt{m}$ for some $c$ which does not depend on $m$.
 
 \begin{fact}
-Let $\F$ be a function family with a corresponding Komlos Complexity $K_m(\F) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f_i(q)$ where $f_i \in \F$. There exists a coreset for $F$ of size $k = O(c/\eps)$ whose error is at most $\eps n$.
+Let $\F$ be a function family with a corresponding discrepancy $K_m(f) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c/\eps)$ whose error is at most $\eps n$.
 \end{fact}
 \begin{fact}
-
-For any function family $\F$ with a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$ there exists a coreset of size 
-$O(c^2/\eps^2)$ whose error is at most $\eps n$.
-
+Let $\F$ be a function family with a corresponding discrepancy $K_m(f) = O(c/\sqrt{m})$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c^2/\eps^2)$ whose error is at most $\eps n$.
 \end{fact}
 
 \noindent Proving both facts is trivial and known in the folklore as ``the halving trick". 
@@ -193,25 +190,25 @@ Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respec
 
 
 \subsection{General Framework for Sketching}\label{sec:sketch}
-We claim that low Komlos complexity implies concise streaming mergeable coresets. 
+We claim that low discrepancy implies concise streaming mergeable coresets as well. 
 This section assumes the existence of an algorithm for finding low discrepancy signs $\sigma$.
 
 \begin{theorem} \label{thm:streaming}
-For any function family $\F$ with a corresponding Komlos Complexity with $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset algorithms of size 
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset algorithm of size 
 $$O\left(c\log^2\left(\min(\eps n/c, \log(n/\delta)) \right)/\eps\right)$$ 
-whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
+whose error is at most $\eps n$ with probability at least $1-\delta$. 
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming2}
-For any function family $\F$ with a corresponding Komlos Complexity of $K_m = O(c/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithm of size 
 $$O\left(c^2\log^3\left(\min(\eps^2 n/c, \log(n/\delta)) \right)/\eps^2\right)$$ 
-whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
+whose error is at most $\eps n$ with probability at least $1-\delta$.
 \end{theorem}
-
-The proofs of the above two theorems are quite technical and not very illuminating. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. 
-
+For both statements above, setting $\delta=0$ yields a deterministic algorithm. The algorithms must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
 
 
+The proofs of the above two theorems are quite technical and delegated to the appendix. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
+In the last section we argued that both $F_1$ and $F_{-1}$ are good approximations for $F$. We can also take $F'$ which is $F_1$ or $F_{-1}$ equally likely. Clearly $|F' - F| \le |E|$ as before. But now, $\E[F'] = F$ as well. In the streaming algorithm, we apply this compaction (converting $F$ to $F'$) many times which allows us to use standard concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $F'$ no longer has exactly $1/2$ the size $F$. In the general setting, this only true in expectation.
 
 \section{Related Work}
 \begin{itemize}
