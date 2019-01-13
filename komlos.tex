@@ -86,21 +86,22 @@
 \maketitle
 
 \begin{abstract}
-This paper defines the Komlos complexity for families of functions and conjectures that it governs minimal coreset sizes for different problems in machine learning. Our result resolves a long standing open question regarding minimal cardinality coresets for kernel density estimation. It provides improved coreset for matrix covariance approximation, logistic regression, and any analytic function of the the dot product. The results leverage new tools and algorithms from discrepancy theory and provide tools for improving coreset sizes for other problems. Independently of the above, we show that any problem with low Komlos complexity admits a small merge-able streaming sketch. 
-The result is an exponential improvement over the widely known and simple merge-and-reduce trick.
+This paper defines the Komlos complexity for families of functions and conjectures that it governs minimal coreset sizes for different problems in machine learning. Our result resolves a long standing open question regarding minimal cardinality coresets for kernel density estimation. It provides improved coreset for matrix covariance approximation, logistic regression, and any analytic function of the dot product or the squared distance. The results leverage new tools and algorithms from discrepancy theory and provide tools for improving coreset sizes for other problems. Independently of the above, we show that any problem with low Komlos complexity admits a small merge-able streaming sketch. 
+The result is an exponential improvement over the widely known merge-and-reduce construction.
 This paper makes an explicit connection between low discrepancy, coresets, learnability, and streaming algorithms. 
 \end{abstract}
 
 
 \section{Introduction}
-In both machine learning and in streaming and sketching problems our goal is (usually) to approximate the sums or expectations of well behaved functions.
-Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either training examples or stream items. 
-Standard generalization results show that for a large enough $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$ . It is convenient to think about $q$ as either the model parameters or a query for the sketch. 
+In both machine learning and in streaming and sketching problems our goal is (often) to approximate sums or expectations of well behaved functions.
+Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either sampled training examples or an arbitrary set of stream items. 
+Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are i.i.d.\ drawn from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$ . One should think about $q$ as either the model parameters or a query for the sketch. 
 
-The goal is to produce a coreset. This is a set of weights $w$ with at most $k \ll n$ non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
+The goal is to produce a coreset. This is a set of weights $w$ with at small number of non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
 Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript. 
-Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient.  Moreover, if the resulting coresets are mergeable, this could be done on separate machines without the need for communication or assuming randomness in the partitioning.
+Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
+Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
 
 For bounded functions $f$ uniform sampling of $O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $O(\log(|\mathcal Q|)/\eps^2)$ items. 
 While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
@@ -111,53 +112,52 @@ The size of the coreset above appears to be intimately tied to the discrepancy p
 
 
 \section{Discrepancy of a Function Class}
-We begin by formally defining the discrepancy complexity and by giving some general results about for problems with low discrepancy. We remind the reader the definition of the Rademacher complexity.
+We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript.
 
 \begin{definition}
-Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$ uniformly at random. 
-The Rademacher complexity of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the discrepancy of $A$ is 
 \[
-R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{f \in \F}  \left| \sum_{i=1}^{m}\sigma_i f(x_i) \right|
+K_m(A)  = \min_\sigma \max_{a\in A} \frac{1}{m}|\sum_i  \sigma_i  a_i| 
 \]
 \end{definition}
 %
-In other words, the Radamacher complexity of a family function $\F$ measures how much a function in the family can skew the values when weighted with random signs. The discrepancy complexity measures the ability of the family of functions to skew an adversarial set of signs.
-
-\begin{definition}
-Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
-The discrepancyof $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
-\[
-K_m(\F) =  \frac{1}{m}\min_{\sigma} \sup_{f \in \F}  \left|\sum_{i=1}^{m}\sigma_i f(x_i)\right|
-\]
-The discrepancy $K_m(\F)$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
-\end{definition}
-The following is an alternative and equivalent definition:
 \begin{definition}
 Let $f:\X,\Q\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
 The discrepancy of $f$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
-K_m(\F) =  \frac{1}{m}\min_{\sigma} \sup_{q \in \Q}  \left|\sum_{i=1}^{m}\sigma_i f(x_i,q)\right|
+K_m(f) =  \frac{1}{m}\min_{\sigma} \max_{q \in \Q}  \left|\sum_{i=1}^{m}\sigma_i f(x_i,q)\right|
 \]
-The Komlos Complexity $K_m(f)$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
 \end{definition}
+%
+\begin{definition}
+Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
+The discrepancy of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+\[
+K_m(\F) =  \frac{1}{m}\min_{\sigma} \max_{f \in \F}  \left|\sum_{i=1}^{m}\sigma_i f(x_i)\right|
+\]
+\end{definition}
+The discrepancy of $f$ or $\F$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
 
-\noindent It is well known that $R_m$ is a good measure for generalization when data is chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them. We claim that $K_m$ is the measure more suitable for creating coresets and for creating mergeable sketches.
+
+
+\noindent Notice that these definition are very similar to $R_m(\F)$ the Rademacher complexity.
+The only difference is that we consider the minimal value over $\sigma$ rather than its expectation for a random $\sigma$.
+Rademacher complexity uses random signs because it measures the effect of data being chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them.\footnote{Bartlet et al \cite{Bartlett:2003:RGC:944919.944944} use the same ``discrepancy'' to define a different quantity than the one above.}
+ We claim that $K_m$ is the measure more suitable for creating coresets and for creating mergeable sketches.
 Trivially,  $K_m \le R_m$. We show, however, that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
 
 
 To understand our motivation, consider the following informal explanation of the Radamacher Complexity applied to ML problems. 
 In PAC learning there exists a set of examples (with labels).
-We aim to find a predictor/classifier from a given family that suffers the least loss on the set. 
-Having a low Radamacher complexity means that if we 
-
-Consider optimizing over a sample of roughly half the examples at random (each w.p.\ $1/2$).
+We aim to find a regressor/classifier from a given family that suffers the least loss on the set. 
+Having a low Radamacher complexity means that if we can optimize over a sample of roughly half the examples at random (each w.p.\ $1/2$).
 Low Rademacher complexity guaranties that twice the loss on the sample is roughly the same as the loss on the entire set.
 This translates to a generalization bound. 
 In other words, the Radamacher complexity gives a guarantee for the loss of corests chosen uniformly at random.
 
-Coming back to Discrepancy. Having the ability to choose the signs algorithmically (non-uniform) lets us choose an advantageous subset of examples.
-We can actively choose to minimize the induced error and guaranty to have (roughly) the same performance on the entire set. 
-This set is in fact a core-set. The Discrepancy complexity helps us determine possible sizes of a coresets. 
+Coming back to discrepancy. Having the ability to choose the signs arbitrarily lets us choose an advantageous subset of examples.
+We can algorithmically choose to minimize the induced error and guaranty to have (roughly) the same performance on the entire set. 
+This set is in fact a coreset. The discrepancy of a problem helps us determine what coreset sized are possible. 
 We will show in the following sections several examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. This will be done by showing that for a wide range of interesting problems in machine learning $K_m(\F) = o(R_m(\F))$.
 
 \subsection{General Framework for Coresets}
