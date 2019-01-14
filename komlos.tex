@@ -120,10 +120,11 @@ The size of the coreset above appears to be intimately tied to the discrepancy p
 \section{Discrepancy of a Function Class}
 We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript.
 
+\el{I am thinking about removing the $1/m$ from the definition. Pro: Its cleaner. Con: It's less like the Rademacher complexity. What do you think?}
 \begin{definition}
 Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the discrepancy of $A$ is 
 \[
-K_m(A)  = \min_\sigma \max_{a\in A} \frac{1}{m}|\sum_i  \sigma_i  a_i| 
+K_m(A)  = \min_\sigma \max_{a\in A} \left| \frac{1}{m} \sum_i  \sigma_i  a_i\right| 
 \]
 \end{definition}
 %
@@ -131,7 +132,7 @@ K_m(A)  = \min_\sigma \max_{a\in A} \frac{1}{m}|\sum_i  \sigma_i  a_i|
 Let $f:\X,\Q\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
 The discrepancy of $f$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
-K_m(f) =  \frac{1}{m}\min_{\sigma} \max_{q \in \Q}  \left|\sum_{i=1}^{m}\sigma_i f(x_i,q)\right|
+K_m(f) =  \min_{\sigma} \max_{q \in \Q}  \left|\frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i,q)\right|
 \]
 \end{definition}
 %
@@ -139,7 +140,7 @@ K_m(f) =  \frac{1}{m}\min_{\sigma} \max_{q \in \Q}  \left|\sum_{i=1}^{m}\sigma_i
 Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
 The discrepancy of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
-K_m(\F) =  \frac{1}{m}\min_{\sigma} \max_{f \in \F}  \left|\sum_{i=1}^{m}\sigma_i f(x_i)\right|
+K_m(\F) =  \min_{\sigma} \max_{f \in \F}  \left| \frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i)\right|
 \]
 \end{definition}
 The discrepancy of $f$ or $\F$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
@@ -199,22 +200,25 @@ Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respec
 We claim that low discrepancy implies concise streaming mergeable coresets as well. 
 This section assumes the existence of an algorithm for finding low discrepancy signs $\sigma$.
 
-\begin{theorem} \label{thm:streaming}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset algorithm of size 
-$$O\left(c\log^2\left(\min(\eps n/c, \log(n/\delta)) \right)/\eps\right)$$ 
-whose error is at most $\eps n$ with probability at least $1-\delta$. 
+\begin{theorem} \label{thm:streaming12}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
+\end{theorem}
+\begin{theorem} \label{thm:streaming11}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset randomized algorithm of size $O\left(c\log^2\log(n/\delta)/\eps\right)$ whose error is at most $\eps n$ with probability at least $1-\delta$. \el{for a single query?}
 \end{theorem}
 
-\begin{theorem} \label{thm:streaming2}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithm of size 
-$$O\left(c^2\log^3\left(\min(\eps^2 n/c, \log(n/\delta)) \right)/\eps^2\right)$$ 
-whose error is at most $\eps n$ with probability at least $1-\delta$.
+
+
+\begin{theorem} \label{thm:streaming21}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
 \end{theorem}
-For both statements above, setting $\delta=0$ yields a deterministic algorithm. The algorithms must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
+\begin{theorem} \label{thm:streaming22}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error is at most $\eps n$ with probability at least $1-\delta$. \el{for a single query?}
+\end{theorem}
 
-
+The algorithms must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
 The proofs of the above two theorems are quite technical and delegated to the appendix. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
-In the last section we argued that both $F_1$ and $F_{-1}$ are good approximations for $F$. We can also take $F'$ which is $F_1$ or $F_{-1}$ equally likely. Clearly $|F' - F| \le |E|$ as before. But now, $\E[F'] = F$ as well. In the streaming algorithm, we apply this compaction (converting $F$ to $F'$) many times which allows us to use standard concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $F'$ no longer has exactly $1/2$ the size $F$. In the general setting, this only true in expectation.
+In the last section we argued that both $F_1$ and $F_{-1}$ are both good approximations for $F$. We can also take $F'$ which is $F_1$ or $F_{-1}$ equally likely. Clearly $|F' - F| \le |E|$ as before. But now, $\E[F'] = F$ as well. In the streaming algorithm, we apply this compaction (converting $F$ to $F'$) many times over small subset of items from the stream. This allows us to use standard concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $F'$ no longer has exactly half the size $F$. In the general setting, this only true in expectation.
 
 \section{Related Work}
 \begin{itemize}
@@ -417,26 +421,177 @@ Using the framework above this provides a deterministic coreset construction for
 
 \appendix
 
+%\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
+%
+%\begin{lemma} \label{lem:compactor}
+%Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $\sigma_1,\ldots,\sigma_k$ such that
+%$$\max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$$
+%Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
+%\begin{itemize}
+%\item $\{z_i\}_i$ is a subset of $\{x_i\}$
+%\item $\E[m] = n/2$
+%\item For $\rho >0$, $\Pr[m \geq (1+\rho)n/2] \leq \exp \left( -O\left(\frac{n\rho^2}{k}\right)\right)$
+%\item For any fixed query $q$, the error associated with $q$, defined as
+%$$\text{Err}(q) = 2\sum_{i=1}^m f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
+%Can be decomposed as a sum
+%$$\text{Err}(q) = \sum_{j=1}^{n/k} \text{Err}_j(q)$$
+%where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{Err}_j(q)| \leq K_k$
+%\end{itemize}
+%\end{lemma}
+%
+%Note that signs achieving $max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$ are guarantied to exist by the definition of the discrepancy. In fact, the quantity above is potentially much smaller than its upper bound because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
+%
+%\begin{proof}
+%The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
+%$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_k$$
+%Then, the algorithm output to the stream the with probability $1/2$ each data points $\{x_i \; | \; \sigma_i = 1\}$ or $\{x_i \; | \; \sigma_i = -1\}$ with twice the weight.
+%$$\sum_{i ,\; \sigma_i=1} 2f(x_i, q) = \sum_{i} f(x_i, q) +  \sum_{i} \sigma_i f(x_i, q)$$
+%$$\sum_{i ,\; \sigma_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} \sigma_i f(x_i, q)$$
+%
+%%Now, consider the set $P=\{i:\sigma_i=1\}$ and $N=\{i:\sigma_i=-1\}$.
+%%$$ \sum_i \sigma_i f(x_i, q) = \sum_i \sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in P} f(x_i,q) - \sum_i f(x_i, q)   $$
+%%$$ -\sum_i \sigma_i f(x_i, q) = \sum_i -\sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
+%%Thus, we draw a random coin and either output to the stream the data points of $P$ or $N$. We call this operation a single compaction. 
+%%\el{this is clunky way to say this...}
+%The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. Moreover, the output length is a sum of $n/k$ independent random variables with mean $k/2$ and a maximum value of $k$. Chernoff-Hoeffding's bound can guarantee the stated concentration around $\E[m]$.
+%As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
+%$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
+%\end{proof}
+%
+%Notice in the above lemma the last property of the streaming algorithm; it ensures that deterministically $|\text{Err}(q)| \leq (K_k/k) n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
+%$$|\text{Err}(q)| \lesssim K_k \sqrt{n/k} = \sqrt{\frac{K_k^2 n}{k}}$$
+%This high probability bound will be used below for our streaming algorithm. In high level the idea is to have a sequence of streaming boxes that we call compactors, each receiving an input stream and outputting a stream that is of half the size of the input (in expectation). Eventually we will get to a stream that is small enough to store in memory. The randomized bound above shows that for the compactors that handle a large stream, we can afford to have a very crude sketch because the error that they incur is roughly $\sqrt{n}$ even if all they do is uniformly sample half of the stream. However, for the compactors that observe the shorter streams that high probability bound is no longer as strong and we will have to make use of the fact that $K_k \ll k$.
+%
+%
+%\begin{proof} [Proof of Theorems~\ref{thm:streaming} and~\ref{thm:streaming2}]
+%Denote the streaming algorithm of Lemma~\ref{lem:compactor} as a compactor. The streaming algorithm operates as follows. At any given time it maintains a hierarchy of compactors where the hierarchy is measured in levels, starting from 0. The Compactor of level $h$ receives inputs of weight $2^h$ and outputs items of weight $2^{h+1}$. In the beginning we have a single compactor at level $h=0$. Once it outputs items to its output stream we open a compactor at level $h=1$ and so on. After observing $n$ items let $H$ be the level of the final compactor, meaning the compactor that never began an output stream.
+%
+%The sketch at that point contains all the data points contained in the buffers of the different compactors, weighted according to the level of the compactor. For a query $q$ and hierarchy level $h$ we analyze the error
+%$$\text{Err}_h(q) = 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \ .$$
+%Here, $k_h$ is the capacity of the buffers at level $h$, $n_h$ is the length of the stream observed at level $h$. The multiplier of $2^h$ is there since level $h$ observes items of weight $2^h$. The sum over $j$ is over the number of compactions at level $h$. $K_h$ is used to denote the discrepancy of each compaction using a buffer of $k_h$ points. Finally, the $Y_{ij}$ are independent random variables with mean zero and absolute value of at most $1$. The overall error for the query $q$ is the sum over all levels of its errors
+%$$ \text{Err}(q) = \sum_{h=0}^H \text{Err}_h(q)$$
+%
+%To achieve a deterministic bound we set all $k_h=k$, and set the compactors to choose the signed set with the least cardinality, ensuring $n_h \leq n_{h-1}/2$ and $H \leq \log_2(n/k)$, thus
+%$$ \text{Err}(q) \leq (K_k/k) \log_2(n/k) n $$
+%
+%We are however interested in a high probability bound. Specifically we would like to guarantee for $\delta > 0$ that for any query $q$ the error is bounded by $\eps n$ w.p.\ at least $1-\delta$. To this end we consider a different analysis for the top and bottom layers. For the top layers, the stream can be arbitrarily short so we will use the deterministic analysis as above. For the bottom layers, we can guarantee a minimal length to the stream and obtain tighter bounds.
+%
+%The bottom layers will be those of height $h=0$ up to $h=H'$ where $H'$ is set adaptively in a way that $H'$ is the maximum integer such that for all $h \leq H'$, 
+%\begin{equation} \label{eq:Htag_nh}
+% \forall h \leq H' , \ \ n_h \geq c_1 k \log^2(n) \log(\log(n)/(c_2 \delta ))
+%\end{equation}
+%for some sufficiently large constant $c_1$ and small constant $c_2$ to be determined later.
+%
+%According to Lemma~\ref{lem:compactor} we have for $ h\leq H'$ that for some appropriate constant $c_1$ in  \eqref{eq:Htag_nh},
+%$$ \Pr[n_{h+1} \geq (1+1/\log(n))n_{h}/2] \leq \exp\left( -\frac{n_{h}}{k_h \log^2(n)}  \right) \leq c_2\delta/  \log(n) $$
+%We can now union bound over all 
+%$$h \leq \log_2\left( n / \left( c_1 k \log^2(n) \log(1/(c_2 \delta\log(n))) \right)\right) + 2 \leq \log_2(n)$$
+%and conclude that w.p.\ at least $1-\delta/2$
+%\begin{equation} \label{eq:Htag}
+%H' \leq \log_2\left( n / \left( c_1 k \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) + 2 \leq \log_2(n)
+%\end{equation}
+%and
+%\begin{equation} \label{eq:nh small}
+%\forall h \leq H', \ \ n_{h} \leq 3 \cdot n/2^{h}
+%\end{equation}
+%
+%
+%Let's proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
+%$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] =$$
+%$$ \Pr\left[   \left| 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( O\left( -\frac{ \eps^2 n^2}{ 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } K_h^2}   \right)\right) =$$
+%$$\exp \left( -O\left(\frac{\eps^2 n^2}{n_h 2^{2h} K_h^2/k_h  } \right) \right) 
+%$$
+%We now make use of the the bound on $n_h$ in Equation~\eqref{eq:nh small}. Notice that the random events determining the length $n_h$ do not affect the realization of the random variables used in layer $h$, so we can indeed use the bound on $n_h$ for controlling the error at level $h$. We get that since $n_h \leq 3n/2^h$
+%$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq 
+%\exp \left( -O\left(\frac{\eps^2 n}{ 2^h K_h^2/k_h  } \right) \right) 
+%$$
+%In particular, for $\eps_h = O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right)$  it holds that
+%$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq \delta/4(H'-h+1)^2$$
+%and a union bound ensures that with probability at least $1-\delta$, in addition to Equations~\eqref{eq:Htag} and~\eqref{eq:nh small} we have for all $h \leq H'$ that
+%$$\left| \text{Err}_h(q) \right| \leq \eps_h n$$
+%and 
+%$$\left| \sum_{h=0}^{H'} \text{Err}_h(q) \right| \leq \left(\sum_{h=0}^{H'} \eps_h\right)n $$
+%
+%Let's proceed to bound the error on the top layers $H'+1$ to $H$. In these top layers we use a deterministic algorithm guaranteeing the stream is cut at least times 2 from layer to layer. We assign all top layers a budget of $k_h=k$ for the compactors. Since $2^{H+1} < n/k$ this gives a bound of 
+%$$
+%H-H' \leq \log_2(n/k2^{H'}) = O\left( \log\left( c_1 \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) = 
+%$$
+%$$
+%O\left( \log \log(n/\delta) \right)
+%$$
+%leading to a bound of 
+%$$ \left| \sum_{h=H'+1}^H \text{Err}_h(q) \right| \leq O\left( \log \log(n/\delta) (K_k/k) n \right) $$
+%and an overall bound of
+%\begin{equation} \label{eq:err total}
+%|\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(K_k/k) + \sum_{h=0}^{H'} \eps_h \right)
+%\end{equation}
+%
+%We are now left with the task of defining $k_h$ for the lower layers; we do so differently depending on the value of $K_k$ as a function of $k$. Recall that we aim to deal with two settings. In the first $K_k=\min\{\komconstant,k\}$ and in the second $K_k=\min\{\komconstant \sqrt{k}, k\}$. In both cases  $\komconstant$ is independent of $k$. We start by dealing with the first scenario.
+%
+%We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. By using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
+%\begin{align*}
+%\eps_h = & O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k^2 \log((H'-h+1)^2/\delta)}{k_h K_k^2 n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)) \\
+%  	   &  O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k }{k_h K_k^2 2^{H'}}} \right) = \\
+%    	   &  O\left( \frac{K_k}{k} \sqrt{\frac{K_h^2 k }{k_h K_k^2 2^{H'-h}}} \right)
+%\end{align*}
+%We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$. For $k_h \geq \komconstant$
+%$$
+%\frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} \leq \frac{\komconstant^2 k}{2^{H'-h} \komconstant^2 (2/3)^{H'-h}k} =
+%(3/4)^{H'-h}
+%$$
+%For $k_h \leq \komconstant$ we must have $h \leq H''$ with $(2/3)^{H'-H''} \leq \komconstant/k$, meaning that $2^{H'-H''} \geq k/\komconstant$. For such $h$ we get
+%\begin{align*}
+% \frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} = &  O\left( \frac{ k_h k}{2^{H'-h} \komconstant^2 } \right) =  \\
+%    	   &  O\left( \frac{ k_h k}{2^{H''-h} k\komconstant } \right) = & k_h \leq \komconstant\\
+%	   &  O\left( (1/2)^{H''-h}   \right) 
+%\end{align*}
+%
+%If follows that 
+%$$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(\komconstant/k) $$
+%translating to an overall bound for the error of
+%$$ |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(\komconstant/k)  \right)$$
+%The overall memory consumption for the bottom layers is $O(k)$ since all layers of size 2 can be implemented jointly by sampling. The top layers require $O(\log\log(n/\delta)k)$ memory. If follows that by setting $k= O\left(\komconstant \log\log(n/\delta) / \eps\right)$ the error is bounded by $\eps n$ w.p. $1-\delta$ and the overall memory requirement is 
+%$$ O\left( \log \log(n/\delta)^2 (\komconstant/\eps)  \right) $$
+%
+%
+%We are now ready for the case where $K_k = \min\{k, \komconstant\sqrt{k}\}$. We set $k_h=2$, resulting in $K_h=2$, for all $h \leq H'$ and obtain
+%\begin{align*}
+%\eps_h = & O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)), \ K_h^2/k_h=O(1) \\
+%  	   &  O\left( \sqrt{2^{h-H'}/k} \right) 
+%\end{align*}
+%and 
+%$$ \sum_h \eps_h = O\left(1/\sqrt{k}\right) $$
+%Plugging this to the overall error in Equation~\eqref{eq:err total} we get
+%$$ \text{Err}(q) = n \cdot O\left( \frac{\log \log(n/\delta)\komconstant + 1}{\sqrt{k}}  \right) =  n \cdot O\left( \frac{\log \log(n/\delta)\komconstant }{\sqrt{k}}  \right) $$
+%
+%Since layers of $k_h=2$ can all be implemented in constant memory the memory requirement is dominated by the top layers and is in the order of $k \cdot \log\log(n/\delta)$, hence by setting 
+%$$k \approx \frac{\komconstant^2 \log^2\log(n/\delta)}{\eps^2}$$ 
+%we get a bound of $\eps n$ for the error and a memory usage of 
+%$$ O\left( \frac{\komconstant^2 \log^3\log(n/\delta)}{\eps^2}\right) $$
+%\end{proof}
+%
+
 \section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
 
 \begin{lemma} \label{lem:compactor}
-Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $\sigma_1,\ldots,\sigma_k$ such that
-$$\max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$$
-Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
+Assume we have black box access to a solver that for any integer $m$ and inputs $x_1,\ldots,x_m$ obtains signs $\sigma_1,\ldots,\sigma_m$ such that $\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \leq K_m$ for some function $f$ whose discrepancy is $K_m$.\footnote{An constant factor approximation algorithm achieving $\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| = O(K_m)$ would also clearly suffice.} 
+Then there exist a streaming algorithm requiring a memory buffer of $m$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_{n'}$ with the following properties
 \begin{itemize}
 \item $\{z_i\}_i$ is a subset of $\{x_i\}$
-\item $\E[m] = n/2$
-\item For $\rho >0$, $\Pr[m \geq (1+\rho)n/2] \leq \exp \left( -O\left(\frac{n\rho^2}{k}\right)\right)$
+\item $\E[n'] = n/2$
+\item For $\rho >0$, $\Pr[n' \geq (1+\rho)n/2] \leq \exp \left( -O\left(\frac{n\rho^2}{m}\right)\right)$
 \item For any fixed query $q$, the error associated with $q$, defined as
-$$\text{Err}(q) = 2\sum_{i=1}^m f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
+$$\text{Err}(q) = 2\sum_{i=1}^{n'} f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
 Can be decomposed as a sum
-$$\text{Err}(q) = \sum_{j=1}^{n/k} \text{Err}_j(q)$$
+$$\text{Err}(q) = \sum_{j=1}^{n/m} \text{Err}_j(q)$$
 where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{Err}_j(q)| \leq K_k$
 \end{itemize}
 \end{lemma}
 
-Note that signs achieving $max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$ are guarantied to exist by the definition of the discrepancy. In fact, the quantity above is potentially much smaller than its upper bound because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
+Note that signs achieving $max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \leq K_m$ are guarantied to exist by the definition of the discrepancy. In fact, the quantity above is potentially much smaller than its upper bound because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
 
+
+\el{changed notation until here...}
 \begin{proof}
 The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
 $$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_k$$
@@ -455,8 +610,16 @@ $\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probabili
 \end{proof}
 
 Notice in the above lemma the last property of the streaming algorithm; it ensures that deterministically $|\text{Err}(q)| \leq (K_k/k) n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
-$$|\text{Err}(q)| \lesssim K_k \sqrt{n/k} = \sqrt{\frac{K_k^2 n}{k}}$$
-This high probability bound will be used below for our streaming algorithm. In high level the idea is to have a sequence of streaming boxes that we call compactors, each receiving an input stream and outputting a stream that is of half the size of the input (in expectation). Eventually we will get to a stream that is small enough to store in memory. The randomized bound above shows that for the compactors that handle a large stream, we can afford to have a very crude sketch because the error that they incur is roughly $\sqrt{n}$ even if all they do is uniformly sample half of the stream. However, for the compactors that observe the shorter streams that high probability bound is no longer as strong and we will have to make use of the fact that $K_k \ll k$.
+$$|\text{Err}(q)| \lesssim K_k \sqrt{n/k} $$
+This high probability bound will be used below for our streaming algorithm. 
+The high level idea is to have a sequence of streaming objects that we call compactors. 
+Each compactor receives an input stream and outputs a stream that is of half the size of the input (in expectation). 
+Eventually we get to a stream that is small enough to store in memory. 
+The randomized bound above shows that for the compactors that handle a large stream, 
+we can afford to have a very crude sketch because the error that they incur is roughly $\sqrt{n}$. 
+That is true even if all they do is uniformly sample half of the stream. 
+However, for the compactors that observe the shorter streams, a high probability bound is no longer strong enough. 
+For those we will make use of the fact that $K_k \ll k$.
 
 
 \begin{proof} [Proof of Theorems~\ref{thm:streaming} and~\ref{thm:streaming2}]
@@ -492,7 +655,7 @@ and
 \end{equation}
 
 
-Let's proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
+We proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
 $$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] =$$
 $$ \Pr\left[   \left| 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( O\left( -\frac{ \eps^2 n^2}{ 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } K_h^2}   \right)\right) =$$
 $$\exp \left( -O\left(\frac{\eps^2 n^2}{n_h 2^{2h} K_h^2/k_h  } \right) \right) 
@@ -508,7 +671,7 @@ $$\left| \text{Err}_h(q) \right| \leq \eps_h n$$
 and 
 $$\left| \sum_{h=0}^{H'} \text{Err}_h(q) \right| \leq \left(\sum_{h=0}^{H'} \eps_h\right)n $$
 
-Let's proceed to bound the error on the top layers $H'+1$ to $H$. In these top layers we use a deterministic algorithm guaranteeing the stream is cut at least times 2 from layer to layer. We assign all top layers a budget of $k_h=k$ for the compactors. Since $2^{H+1} < n/k$ this gives a bound of 
+We proceed to bound the error on the top layers $H'+1$ to $H$. In these top layers we use a deterministic algorithm guaranteeing the stream is cut in half from layer to layer. We assign all top layers a budget of $k_h=k$ for the compactors. Since $2^{H+1} < n/k$ this gives a bound of 
 $$
 H-H' \leq \log_2(n/k2^{H'}) = O\left( \log\left( c_1 \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) = 
 $$
@@ -547,7 +710,7 @@ $$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(\komconstant/k) $$
 translating to an overall bound for the error of
 $$ |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(\komconstant/k)  \right)$$
 The overall memory consumption for the bottom layers is $O(k)$ since all layers of size 2 can be implemented jointly by sampling. The top layers require $O(\log\log(n/\delta)k)$ memory. If follows that by setting $k= O\left(\komconstant \log\log(n/\delta) / \eps\right)$ the error is bounded by $\eps n$ w.p. $1-\delta$ and the overall memory requirement is 
-$$ O\left( \log \log(n/\delta)^2 (\komconstant/\eps)  \right) $$
+$$ O\left( \log^2 \log(n/\delta) (\komconstant/\eps)  \right) $$
 
 
 We are now ready for the case where $K_k = \min\{k, \komconstant\sqrt{k}\}$. We set $k_h=2$, resulting in $K_h=2$, for all $h \leq H'$ and obtain
@@ -565,7 +728,6 @@ $$k \approx \frac{\komconstant^2 \log^2\log(n/\delta)}{\eps^2}$$
 we get a bound of $\eps n$ for the error and a memory usage of 
 $$ O\left( \frac{\komconstant^2 \log^3\log(n/\delta)}{\eps^2}\right) $$
 \end{proof}
-
 
 
 \end{document}
