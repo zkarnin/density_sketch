@@ -165,14 +165,14 @@ It is obvious that  $K_m(\F) \le R_m(\F)$ for any family $\F$. We show later tha
 
  \zk{I actually am still having problems with justifying the name Komlos complexity. It might as well be called Banaszczyk's complexity or simply discrepancy complexity. In particular if you could prove Komlos' conjecture it wouldn't affect any of our results, nor simplify our proofs.. Either way, below is my suggested motivation for the definition}
  \el{You are right about the name. In fact, I've been thinking about it myself. The discrepancy we get is actually much lower than what Komlos conjecture says... So, I am happy with with calling it simple \it{the discrepancy.}}
-To understand the motivation of the the Komlos Complexity, consider the following informal explanation of Radamacher Complexity applied to ML problems. In this ML problem there exists a distribution over $(x,y)$ pairs where we aim to predict $y$ given $x$. Our goal is to find a predictor from a family of prediction functions that suffers the least loss. A predictor maps to a loss value on each $x,y$ pair so we can discuss the problem of finding a function $f$ from a family $\F$ minimizing $\E_{x,y} f(x,y)$ where $f$ is the loss associated with the corresponding predictor on the $x,y$ pairs. Having a low Radamacher complexity means that if we sample $m$ pairs, split them into two uniformly at random and find the function $f$ minimizing the loss over the first half, the loss over the second half is bounded. This translates to a generalization bound stating that the function $f$ minimizing the loss over a uniform random sample of $(x,y)$ pairs, will perform well on the entire distribution. In other words, the Radamacher complexity gives a guarantee for the distribution loss of the minimizer of a finite set of pairs chosen uniformly at random.
+To understand the motivation of the the Komlos Complexity, consider the following informal explanation of Radamacher Complexity applied to ML problems. In this ML problem there exists a distribution over $(x,y)$ pairs where we aim to predict $y$ given $x$. Our goal is to find a predictor from a family of prediction functions that suffers the least loss.  To simplify our discussion and make it applicable for unsupervised learning we can consider the features and label as a single input vector $x$, and consider a prediction function as one that maps this new input vector $x$ to a loss in $\R$. Formally, for a family of function $\F$ we wish to find $f \in \F$ minimizing $\E_x f(x)$. Having a low Radamacher complexity means that if we sample $m$ data points, split them into two uniformly at random and find the function $f$ minimizing the loss over the first half, the loss over the second half is bounded. This translates to a generalization bound stating that the function $f$ minimizing the loss over a uniform random sample of points will perform well on the entire distribution. In other words, the Radamacher complexity gives a guarantee for the distribution loss of the minimizer of a finite set of points chosen in an i.i.d.\ fashion. 
 
-Coming back to Komlos Complexity, having the ability to choose the signs in a non-uniform way lets us choose a subset of pairs $(x,y)$ such that the minimizer $f$ over the subset is guaranteed to have (roughly) the same performance on the entire set. This allows us to obtain a guarantee for the distribution loss of a minimizer of a finite set of pairs chosen in an adaptive way to the family function $\F$. This set is in fact a core-set and the Komlos complexity helps us determine that possible size of a coreset. The tradeoff of considering a coreset vs.\ a random sample is that on one hand, it is clearly much simpler to obtain a random sample. On the other hand we will show in the following sections several examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. This will be done by showing that for a wide range of interesting problems in machine learning $K_m(\F) = o(R_m(\F))$.
-\el{I like this explanation, I'm just not sure why it talks about pairs...}
+Coming back to Komlos Complexity, having the ability to choose the signs in a non-uniform way lets us choose a subset of data points such that the minimizer $f$ over the subset is guaranteed to have (roughly) the same performance on the entire set. This allows us to obtain a guarantee for the distribution loss of a minimizer of a finite set chosen in an adaptive way to the family function $\F$. This set is in fact a core-set and the Komlos complexity helps us determine the possible size of a coreset. The tradeoff of considering a coreset vs.\ a random sample is that on one hand, it is clearly much simpler to obtain a random sample. On the other hand, as we will prove in what follows, there are multiple useful examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. In other words, in what follows we show that for a wide range of interesting function families in machine learning that $K_m(\F) = o(R_m(\F))$.
+\el{I like this explanation, I'm just not sure why it talks about pairs...} \zk{changed to data points}
 
 \subsection{General Framework for Coresets}
 
-In what follows it will be convenient to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We will assume from hereon that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
+In what follows it will be convenient to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We define a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We assume that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
 
 
 Consider the function $F(q) = \sum_{i=1}^{m} f(x_i,q)$ and the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
@@ -181,17 +181,15 @@ Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \
 %
 The above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
 Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
-A function is sketch-able if $K_m(\F) = o(m)$.
+A function is sketch-able if $K_m(\F) = o(1)$.
 Typically we see that $K_m(\F) = O(c/m)$ or $K_m(\F)= c/\sqrt{m}$ for some $c$ which does not depend on $m$.
 
 \begin{fact}
 Let $\F$ be a function family with a corresponding Komlos Complexity $K_m(\F) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f_i(q)$ where $f_i \in \F$. There exists a coreset for $F$ of size $k = O(c/\eps)$ whose error is at most $\eps n$.
 \end{fact}
 \begin{fact}
-
 For any function family $\F$ with a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$ there exists a coreset of size 
 $O(c^2/\eps^2)$ whose error is at most $\eps n$.
-
 \end{fact}
 
 \noindent Proving both facts is trivial and known in the folklore as ``the halving trick". 
@@ -218,7 +216,7 @@ $$O\left(c^2\log^3\left(\min(\eps^2 n/c, \log(n/\delta)) \right)/\eps^2\right)$$
 whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
 \end{theorem}
 
-The proofs of the above two theorems are quite technical and not very illuminating. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. 
+The proofs of the above two theorems are given in Appendix~\ref{app:sketch proof} as they are quite technical and not very illuminating. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Still, we note that the guarantees they provide go beyond what one would obtain with a standard merge and reduce framework as in \zk{Is this the name, is there a reference to the `known' way to convert an offline coreset algorithm to a streaming one?}. In particular, the dependence on the error probability $\delta$ is \emph{doubly} logarithmic rather than logarithmic. This is key since typically we require a union bound over an $\eps$-net that is exponentially large.
 
 
 \section{The Complexity of Analytic Functions of Dot Products} \label{sec:analytic}
@@ -383,7 +381,7 @@ Using the framework above this provides a deterministic coreset construction for
 
 \appendix
 
-\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
+\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} \label{app:sketch proof}
 
 \begin{lemma} \label{lem:compactor}
 Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $\sigma_1,\ldots,\sigma_k$ such that
