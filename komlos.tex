@@ -33,6 +33,8 @@
 \usepackage{amsfonts}
 \usepackage{ amssymb }
 
+\usepackage[]{algorithm2e}
+
 %\newtheorem{theorem}{Theorem}[section]
 %\newtheorem{conjecture}{Conjecture}[section]
 %\newtheorem{claim}[theorem]{Claim}
@@ -86,110 +88,104 @@
 \maketitle
 
 \begin{abstract}
-This paper defines the Komlos complexity for families of functions and conjectures that it governs minimal coreset sizes for different problems in machine learning. Our result resolves a long standing open question regarding minimal cardinality coresets for kernel density estimation. It provides improved coreset for matrix covariance approximation, logistic regression, and any analytic function of the the dot product. The results leverage new tools and algorithms from discrepancy theory and provide tools for improving coreset sizes for other problems. Independently of the above, we show that any problem with low Komlos complexity admits a small merge-able streaming sketch. 
-The result is an exponential improvement over the widely known and simple merge-and-reduce trick.
+This paper defines the discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets.
+We provide general techniques for bounding the discrepancy of machine learning problems and specifically does so for matrix covariance approximation, logistic regression, kernel density and any analytic function of the dot product or the squared distance.
+Our result resolves a long standing open question regarding minimal cardinality coresets for Gaussian kernel density estimation.  
+We provide two more related but independent results. 
+First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
+Second, an extremely simple algorithm for finding coresets (low discrepancy sequences) for any positive kernel density estimation problem. 
 This paper makes an explicit connection between low discrepancy, coresets, learnability, and streaming algorithms. 
 \end{abstract}
 
 
 \section{Introduction}
-In both machine learning and in streaming and sketching problems our goal is (usually) to approximate the sums or expectations of functions.
-Specifically, approximate $F = \sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either training examples or stream items.
-In this paper it will often be convenient to consider an equivalent formulation.
-$F(q) = \sum_{i=1}^{n} f(x_i, q)$  and $q \in \mathcal Q$ is either the model parameters (which acts as an ``index'' into $\F$) or a query from a possible set $\Q$. 
-Clearly, the two formulations are identical. In this manuscript we use both interchangeably.  
-For simplicity and throughout this manuscript we assume the range of $f$ is $[0,1]$.
-The goal is to produce a coreset. This is a set of weights $w$ with at most $k \ll n$ non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
-Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all possible queries $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
-There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript.
+In both machine learning and in streaming and sketching problems our goal is (often) to approximate sums or expectations of well behaved functions.
+Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either sampled training examples or an arbitrary set of stream items. 
+Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are i.i.d.\ drawn from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$ . One should think about $q$ as either the model parameters or a query for the sketch. 
 
-Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient.  Moreover, if the resulting sketches or coresets are mergable, this could be done on separate machines without the need for communication or assuming randomness in the partitioning.
+The goal is to produce a coreset. This is a set of weights $w$ with at small number of non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
+Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
+There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript. 
+Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
+Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
 
-
-For bounded functions $f$ like above, uniform sampling of $\ell = O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $\ell = O(\log(|\mathcal Q|)/\eps^2)$ items. 
+For bounded functions $f$ uniform sampling of $O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $O(\log(|\mathcal Q|)/\eps^2)$ items. 
 While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
 %
-We argue that we can offer a solution for producing smaller coresets for all of the above problems in a unified manner. 
+We argue that we can offer a solution for producing smaller coresets for a large class of problems in a unified manner. 
 Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
 The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
-This is captured by its Komlos complexity.  
 
 
-\section{Related Work}
-\begin{itemize}
-\item coresets - motivation, some papers, streaming algorithms for coresets
+\section{Discrepancy of a Function Class}
+We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript.
 
-\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of any analog to Radamacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability.
-%
-% There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
-
-
-\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944}, There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
-
-\item Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
-$\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for Lipchitz psd kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds.
-
-\item Logistic Regression is an extremely popular technique for classification task. In it, we are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is, ignoring logarithmic factors, is $d/\eps^2$.  
-
-%\item coreset of logistic regression  \cite{DBLP:journals/corr/abs-1805-08571}, \cite{DBLP:conf/nips/HugginsCB16}. Give multiplicative approximation. This is impossible in general so they depend on a different restriction on the regressor or dataset. Based on sensitivity scores. \cite{DBLP:conf/nips/HugginsCB16} use a heuristic of using $k$-means to approximate sensitivity scores and prove that given good sensitivity scores they get a good coreset. \cite{tolochinsky2018coresets} gives a generic coreset construction for any monotonic function as long as it comes with an $\ell_2^2$ regularization. The dependence they get is, ignoring polynomial factors, $d/\eps^2$.  \cite{DBLP:journals/corr/abs-1805-08571} have a different method, relying on a measure of complexity of the dataset and obtain roughly $\sqrt{n}d^{3/2}/\eps^2$ sized dataset. 
-\end{itemize}
-
-\section{Komlos Complexity}
-We begin by formally defining the Komols complexity and by giving some general results about for problems with low Komols complexity. The Komols complexity of a sequence set is defined similarly to it Rademacher complexity.
-
+\el{I am thinking about removing the $1/m$ from the definition. Pro: Its cleaner. Con: It's less like the Rademacher complexity. What do you think?}
 \begin{definition}
-Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$ uniformly at random. 
-The Rademacher complexity of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the discrepancy of $A$ is 
 \[
-R_m(\F) =  \frac{1}{m}\E_{\sigma} \sup_{f \in \F}  \left| \sum_{i=1}^{m}\sigma_i f(x_i) \right|
+K_m(A)  = \min_\sigma \max_{a\in A} \left| \frac{1}{m} \sum_i  \sigma_i  a_i\right| 
 \]
 \end{definition}
 %
-In other words, the Radamacher complexity of a family function $\F$ measures how much a function in the family can skew the values when weighted with random signs. The Komlos complexity measures the ability of the family function to skew an adversarial set of signs.
-
+\begin{definition}
+Let $f:\X,\Q\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
+The discrepancy of $f$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+\[
+K_m(f) =  \min_{\sigma} \max_{q \in \Q}  \left|\frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i,q)\right|
+\]
+\end{definition}
+%
 \begin{definition}
 Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
-The Komlos complexity of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+The discrepancy of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
-K_m(\F) =  \frac{1}{m}\min_{\sigma} \sup_{f \in \F}  \left|\sum_{i=1}^{m}\sigma_i f(x_i)\right|
+K_m(\F) =  \min_{\sigma} \max_{f \in \F}  \left| \frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i)\right|
 \]
-The Komlos Complexity $K_m(\F)$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
 \end{definition}
+The discrepancy of $f$ or $\F$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
+Throughout the manuscript we assume a one to one mapping between $\F$ and $\Q$. 
+Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$. This is an obvious equivalence when one thinks about $q$ is the model parameters. 
 
 
-\noindent It well known that $R_m$ is a good measure for generalization when data is chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them. We claim that $K_m$ is the measure more suitable for creating coresets, and for creating mergeable sketches.
+\noindent Notice that these definition are very similar to $R_m(\F)$ the Rademacher complexity.
+The only difference is that we consider the minimal value over $\sigma$ rather than its expectation for a random $\sigma$.
+Rademacher complexity uses random signs because it measures the effect of data being chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them.\footnote{Bartlet et al \cite{Bartlett:2003:RGC:944919.944944} use the same ``discrepancy'' to define a different quantity than the one above.}
+ We claim that $K_m$ is the measure more suitable for creating coresets and for creating mergeable sketches.
+Trivially,  $K_m \le R_m$. We show, however, that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
 
 
-\el{Add a much longer explanation about the connection to discrepancy and the ideas behind this construction} The name Komlos Complexity is due to the Komlos Conjecture. It claims that $\min_\sigma \max_f \|\sum_i \sigma_i f_i\|_\infty = O(1)$ for unit vectors $f$. The correctness of the Komlos Conjecture is still a fundamental open problem in the study of discrepancy theory.  The definition is useful, however, regardless of the correctness or provability of the conjecture.  
-It is obvious that  $K_m(\F) \le R_m(\F)$ for any family $\F$. We show later that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
+To understand our motivation, consider the following informal explanation of the Radamacher Complexity applied to ML problems. 
+In PAC learning there exists a set of examples (with labels).
+We aim to find a regressor/classifier from a given family that suffers the least loss on the set. 
+Having a low Radamacher complexity means that if we can optimize over a sample of roughly half the examples at random (each w.p.\ $1/2$).
+Low Rademacher complexity guaranties that twice the loss on the sample is roughly the same as the loss on the entire set.
+This translates to a generalization bound. 
+In other words, the Radamacher complexity gives a guarantee for the loss of corests chosen uniformly at random.
 
- \zk{I actually am still having problems with justifying the name Komlos complexity. It might as well be called Banaszczyk's complexity or simply discrepancy complexity. In particular if you could prove Komlos' conjecture it wouldn't affect any of our results, nor simplify our proofs.. Either way, below is my suggested motivation for the definition}
- \el{You are right about the name. In fact, I've been thinking about it myself. The discrepancy we get is actually much lower than what Komlos conjecture says... So, I am happy with with calling it simple \it{the discrepancy.}}
-To understand the motivation of the the Komlos Complexity, consider the following informal explanation of Radamacher Complexity applied to ML problems. In this ML problem there exists a distribution over $(x,y)$ pairs where we aim to predict $y$ given $x$. Our goal is to find a predictor from a family of prediction functions that suffers the least loss.  To simplify our discussion and make it applicable for unsupervised learning we can consider the features and label as a single input vector $x$, and consider a prediction function as one that maps this new input vector $x$ to a loss in $\R$. Formally, for a family of function $\F$ we wish to find $f \in \F$ minimizing $\E_x f(x)$. Having a low Radamacher complexity means that if we sample $m$ data points, split them into two uniformly at random and find the function $f$ minimizing the loss over the first half, the loss over the second half is bounded. This translates to a generalization bound stating that the function $f$ minimizing the loss over a uniform random sample of points will perform well on the entire distribution. In other words, the Radamacher complexity gives a guarantee for the distribution loss of the minimizer of a finite set of points chosen in an i.i.d.\ fashion. 
-
-Coming back to Komlos Complexity, having the ability to choose the signs in a non-uniform way lets us choose a subset of data points such that the minimizer $f$ over the subset is guaranteed to have (roughly) the same performance on the entire set. This allows us to obtain a guarantee for the distribution loss of a minimizer of a finite set chosen in an adaptive way to the family function $\F$. This set is in fact a core-set and the Komlos complexity helps us determine the possible size of a coreset. The tradeoff of considering a coreset vs.\ a random sample is that on one hand, it is clearly much simpler to obtain a random sample. On the other hand, as we will prove in what follows, there are multiple useful examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. In other words, in what follows we show that for a wide range of interesting function families in machine learning that $K_m(\F) = o(R_m(\F))$.
-\el{I like this explanation, I'm just not sure why it talks about pairs...} \zk{changed to data points}
+Coming back to discrepancy. Having the ability to choose the signs arbitrarily lets us choose an advantageous subset of examples.
+We can algorithmically choose to minimize the induced error and guaranty to have (roughly) the same performance on the entire set. 
+This set is in fact a coreset. The discrepancy of a problem helps us determine what coreset sized are possible. 
+We will show in the following sections several examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. This will be done by showing that for a wide range of interesting problems in machine learning $K_m(\F) = o(R_m(\F))$.
+This intuition is restated more explicitly in the next section.
 
 \subsection{General Framework for Coresets}
-
-In what follows it will be convenient to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We define a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We assume that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
-
-
+In what follows it will be convenient to use the notation $f(x,q)$ and consider $K_m(f)$.
+%
+%to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We will assume from hereon that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
 Consider the function $F(q) = \sum_{i=1}^{m} f(x_i,q)$ and the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
-Now consider $F_1(q) = F(q) + E(q) = \sum_{i=1}^{m} f(x_i,q)  + \sum_{i=1}^{m} \sigma_i f(x_i,q)  = 2 \sum_{i | \sigma_i=1} f(x_i,q)$ and similarly $F_{-1}(q)$. We have that both $F_1(q), F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
+Now consider $F_1(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $F_{-1}(q) = F(q) - E(q)   = \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. We have that both $F_1(q)$ and $F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
 
 %
-The above is true for any choice of signs $\sigma_i$, specifically, for those minimizing $\max_q | E(q)|$.
-Note that we can select signs such that $|E(q)| \le m K_m(\F)$.
-A function is sketch-able if $K_m(\F) = o(1)$.
-Typically we see that $K_m(\F) = O(c/m)$ or $K_m(\F)= c/\sqrt{m}$ for some $c$ which does not depend on $m$.
+The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
+Note that we can select signs such that $|E(q)| \le m K_m(f)$.
+Typically we can show that $K_m = O(c/m)$ or $K_m = c/\sqrt{m}$ for some $c$ which does not depend on $m$. 
 
 \begin{fact}
-Let $\F$ be a function family with a corresponding Komlos Complexity $K_m(\F) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f_i(q)$ where $f_i \in \F$. There exists a coreset for $F$ of size $k = O(c/\eps)$ whose error is at most $\eps n$.
+Let $\F$ be a function family with a corresponding discrepancy $K_m(f) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c/\eps)$ whose error is at most $\eps n$.
 \end{fact}
 \begin{fact}
-For any function family $\F$ with a corresponding Komlos Complexity $K_m(\F) = O(c/\sqrt{m})$ there exists a coreset of size 
-$O(c^2/\eps^2)$ whose error is at most $\eps n$.
+Let $\F$ be a function family with a corresponding discrepancy $K_m(f) = O(c/\sqrt{m})$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c^2/\eps^2)$ whose error is at most $\eps n$.
 \end{fact}
 
 \noindent Proving both facts is trivial and known in the folklore as ``the halving trick". 
@@ -201,27 +197,56 @@ Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respec
 
 
 \subsection{General Framework for Sketching}\label{sec:sketch}
-We claim that low Komlos complexity implies concise streaming mergeable coresets. 
+We claim that low discrepancy implies concise streaming mergeable coresets as well. 
 This section assumes the existence of an algorithm for finding low discrepancy signs $\sigma$.
 
-\begin{theorem} \label{thm:streaming}
-For any function family $\F$ with a corresponding Komlos Complexity with $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset algorithms of size 
-$$O\left(c\log^2\left(\min(\eps n/c, \log(n/\delta)) \right)/\eps\right)$$ 
-whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
+\begin{theorem} \label{thm:streaming12}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
+\end{theorem}
+\begin{theorem} \label{thm:streaming11}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset randomized algorithm of size $O\left(c\log^2\log(n/\delta)/\eps\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \end{theorem}
 
-\begin{theorem} \label{thm:streaming2}
-For any function family $\F$ with a corresponding Komlos Complexity of $K_m = O(c/\sqrt{m})$ there exists an unbiased fully-mergeable streaming coreset algorithms of size 
-$$O\left(c^2\log^3\left(\min(\eps^2 n/c, \log(n/\delta)) \right)/\eps^2\right)$$ 
-whose error is at most $\eps n$ and failure probability at most $\delta$. For $\delta=0$ this results in a deterministic algorithm. The algorithm must be given $\eps, \delta$ as input and does not require a priori knowledge of the stream length $n$.
+
+
+\begin{theorem} \label{thm:streaming21}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
+\end{theorem}
+\begin{theorem} \label{thm:streaming22}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \end{theorem}
 
-The proofs of the above two theorems are given in Appendix~\ref{app:sketch proof} as they are quite technical and not very illuminating. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Still, we note that the guarantees they provide go beyond what one would obtain with a standard merge and reduce framework as in \zk{Is this the name, is there a reference to the `known' way to convert an offline coreset algorithm to a streaming one?}. In particular, the dependence on the error probability $\delta$ is \emph{doubly} logarithmic rather than logarithmic. This is key since typically we require a union bound over an $\eps$-net that is exponentially large.
+Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provide a coreset for entire family that matches the non-streaming version up to poly-logarithmic terms.
+
+The algorithms must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
+The proofs of the above two theorems are quite technical and delegated to Appendix~\ref{app:sketch proof}. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
+In the last section we argued that both $F_1$ and $F_{-1}$ are both good approximations for $F$. We can also take $F'$ which is $F_1$ or $F_{-1}$ equally likely. Clearly $|F' - F| \le |E|$ as before. But now, $\E[F'] = F$ as well. In the streaming algorithm, we apply this compaction (converting $F$ to $F'$) many times over small subset of items from the stream. This allows us to use standard concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $F'$ no longer has exactly half the size $F$. In the general setting, this only true in expectation.
+
+\section{Related Work}
+\begin{itemize}
+\item coresets - motivation, some papers, streaming algorithms for coresets
+
+\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of any analog to Radamacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability.
+%
+% There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
+
+%
+%\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944}, There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
+
+\item Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
+$\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds.
+
+\item Logistic Regression is an extremely popular technique for classification. We are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors.  
+
+%\item coreset of logistic regression  \cite{DBLP:journals/corr/abs-1805-08571}, \cite{DBLP:conf/nips/HugginsCB16}. Give multiplicative approximation. This is impossible in general so they depend on a different restriction on the regressor or dataset. Based on sensitivity scores. \cite{DBLP:conf/nips/HugginsCB16} use a heuristic of using $k$-means to approximate sensitivity scores and prove that given good sensitivity scores they get a good coreset. \cite{tolochinsky2018coresets} gives a generic coreset construction for any monotonic function as long as it comes with an $\ell_2^2$ regularization. The dependence they get is, ignoring polynomial factors, $d/\eps^2$.  \cite{DBLP:journals/corr/abs-1805-08571} have a different method, relying on a measure of complexity of the dataset and obtain roughly $\sqrt{n}d^{3/2}/\eps^2$ sized dataset. 
+\end{itemize}
+
+
 
 
 \section{The Complexity of Analytic Functions of Dot Products} \label{sec:analytic}
 
-Now that we proved the usefulness of the Komlos Complexity we move to upper bound it for interesting family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or Euclidean distance $\|q-x\|$. 
+Now that we proved the usefulness of discrepancy we move to upper bound it for common family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or squared Euclidean distance $\|q-x\|^2$. 
 
 The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
 
@@ -254,19 +279,20 @@ Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K
 To use Banaszczyk's theorem we begin with defining our convex body.
 Define the norm $\|\psi\|_T$ of a vector $\psi$ as follows. Look at the first $d$ coordinates of $\psi$ as a vector $\psi_1$, the next $d^2$ coordinates of $\psi$ as a matrix $\psi_2$ the next $d^3$ coordinates as a three tensor $\psi_3$ etc.
 We define $\|\psi\|_T = \max_k \|\psi_k\|_{T_k} /\sqrt{\log(k)}$. 
-Here, $\|\cdot\|_{T_k}$ is the special spectral norm defined in the beginning of the section 
+Here, $\|\cdot\|_{T_k}$ is the special spectral norm defined in the beginning of the section.
 The maximum over norms of subvectors is clearly a norm in itself, meaning that $\|\cdot \|_T$ is indeed a norm. It follows that  the set $\mathcal K  = \{\psi \; | \; \|\psi\|_T \le c\sqrt{d}\}$ is convex. 
 
 We now need to show that the Gaussian measure of $\mathcal K$ is at least $1/2$. 
 That is, with probability at least $1/2$ a vector of random Gaussian entrees $g$ belongs to $\mathcal K$.
 Consider a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$. 
 
-A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$, where the reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability at least $1/2$, where $\operatorname{flat}(g_k)$ is the flattening of the tensor into a one dimensional vector. 
+A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$. The reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability at least $1/2$, where $\operatorname{flat}(g_k)$ is the flattening of the tensor into a one dimensional vector. 
 %
-We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
+We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. 
+%The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
 $$\psi(x) = \left[x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots \right]$$
 
-Finally, note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
+\noindent Note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
 
 
 We are now ready to apply Banaszczyk's theorem. 
@@ -276,7 +302,8 @@ $$\max_k \frac{\|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k}}{\sqrt{k \log^{3}(k)}}
 \end{proof}
 
 \begin{lemma} \label{lem:komlos anl}
-Let $f$ be a function of $\langle x,q\rangle$ such that $f(\langle x,q\rangle) = \sum_k \alpha_k \langle x,q\rangle^k$ is its Taylor expansion. The Komlos Complexity of the Family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq 1$, is bounded by
+Let $f$ be a function of the inner product $f(x,q) = f(\langle x,q\rangle)$ and let $f = \sum_k \alpha_k \langle x,q\rangle^k$ be its Taylor expansion. 
+The discrepancy of $f$ indexed by $\|q\| \leq 1$ is bounded by
 \[
 K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) =O\left( \sqrt{d} \sum_k  |\alpha_k|\sqrt{k\log^3(k)}\right)
 \]
@@ -296,7 +323,7 @@ $\left\| \sum_i \sigma_i x_i^{\otimes k}\right\|_{T_k} \le c\sqrt{d k \log^3(k)}
 \end{proof}
 
 \begin{theorem}\label{analitic1}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 Recall that for analytic functions $f$ we have $\left| \frac{d^k f}{dz^k}(z) \right|  \leq C^{k+1} k! $
@@ -306,72 +333,87 @@ corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result 
 \end{proof}
 
 \begin{corollary}
-The Komlos complexity of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
+The discrepancy of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
 \end{corollary}
 
 \begin{corollary}
-The Komlos complexity of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescales columns of the matrix $X$.
+The discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$. \el{Is this result new? Hard to say...}
 \end{corollary}
 
 
 
 \begin{theorem} \label{thm:analytic2}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has Komlos complexity of $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 By transforming $x$ to $\tilde{x} = (1, \sqrt{2}x, \|x\|^2)$ and $q$ to $\tilde{q} = (\|q\|^2, -\sqrt{2}q, 1)$ we get $\ip{\tilde{x},\tilde{q}} = \|q-x\|^2$. Moreover, $\|q\| \le R$ gives $\|\tilde q\| \le R^2+1$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$.
 \end{proof}
 
 \begin{corollary}
-The Komlos complexity of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
+The discrepancy of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
 \end{corollary} 
-This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. For the constant $\gamma$ setting this resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
+This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. 
+This also resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
 
 \begin{proof}
-W.l.o.g. the maximum distance $\|q-x\|$ is 1. The taylor series of $K$ becomes
-$$ \sum_{k=0}^\infty \frac{(-\gamma)^k}{k!} $$
+W.l.o.g. the maximum distance $\|q-x\|$ is 1. The Taylor series of the Gaussian kernel $K$ becomes
+$ \sum_{k=0}^\infty \frac{(-\gamma)^k}{k!} $.
 Plugging into the equation in the proof of Theorem~\ref{thm:analytic2} we get that the sum determining the constant is upper bounded by
-$$ \sum_{k=0}^\infty \frac{\gamma^{k}\sqrt{ k\log^3(k)}}{k!} = O\left((1+\gamma) \exp(\gamma)\right)$$
+$ \sum_{k=0}^\infty \frac{\gamma^{k}\sqrt{ k\log^3(k)}}{k!} = O\left((1+\gamma) \exp(\gamma)\right)$.
 \end{proof}
 %\end{proof}
 
 
 \section{A Simple Algorithm for Kernel Density Estimation}
-From section \ref{sec:analytic} we know that the Komlos complexity of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
-Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. We show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section when $d > \sqrt{m}$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
+From section \ref{sec:analytic} we know that the discrepancy of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. 
+%The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
+Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
+In fact, we show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > \sqrt{m}$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
 Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as 
-$$ f(q) = \sum_{i=1}^{n} K(x_i,q) $$
+$$ F(q) = \sum_{i=1}^{n} K(x_i,q) $$
 Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
 $$ K(x,q) = \exp(- \|x-y\|_2^2/\lambda^2)\;\;\; K(x,q) = \exp(- \|x-q\|/\lambda) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
 where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \leq 1$ for all data points. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
-The algorithm we proposed works as follows: Set $\sigma_1 = 1$. For $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
+\begin{algorithm}[H]
+ \KwData{Kernel function $K:(\R^d,\R^d)\rightarrow[0,1]$, points  $x_1,\ldots,x_m$}
+ \KwResult{$\sigma \in \{-1,1\}^m$ such that $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$}
+ $\sigma_1 = 1$;\\
+ \For{$i = 2,\ldots,m$}
+ {$\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$}
+% \EndFor
+ \caption{Low Discrepancy Algorithm for Positive Kernels}
+\end{algorithm}
+
+
+%The algorithm works as follows: Set $\sigma_1 = 1$. For $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
 \begin{theorem}
-The algorithm above achieves a set of signs $\sigma_1,\ldots,\sigma_m$ such that for any $q$,
-$$ \frac{1}{m}\sum_{i=1}^m \sigma_i K(x_i,q) \leq \sqrt{m} $$
+The algorithm above achieves $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$.
 \end{theorem}
 
 \begin{proof}
 For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
-$$ K(x,q) = \ip{\phi(x), \phi(q)} $$
+$ K(x,q) = \ip{\phi(x), \phi(q)} $.
 Using this function $\phi$ our objective function becomes
 \[
-\sum_{i=1}^m \sigma_i K(x_i,q) = \sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} =  \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)} \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
+|\sum_{i=1}^m \sigma_i K(x_i,q)| = |\sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} | = | \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)}| \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
 \]
 Since $\|\phi(q)\| \leq 1$ we reduced the problem to bounding the norm of $ \sum_{i=1}^m \sigma_i \phi(x_i) $.
 %
-We will show by induction on $i$ that 
+We show by induction on $i$ that 
 $$\left\| \sum_{j=1}^i \sigma_j \phi(x_j) \right\|^2 \le \sum_{j=1}^i \left\|\phi(x_j)\right\|^2 \leq i$$
 This is trivially true for $i=1$ since $\|\phi(x)\| \leq 1$. 
 Using our induction assumption we get
 \begin{eqnarray*}
-\left\| \sum_{j=1}^{i}\sigma_j \phi(x_j)\right\|^2 =& \left\|\sum_{j=1}^{i-1}\sigma_j \phi(x_j)\right\|^2 + \|\phi(x_i)\|^2 + 2\ip{ \sum_{j=1}^{i-1}\sigma_j \phi(x_j), \sigma_i \phi(x_i)} \leq & \text{induction assumption}\\
-& \sum_{j=1}^{i-1} \|\phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i) = & \text{choice of } \sigma_i \\
-& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2 \\
+\left\| \sum_{j=1}^{i}\sigma_j \phi(x_j)\right\|^2 &=& \left\|\sum_{j=1}^{i-1}\sigma_j \phi(x_j)\right\|^2 + \|\phi(x_i)\|^2 + 2\ip{ \sum_{j=1}^{i-1}\sigma_j \phi(x_j), \sigma_i \phi(x_i)} \\
+&\le& \sum_{j=1}^{i-1} \|\phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)\\
+&\le& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2 \\
 \end{eqnarray*}
+The first equality simply unpacks the squared vector norm, the second transition is due to the induction assumption and the last substitutes our choice of %$\sigma$. This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \sqrt{m}$ for all $q$.
 \end{proof}
 
-Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde f(q) - f(q)| \le \eps n$. This matches, and greatly simplifies, the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Along with an $\eps$-net argument, it also gives rise to a streaming algorithm for kernel density estimation with a memory requirement of $O\left(\log\left(d\log(1/\eps)\right)^3/\eps^2\right)$ vectors.
+Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches, and greatly simplifies, the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Along with an $\eps$-net argument, it also gives rise to a streaming algorithm for kernel density estimation with a memory requirement of $O\left(\log\left(d\log(1/\eps)\right)^3/\eps^2\right)$ vectors.
+\el{We should confirm this statement. I believe the Lipshitz constant of $m$ kernels can be $m$ so we might need another $d$ inside the inner $log$.}
 
 \paragraph{Note} The Theorem above provides an upper bound of $\sqrt{m}$ for the sign discrepancy. One can in fact construct an example where this upper bound is indeed what the algorithm achieves. However, for real data with vectors clustered together, as one should expect when requiring a density estimation algorithm, we expect this algorithm to perform much better than the worst-case bound. We leave it to future work to define properties of the data that ensure better guarantees by our algorithm.
 
@@ -381,26 +423,178 @@ Using the framework above this provides a deterministic coreset construction for
 
 \appendix
 
+%\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
+%
+%\begin{lemma} \label{lem:compactor}
+%Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $\sigma_1,\ldots,\sigma_k$ such that
+%$$\max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$$
+%Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
+%\begin{itemize}
+%\item $\{z_i\}_i$ is a subset of $\{x_i\}$
+%\item $\E[m] = n/2$
+%\item For $\rho >0$, $\Pr[m \geq (1+\rho)n/2] \leq \exp \left( -O\left(\frac{n\rho^2}{k}\right)\right)$
+%\item For any fixed query $q$, the error associated with $q$, defined as
+%$$\text{Err}(q) = 2\sum_{i=1}^m f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
+%Can be decomposed as a sum
+%$$\text{Err}(q) = \sum_{j=1}^{n/k} \text{Err}_j(q)$$
+%where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{Err}_j(q)| \leq K_k$
+%\end{itemize}
+%\end{lemma}
+%
+%Note that signs achieving $max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$ are guarantied to exist by the definition of the discrepancy. In fact, the quantity above is potentially much smaller than its upper bound because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
+%
+%\begin{proof}
+%The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
+%$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_k$$
+%Then, the algorithm output to the stream the with probability $1/2$ each data points $\{x_i \; | \; \sigma_i = 1\}$ or $\{x_i \; | \; \sigma_i = -1\}$ with twice the weight.
+%$$\sum_{i ,\; \sigma_i=1} 2f(x_i, q) = \sum_{i} f(x_i, q) +  \sum_{i} \sigma_i f(x_i, q)$$
+%$$\sum_{i ,\; \sigma_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} \sigma_i f(x_i, q)$$
+%
+%%Now, consider the set $P=\{i:\sigma_i=1\}$ and $N=\{i:\sigma_i=-1\}$.
+%%$$ \sum_i \sigma_i f(x_i, q) = \sum_i \sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in P} f(x_i,q) - \sum_i f(x_i, q)   $$
+%%$$ -\sum_i \sigma_i f(x_i, q) = \sum_i -\sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
+%%Thus, we draw a random coin and either output to the stream the data points of $P$ or $N$. We call this operation a single compaction. 
+%%\el{this is clunky way to say this...}
+%The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. Moreover, the output length is a sum of $n/k$ independent random variables with mean $k/2$ and a maximum value of $k$. Chernoff-Hoeffding's bound can guarantee the stated concentration around $\E[m]$.
+%As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
+%$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
+%\end{proof}
+%
+%Notice in the above lemma the last property of the streaming algorithm; it ensures that deterministically $|\text{Err}(q)| \leq (K_k/k) n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
+%$$|\text{Err}(q)| \lesssim K_k \sqrt{n/k} = \sqrt{\frac{K_k^2 n}{k}}$$
+%This high probability bound will be used below for our streaming algorithm. In high level the idea is to have a sequence of streaming boxes that we call compactors, each receiving an input stream and outputting a stream that is of half the size of the input (in expectation). Eventually we will get to a stream that is small enough to store in memory. The randomized bound above shows that for the compactors that handle a large stream, we can afford to have a very crude sketch because the error that they incur is roughly $\sqrt{n}$ even if all they do is uniformly sample half of the stream. However, for the compactors that observe the shorter streams that high probability bound is no longer as strong and we will have to make use of the fact that $K_k \ll k$.
+%
+%
+%\begin{proof} [Proof of Theorems~\ref{thm:streaming} and~\ref{thm:streaming2}]
+%Denote the streaming algorithm of Lemma~\ref{lem:compactor} as a compactor. The streaming algorithm operates as follows. At any given time it maintains a hierarchy of compactors where the hierarchy is measured in levels, starting from 0. The Compactor of level $h$ receives inputs of weight $2^h$ and outputs items of weight $2^{h+1}$. In the beginning we have a single compactor at level $h=0$. Once it outputs items to its output stream we open a compactor at level $h=1$ and so on. After observing $n$ items let $H$ be the level of the final compactor, meaning the compactor that never began an output stream.
+%
+%The sketch at that point contains all the data points contained in the buffers of the different compactors, weighted according to the level of the compactor. For a query $q$ and hierarchy level $h$ we analyze the error
+%$$\text{Err}_h(q) = 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \ .$$
+%Here, $k_h$ is the capacity of the buffers at level $h$, $n_h$ is the length of the stream observed at level $h$. The multiplier of $2^h$ is there since level $h$ observes items of weight $2^h$. The sum over $j$ is over the number of compactions at level $h$. $K_h$ is used to denote the discrepancy of each compaction using a buffer of $k_h$ points. Finally, the $Y_{ij}$ are independent random variables with mean zero and absolute value of at most $1$. The overall error for the query $q$ is the sum over all levels of its errors
+%$$ \text{Err}(q) = \sum_{h=0}^H \text{Err}_h(q)$$
+%
+%To achieve a deterministic bound we set all $k_h=k$, and set the compactors to choose the signed set with the least cardinality, ensuring $n_h \leq n_{h-1}/2$ and $H \leq \log_2(n/k)$, thus
+%$$ \text{Err}(q) \leq (K_k/k) \log_2(n/k) n $$
+%
+%We are however interested in a high probability bound. Specifically we would like to guarantee for $\delta > 0$ that for any query $q$ the error is bounded by $\eps n$ w.p.\ at least $1-\delta$. To this end we consider a different analysis for the top and bottom layers. For the top layers, the stream can be arbitrarily short so we will use the deterministic analysis as above. For the bottom layers, we can guarantee a minimal length to the stream and obtain tighter bounds.
+%
+%The bottom layers will be those of height $h=0$ up to $h=H'$ where $H'$ is set adaptively in a way that $H'$ is the maximum integer such that for all $h \leq H'$, 
+%\begin{equation} \label{eq:Htag_nh}
+% \forall h \leq H' , \ \ n_h \geq c_1 k \log^2(n) \log(\log(n)/(c_2 \delta ))
+%\end{equation}
+%for some sufficiently large constant $c_1$ and small constant $c_2$ to be determined later.
+%
+%According to Lemma~\ref{lem:compactor} we have for $ h\leq H'$ that for some appropriate constant $c_1$ in  \eqref{eq:Htag_nh},
+%$$ \Pr[n_{h+1} \geq (1+1/\log(n))n_{h}/2] \leq \exp\left( -\frac{n_{h}}{k_h \log^2(n)}  \right) \leq c_2\delta/  \log(n) $$
+%We can now union bound over all 
+%$$h \leq \log_2\left( n / \left( c_1 k \log^2(n) \log(1/(c_2 \delta\log(n))) \right)\right) + 2 \leq \log_2(n)$$
+%and conclude that w.p.\ at least $1-\delta/2$
+%\begin{equation} \label{eq:Htag}
+%H' \leq \log_2\left( n / \left( c_1 k \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) + 2 \leq \log_2(n)
+%\end{equation}
+%and
+%\begin{equation} \label{eq:nh small}
+%\forall h \leq H', \ \ n_{h} \leq 3 \cdot n/2^{h}
+%\end{equation}
+%
+%
+%Let's proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
+%$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] =$$
+%$$ \Pr\left[   \left| 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( O\left( -\frac{ \eps^2 n^2}{ 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } K_h^2}   \right)\right) =$$
+%$$\exp \left( -O\left(\frac{\eps^2 n^2}{n_h 2^{2h} K_h^2/k_h  } \right) \right) 
+%$$
+%We now make use of the the bound on $n_h$ in Equation~\eqref{eq:nh small}. Notice that the random events determining the length $n_h$ do not affect the realization of the random variables used in layer $h$, so we can indeed use the bound on $n_h$ for controlling the error at level $h$. We get that since $n_h \leq 3n/2^h$
+%$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq 
+%\exp \left( -O\left(\frac{\eps^2 n}{ 2^h K_h^2/k_h  } \right) \right) 
+%$$
+%In particular, for $\eps_h = O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right)$  it holds that
+%$$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] \leq \delta/4(H'-h+1)^2$$
+%and a union bound ensures that with probability at least $1-\delta$, in addition to Equations~\eqref{eq:Htag} and~\eqref{eq:nh small} we have for all $h \leq H'$ that
+%$$\left| \text{Err}_h(q) \right| \leq \eps_h n$$
+%and 
+%$$\left| \sum_{h=0}^{H'} \text{Err}_h(q) \right| \leq \left(\sum_{h=0}^{H'} \eps_h\right)n $$
+%
+%Let's proceed to bound the error on the top layers $H'+1$ to $H$. In these top layers we use a deterministic algorithm guaranteeing the stream is cut at least times 2 from layer to layer. We assign all top layers a budget of $k_h=k$ for the compactors. Since $2^{H+1} < n/k$ this gives a bound of 
+%$$
+%H-H' \leq \log_2(n/k2^{H'}) = O\left( \log\left( c_1 \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) = 
+%$$
+%$$
+%O\left( \log \log(n/\delta) \right)
+%$$
+%leading to a bound of 
+%$$ \left| \sum_{h=H'+1}^H \text{Err}_h(q) \right| \leq O\left( \log \log(n/\delta) (K_k/k) n \right) $$
+%and an overall bound of
+%\begin{equation} \label{eq:err total}
+%|\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(K_k/k) + \sum_{h=0}^{H'} \eps_h \right)
+%\end{equation}
+%
+%We are now left with the task of defining $k_h$ for the lower layers; we do so differently depending on the value of $K_k$ as a function of $k$. Recall that we aim to deal with two settings. In the first $K_k=\min\{\komconstant,k\}$ and in the second $K_k=\min\{\komconstant \sqrt{k}, k\}$. In both cases  $\komconstant$ is independent of $k$. We start by dealing with the first scenario.
+%
+%We set $k_h = \max\{2, \ceil{(2/3)^{H'-h}k}\}$. By using the definition of $H'$ in Equation~\eqref{eq:Htag} we see that
+%\begin{align*}
+%\eps_h = & O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k^2 \log((H'-h+1)^2/\delta)}{k_h K_k^2 n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)) \\
+%  	   &  O\left( \frac{K_k}{k} \sqrt{\frac{2^h K_h^2 k }{k_h K_k^2 2^{H'}}} \right) = \\
+%    	   &  O\left( \frac{K_k}{k} \sqrt{\frac{K_h^2 k }{k_h K_k^2 2^{H'-h}}} \right)
+%\end{align*}
+%We move to control the sum over $\eps_h$ by bounding the multiple of $K_k/k$. For $k_h \geq \komconstant$
+%$$
+%\frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} \leq \frac{\komconstant^2 k}{2^{H'-h} \komconstant^2 (2/3)^{H'-h}k} =
+%(3/4)^{H'-h}
+%$$
+%For $k_h \leq \komconstant$ we must have $h \leq H''$ with $(2/3)^{H'-H''} \leq \komconstant/k$, meaning that $2^{H'-H''} \geq k/\komconstant$. For such $h$ we get
+%\begin{align*}
+% \frac{K_h^2 k}{2^{H'-h} K_k^2 k_{h}} = &  O\left( \frac{ k_h k}{2^{H'-h} \komconstant^2 } \right) =  \\
+%    	   &  O\left( \frac{ k_h k}{2^{H''-h} k\komconstant } \right) = & k_h \leq \komconstant\\
+%	   &  O\left( (1/2)^{H''-h}   \right) 
+%\end{align*}
+%
+%If follows that 
+%$$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(\komconstant/k) $$
+%translating to an overall bound for the error of
+%$$ |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(\komconstant/k)  \right)$$
+%The overall memory consumption for the bottom layers is $O(k)$ since all layers of size 2 can be implemented jointly by sampling. The top layers require $O(\log\log(n/\delta)k)$ memory. If follows that by setting $k= O\left(\komconstant \log\log(n/\delta) / \eps\right)$ the error is bounded by $\eps n$ w.p. $1-\delta$ and the overall memory requirement is 
+%$$ O\left( \log \log(n/\delta)^2 (\komconstant/\eps)  \right) $$
+%
+%
+%We are now ready for the case where $K_k = \min\{k, \komconstant\sqrt{k}\}$. We set $k_h=2$, resulting in $K_h=2$, for all $h \leq H'$ and obtain
+%\begin{align*}
+%\eps_h = & O\left( \sqrt{\frac{2^h K_h^2 \log((H'-h+1)^2/\delta)}{k_h n}} \right) = & n=\Omega(2^{H'}k\log(H'/\delta)), \ K_h^2/k_h=O(1) \\
+%  	   &  O\left( \sqrt{2^{h-H'}/k} \right) 
+%\end{align*}
+%and 
+%$$ \sum_h \eps_h = O\left(1/\sqrt{k}\right) $$
+%Plugging this to the overall error in Equation~\eqref{eq:err total} we get
+%$$ \text{Err}(q) = n \cdot O\left( \frac{\log \log(n/\delta)\komconstant + 1}{\sqrt{k}}  \right) =  n \cdot O\left( \frac{\log \log(n/\delta)\komconstant }{\sqrt{k}}  \right) $$
+%
+%Since layers of $k_h=2$ can all be implemented in constant memory the memory requirement is dominated by the top layers and is in the order of $k \cdot \log\log(n/\delta)$, hence by setting 
+%$$k \approx \frac{\komconstant^2 \log^2\log(n/\delta)}{\eps^2}$$ 
+%we get a bound of $\eps n$ for the error and a memory usage of 
+%$$ O\left( \frac{\komconstant^2 \log^3\log(n/\delta)}{\eps^2}\right) $$
+%\end{proof}
+%
+
 \section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} \label{app:sketch proof}
+\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
 
 \begin{lemma} \label{lem:compactor}
-Let $k$ be an integer and assume we have black box access to a solver that for any $k$ inputs $x_1,\ldots,x_k$ obtains $k$ signs $\sigma_1,\ldots,\sigma_k$ such that
-$$\max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$$
-Then there exist a streaming algorithm requiring a memory buffer of $k$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_m$ with the following properties
+Assume we have black box access to a solver that for any integer $m$ and inputs $x_1,\ldots,x_m$ obtains signs $\sigma_1,\ldots,\sigma_m$ such that $\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \leq K_m$ for some function $f$ whose discrepancy is $K_m$.\footnote{An constant factor approximation algorithm achieving $\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| = O(K_m)$ would also clearly suffice.} 
+Then there exist a streaming algorithm requiring a memory buffer of $m$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_{n'}$ with the following properties
 \begin{itemize}
 \item $\{z_i\}_i$ is a subset of $\{x_i\}$
-\item $\E[m] = n/2$
-\item For $\rho >0$, $\Pr[m \geq (1+\rho)n/2] \leq \exp \left( -O\left(\frac{n\rho^2}{k}\right)\right)$
+\item $\E[n'] = n/2$
+\item For $\rho >0$, $\Pr[n' \geq (1+\rho)n/2] \leq \exp \left( -O\left(\frac{n\rho^2}{m}\right)\right)$
 \item For any fixed query $q$, the error associated with $q$, defined as
-$$\text{Err}(q) = 2\sum_{i=1}^m f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
+$$\text{Err}(q) = 2\sum_{i=1}^{n'} f(z_i,q) - \sum_{i=1}^n f(x_i,q)  $$
 Can be decomposed as a sum
-$$\text{Err}(q) = \sum_{j=1}^{n/k} \text{Err}_j(q)$$
+$$\text{Err}(q) = \sum_{j=1}^{n/m} \text{Err}_j(q)$$
 where the different $\text{Err}_j(q)$ are independent, have mean 0 and $|\text{Err}_j(q)| \leq K_k$
 \end{itemize}
 \end{lemma}
 
-Note that signs achieving $max_q \left| \sum_{i=1}^{k} \sigma_i f(x_i, q)\right| \leq K_k$ are guarantied to exist by the definition of the Komols Complexity. In fact, the quantity above is potentially much smaller than the Komlos Complexity because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
+Note that signs achieving $max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \leq K_m$ are guarantied to exist by the definition of the discrepancy. In fact, the quantity above is potentially much smaller than its upper bound because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
 
+
+\el{changed notation until here...}
 \begin{proof}
 The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
 $$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_k$$
@@ -419,8 +613,16 @@ $\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probabili
 \end{proof}
 
 Notice in the above lemma the last property of the streaming algorithm; it ensures that deterministically $|\text{Err}(q)| \leq (K_k/k) n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
-$$|\text{Err}(q)| \lesssim K_k \sqrt{n/k} = \sqrt{\frac{K_k^2 n}{k}}$$
-This high probability bound will be used below for our streaming algorithm. In high level the idea is to have a sequence of streaming boxes that we call compactors, each receiving an input stream and outputting a stream that is of half the size of the input (in expectation). Eventually we will get to a stream that is small enough to store in memory. The randomized bound above shows that for the compactors that handle a large stream, we can afford to have a very crude sketch because the error that they incur is roughly $\sqrt{n}$ even if all they do is uniformly sample half of the stream. However, for the compactors that observe the shorter streams that high probability bound is no longer as strong and we will have to make use of the fact that $K_k \ll k$.
+$$|\text{Err}(q)| \lesssim K_k \sqrt{n/k} $$
+This high probability bound will be used below for our streaming algorithm. 
+The high level idea is to have a sequence of streaming objects that we call compactors. 
+Each compactor receives an input stream and outputs a stream that is of half the size of the input (in expectation). 
+Eventually we get to a stream that is small enough to store in memory. 
+The randomized bound above shows that for the compactors that handle a large stream, 
+we can afford to have a very crude sketch because the error that they incur is roughly $\sqrt{n}$. 
+That is true even if all they do is uniformly sample half of the stream. 
+However, for the compactors that observe the shorter streams, a high probability bound is no longer strong enough. 
+For those we will make use of the fact that $K_k \ll k$.
 
 
 \begin{proof} [Proof of Theorems~\ref{thm:streaming} and~\ref{thm:streaming2}]
@@ -456,7 +658,7 @@ and
 \end{equation}
 
 
-Let's proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
+We proceed to bound the error of layer $h$. Since this error is a sum of i.i.d.\ bounded variables of mean zero we can use Chernoff- Hoeffding's inequality and obtain that
 $$ \Pr\left[   \left| \text{Err}_h(q) \right| \geq \eps n \right] =$$
 $$ \Pr\left[   \left| 2^h \sum_{j=1}^{\floor{n_h/k_h} } K_h Y_{ij} \right| \geq \eps n \right] \leq \exp \left( O\left( -\frac{ \eps^2 n^2}{ 2^{2h} \sum_{j=1}^{\floor{n_h/k_h} } K_h^2}   \right)\right) =$$
 $$\exp \left( -O\left(\frac{\eps^2 n^2}{n_h 2^{2h} K_h^2/k_h  } \right) \right) 
@@ -472,7 +674,7 @@ $$\left| \text{Err}_h(q) \right| \leq \eps_h n$$
 and 
 $$\left| \sum_{h=0}^{H'} \text{Err}_h(q) \right| \leq \left(\sum_{h=0}^{H'} \eps_h\right)n $$
 
-Let's proceed to bound the error on the top layers $H'+1$ to $H$. In these top layers we use a deterministic algorithm guaranteeing the stream is cut at least times 2 from layer to layer. We assign all top layers a budget of $k_h=k$ for the compactors. Since $2^{H+1} < n/k$ this gives a bound of 
+We proceed to bound the error on the top layers $H'+1$ to $H$. In these top layers we use a deterministic algorithm guaranteeing the stream is cut in half from layer to layer. We assign all top layers a budget of $k_h=k$ for the compactors. Since $2^{H+1} < n/k$ this gives a bound of 
 $$
 H-H' \leq \log_2(n/k2^{H'}) = O\left( \log\left( c_1 \log^2(n) \log(1/(c_2 \delta \log(n))) \right)\right) = 
 $$
@@ -511,7 +713,7 @@ $$ \sum_{h=0}^{H'} \eps_h = O(K_k/k) = O(\komconstant/k) $$
 translating to an overall bound for the error of
 $$ |\text{Err}(q)| \leq n \cdot O\left( \log \log(n/\delta)(\komconstant/k)  \right)$$
 The overall memory consumption for the bottom layers is $O(k)$ since all layers of size 2 can be implemented jointly by sampling. The top layers require $O(\log\log(n/\delta)k)$ memory. If follows that by setting $k= O\left(\komconstant \log\log(n/\delta) / \eps\right)$ the error is bounded by $\eps n$ w.p. $1-\delta$ and the overall memory requirement is 
-$$ O\left( \log \log(n/\delta)^2 (\komconstant/\eps)  \right) $$
+$$ O\left( \log^2 \log(n/\delta) (\komconstant/\eps)  \right) $$
 
 
 We are now ready for the case where $K_k = \min\{k, \komconstant\sqrt{k}\}$. We set $k_h=2$, resulting in $K_h=2$, for all $h \leq H'$ and obtain
@@ -529,7 +731,6 @@ $$k \approx \frac{\komconstant^2 \log^2\log(n/\delta)}{\eps^2}$$
 we get a bound of $\eps n$ for the error and a memory usage of 
 $$ O\left( \frac{\komconstant^2 \log^3\log(n/\delta)}{\eps^2}\right) $$
 \end{proof}
-
 
 
 \end{document}
