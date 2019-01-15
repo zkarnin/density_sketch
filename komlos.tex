@@ -93,7 +93,7 @@ We provide general techniques for bounding the discrepancy of machine learning p
 Our result resolves a long standing open question regarding minimal cardinality coresets for Gaussian kernel density estimation.  
 We provide two more related but independent results. 
 First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
-Second, an extremely simple algorithm for finding coresets (low discrepancy sequences) for any positive kernel density estimation problem. 
+Second, an extremely simple algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
 This paper makes an explicit connection between low discrepancy, coresets, learnability, and streaming algorithms. 
 \end{abstract}
 
@@ -101,7 +101,8 @@ This paper makes an explicit connection between low discrepancy, coresets, learn
 \section{Introduction}
 In both machine learning and in streaming and sketching problems our goal is (often) to approximate sums or expectations of well behaved functions.
 Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either sampled training examples or an arbitrary set of stream items. 
-Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are i.i.d.\ drawn from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$ . One should think about $q$ as either the model parameters or a query for the sketch. 
+Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn i.i.d.\ from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$. 
+One should think about $q$ as either the model parameters or a query for the sketch. 
 
 The goal is to produce a coreset. This is a set of weights $w$ with at small number of non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
 Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
@@ -200,10 +201,10 @@ Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respec
 We claim that low discrepancy implies concise streaming mergeable coresets as well. 
 This section assumes the existence of an algorithm for finding low discrepancy signs $\sigma$.
 
-\begin{theorem} \label{thm:streaming12}
+\begin{theorem} \label{thm:streaming11}
 For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
 \end{theorem}
-\begin{theorem} \label{thm:streaming11}
+\begin{theorem} \label{thm:streaming12}
 For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset randomized algorithm of size $O\left(c\log^2\log(n/\delta)/\eps\right)$ whose error is at most $\eps n$ with probability at least $1-\delta$. \el{for a single query?}
 \end{theorem}
 
@@ -571,8 +572,48 @@ Using the framework above this provides a deterministic coreset construction for
 %\end{proof}
 %
 
-\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
+\section{Appendix Appendix Appendix...}
 
+
+The proofs of Theorems \ref{thm:streaming11}, \ref{thm:streaming12}, \ref{thm:streaming21}, and \ref{thm:streaming22} all use the basic concept of a compactor. A compactor consumes a stream of items and outputs another stream. 
+The output stream contains roughly half the items from the input stream with double the weight. 
+It does so by keeping a buffer of a certain capacity $k$. When a new item is inserted into the compactor it is added to its buffer. 
+If the buffer is full, a compaction operation takes place. 
+The compaction takes the elements in the buffer $x_1,\ldots,x_m$ and finds a low discrepancy assignment $\sigma$ such that 
+$\max_q |\sum_i \sigma_i f(x_i,q)| = O(mK_m)$. 
+Note that such a sequence is guarantied to exist by the definition of the discrepancy. 
+However, an algorithm for finding such a sequence might not exist. 
+From this point onwards, we assume the existence of such an algorithm.
+In other words, our theorems hold for problems which admit such a solution.
+The compactor then outputs either $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$ with double the weight.
+
+We begin with showing some basic properties of deterministic compactor, which always output the smaller of the two set  $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$. Consider a single compaction and let $\tilde F$ denote the function evaluated on the output set.
+Let $E(q) = \sum_i \sigma_i f(x_i,q)$ for the signs $\sigma$ computed by the algorithm above. 
+$$\tilde F(q) = \sum_{i ,\; \sigma_i=1} 2f(x_i, q) = \sum_{i} f(x_i, q) +  \sum_{i} \sigma_i f(x_i, q) = F(q) + E(q)$$
+$$\tilde F(q) = \sum_{i ,\; \sigma_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} \sigma_i f(x_i, q) = F(q) - E(q)$$
+Note that $|\tilde F(q) - F(q)| = |E(q)| \le \max_q |\sum_i \sigma_i f(x_i,q)| = O(mK_m)$. 
+Now, aggregating over the $n/m$ compactions we get that $|\tilde F(q) - F(q)| \le n K_m$. Moreover, the stream length is clearly cut (at least) in half.
+
+These facts alone already allow us to prove Theorem~\ref{thm:streaming11}. 
+\paragraph{Theorem~\ref{thm:streaming11}}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
+\begin{proof}
+Consider feeding the output of the first compactor into a second one etc. Number the compactors $0,\ldots,H$.
+The weight of item to compactors $h$ have weight $w_h = 2^h$. The length of the input stream seen by compactor is $n_h \le n/2^h$.
+Each compactor contributes at most $w_h n_h K_m \le n K_m$ error. Moreover since $n_h \le n/2^h$ we know that $H \le log(n/m)$.
+The total error is therefore $H n K_m \le log(n/m) n K_m$. 
+Setting $m \ge c\log(\eps n/c)/\eps$ and replacing $K_m = c/m$ we get that the error is at most $log(n/m) n K_m \le \eps n$ as required. 
+Since we have $H \le log(\eps n)$ such compactors the overall space complexity is $c\log^2(\eps n/c)/\eps$.
+\end{proof}
+
+This algorithm is a direct extension the well know MRL algorithm \cite{MRL} for quantile sketching. 
+Note that for quantiles, $f(x,q) = 1$ if $q > x$ and $0$ else. 
+A low discrepancy sequence is achieved simply by sorting the values and assigning $\sigma_i = 1$ for all evenly positioned values in the sorted order and $\sigma_i=-1$ to the odd positions. The above gives a discrepancy of $1/m$ for quantile approximation.
+
+
+
+
+\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
 \begin{lemma} \label{lem:compactor}
 Assume we have black box access to a solver that for any integer $m$ and inputs $x_1,\ldots,x_m$ obtains signs $\sigma_1,\ldots,\sigma_m$ such that $\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \leq K_m$ for some function $f$ whose discrepancy is $K_m$.\footnote{An constant factor approximation algorithm achieving $\max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| = O(K_m)$ would also clearly suffice.} 
 Then there exist a streaming algorithm requiring a memory buffer of $m$ input items that given a stream of length $n$ outputs a stream $z_1,\ldots,z_{n'}$ with the following properties
