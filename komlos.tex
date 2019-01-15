@@ -180,7 +180,7 @@ Now consider $F_1(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and sim
 %
 The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
 Note that we can select signs such that $|E(q)| \le m K_m(f)$.
-Typically we can show that $K_m = O(c/m)$ or $K_m = c/\sqrt{m}$ for some $c$ which does not depend on $m$.
+Typically we can show that $K_m = O(c/m)$ or $K_m = c/\sqrt{m}$ for some $c$ which does not depend on $m$. 
 
 \begin{fact}
 Let $\F$ be a function family with a corresponding discrepancy $K_m(f) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c/\eps)$ whose error is at most $\eps n$.
@@ -204,8 +204,10 @@ This section assumes the existence of an algorithm for finding low discrepancy s
 \begin{theorem} \label{thm:streaming11}
 For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
 \end{theorem}
+
 \begin{theorem} \label{thm:streaming12}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset randomized algorithm of size $O\left(c\log^2\log(n/\delta)/\eps\right)$ whose error is at most $\eps n$ with probability at least $1-\delta$. \el{for a single query?}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset randomized algorithm of size $O\left(c\log^2\log(n/\delta)/\eps\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
+
 \end{theorem}
 
 
@@ -214,11 +216,13 @@ For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ the
 For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
 \end{theorem}
 \begin{theorem} \label{thm:streaming22}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error is at most $\eps n$ with probability at least $1-\delta$. \el{for a single query?}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \end{theorem}
 
+Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provide a coreset for entire family that matches the non-streaming version up to poly-logarithmic terms.
+
 The algorithms must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
-The proofs of the above two theorems are quite technical and delegated to the appendix. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
+The proofs of the above two theorems are quite technical and delegated to Appendix~\ref{app:sketch proof}. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
 In the last section we argued that both $F_1$ and $F_{-1}$ are both good approximations for $F$. We can also take $F'$ which is $F_1$ or $F_{-1}$ equally likely. Clearly $|F' - F| \le |E|$ as before. But now, $\E[F'] = F$ as well. In the streaming algorithm, we apply this compaction (converting $F$ to $F'$) many times over small subset of items from the stream. This allows us to use standard concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $F'$ no longer has exactly half the size $F$. In the general setting, this only true in expectation.
 
 \section{Related Work}
@@ -229,8 +233,8 @@ In the last section we argued that both $F_1$ and $F_{-1}$ are both good approxi
 %
 % There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
 
-
-\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944}, There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
+%
+%\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944}, There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
 
 \item Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
 $\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds.
@@ -572,6 +576,7 @@ Using the framework above this provides a deterministic coreset construction for
 %\end{proof}
 %
 
+
 \section{Appendix Appendix Appendix...}
 
 
@@ -611,6 +616,12 @@ Note that for quantiles, $f(x,q) = 1$ if $q > x$ and $0$ else.
 A low discrepancy sequence is achieved simply by sorting the values and assigning $\sigma_i = 1$ for all evenly positioned values in the sorted order and $\sigma_i=-1$ to the odd positions. The above gives a discrepancy of $1/m$ for quantile approximation.
 
 
+
+
+
+
+
+\section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} \label{app:sketch proof}
 
 
 \section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} 
