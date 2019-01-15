@@ -110,10 +110,10 @@ There are more complicated formulations such as weak coresets which we will not 
 Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
 Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
 
-For bounded functions $f$ uniform sampling of $O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $O(\log(|\mathcal Q|)/\eps^2)$ items. 
+For bounded functions $f$, uniform sampling of $O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $O(\log(|\mathcal Q|)/\eps^2)$ items. 
 While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
 %
-We argue that we can offer a solution for producing smaller coresets for a large class of problems in a unified manner. 
+We present a mechanism for producing coresets which are much smaller than those achieved by sampling for a large class of problems in a unified manner. 
 Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
 The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
 
@@ -144,14 +144,14 @@ The discrepancy of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is
 K_m(\F) =  \min_{\sigma} \max_{f \in \F}  \left| \frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i)\right|
 \]
 \end{definition}
-The discrepancy of $f$ or $\F$ without a reference set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
+The discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
 Throughout the manuscript we assume a one to one mapping between $\F$ and $\Q$. 
 Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$. This is an obvious equivalence when one thinks about $q$ is the model parameters. 
 
 
 \noindent Notice that these definition are very similar to $R_m(\F)$ the Rademacher complexity.
 The only difference is that we consider the minimal value over $\sigma$ rather than its expectation for a random $\sigma$.
-Rademacher complexity uses random signs because it measures the effect of data being chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them.\footnote{Bartlet et al \cite{Bartlett:2003:RGC:944919.944944} use the same ``discrepancy'' to define a different quantity than the one above.}
+Rademacher complexity uses random signs because it measures the effect of data being chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them.\footnote{\cite{Bartlett:2003:RGC:944919.944944} use the same ``discrepancy'' to define a different quantity than the one above.}
  We claim that $K_m$ is the measure more suitable for creating coresets and for creating mergeable sketches.
 Trivially,  $K_m \le R_m$. We show, however, that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
 
@@ -159,10 +159,10 @@ Trivially,  $K_m \le R_m$. We show, however, that $K_m(\F) = o(R_m(\F))$ for a w
 To understand our motivation, consider the following informal explanation of the Radamacher Complexity applied to ML problems. 
 In PAC learning there exists a set of examples (with labels).
 We aim to find a regressor/classifier from a given family that suffers the least loss on the set. 
-Having a low Radamacher complexity means that if we can optimize over a sample of roughly half the examples at random (each w.p.\ $1/2$).
-Low Rademacher complexity guaranties that twice the loss on the sample is roughly the same as the loss on the entire set.
+Having a low Radamacher complexity means that we can optimize over a sample of roughly half the examples at random (each w.p.\ $1/2$).
+Low Rademacher complexity guaranties that, in expectation, twice the loss on the sample is roughly the same as the loss on the entire set.
 This translates to a generalization bound. 
-In other words, the Radamacher complexity gives a guarantee for the loss of corests chosen uniformly at random.
+In other words, the Radamacher complexity gives a guarantee for the loss of coresets chosen uniformly at random.
 
 Coming back to discrepancy. Having the ability to choose the signs arbitrarily lets us choose an advantageous subset of examples.
 We can algorithmically choose to minimize the induced error and guaranty to have (roughly) the same performance on the entire set. 
@@ -175,18 +175,19 @@ In what follows it will be convenient to use the notation $f(x,q)$ and consider 
 %
 %to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We will assume from hereon that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
 Consider the function $F(q) = \sum_{i=1}^{m} f(x_i,q)$ and the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
-Now consider $F_1(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $F_{-1}(q) = F(q) - E(q)   = \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. We have that both $F_1(q)$ and $F_{-1}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|F_1(q) - F(q)| =  |E(q)|$.
+Now consider $\tilde F_{+}(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $\tilde F_{-}(q) = F(q) - E(q)  =  \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. We have that both $\tilde F_{+}(q)$ and $\tilde F_{-}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|\tilde F_{\pm}- F(q)| =  |E(q)|$.
 
 %
 The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
 Note that we can select signs such that $|E(q)| \le m K_m(f)$.
-Typically we can show that $K_m = O(c/m)$ or $K_m = c/\sqrt{m}$ for some $c$ which does not depend on $m$. 
+The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$.
+The constant $c$ does not depend on $m$ but could depend on other parameters of the problem. 
 
 \begin{fact}
-Let $\F$ be a function family with a corresponding discrepancy $K_m(f) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c/\eps)$ whose error is at most $\eps n$.
+Let $f$ be a function with a corresponding discrepancy $K_m(f) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c/\eps)$ whose error is at most $\eps n$.
 \end{fact}
 \begin{fact}
-Let $\F$ be a function family with a corresponding discrepancy $K_m(f) = O(c/\sqrt{m})$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c^2/\eps^2)$ whose error is at most $\eps n$.
+Let $f$ be a function with a corresponding discrepancy $K_m(f) = O(c/\sqrt{m})$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c^2/\eps^2)$ whose error is at most $\eps n$.
 \end{fact}
 
 \noindent Proving both facts is trivial and known in the folklore as ``the halving trick". 
@@ -218,7 +219,7 @@ For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ the
 For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \end{theorem}
 
-Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provide a coreset for entire family that matches the non-streaming version up to poly-logarithmic terms.
+Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provides a coreset for an entire family that matches the non-streaming version up to poly-logarithmic terms.
 
 The algorithms must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
 The proofs of the above two theorems are quite technical and delegated to Appendix~\ref{app:sketch proof}. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
@@ -240,6 +241,7 @@ $\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For th
 
 \item Logistic Regression is an extremely popular technique for classification. We are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors.  
 
+\item Linear Regression \cite{DBLP:journals/jmlr/DerezinskiW18}
 %\item coreset of logistic regression  \cite{DBLP:journals/corr/abs-1805-08571}, \cite{DBLP:conf/nips/HugginsCB16}. Give multiplicative approximation. This is impossible in general so they depend on a different restriction on the regressor or dataset. Based on sensitivity scores. \cite{DBLP:conf/nips/HugginsCB16} use a heuristic of using $k$-means to approximate sensitivity scores and prove that given good sensitivity scores they get a good coreset. \cite{tolochinsky2018coresets} gives a generic coreset construction for any monotonic function as long as it comes with an $\ell_2^2$ regularization. The dependence they get is, ignoring polynomial factors, $d/\eps^2$.  \cite{DBLP:journals/corr/abs-1805-08571} have a different method, relying on a measure of complexity of the dataset and obtain roughly $\sqrt{n}d^{3/2}/\eps^2$ sized dataset. 
 \end{itemize}
 
