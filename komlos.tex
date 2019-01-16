@@ -216,7 +216,7 @@ For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ the
 
 
 \begin{theorem} \label{thm:streaming22}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(1/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \end{theorem}
 
 Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provides a coreset for an entire family that matches the non-streaming version up to poly-logarithmic terms.
@@ -699,20 +699,30 @@ Because we do not know the stream length in advance, we operate as in the determ
 For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \begin{proof}
 As in the deterministic setting we maintain a sequence of compactors of levels $h=0,\ldots,H$. Notice that the value of $H$ is increasing as the stream grows longer. Recall that a compactor of level $h$ observes elements of weight $2^h$ and outputs elements of weight $2^{h+1}$. As before we use a buffer of $m$ and get that $H \leq  \floor{log_2(n/m)}+1$.
-The difference is that for a compactor of level $h$, once $h \leq H' = H - \log(\log(1/\delta)/m\eps^2)$, meaning we know that the number of items observed by the $h$'th compactor, $n_h \geq \tilde{n} = O(\log(1/\delta)/\eps^2)$, we change the mode of operation for this compactor. Rather than using a buffer of size $m$ the compactor uses a buffer of size 2 and for every two observed items it outputs one of them uniformly at random.
+The difference is that for a compactor of level $h$, once $h \leq H' = H - \log(\tilde{n}/m)$, where $\tilde{n} = O(\log(1/\delta)/\eps^2)$ with a constant in the $O()$ term that will be determined later, we change the mode of operation for this compactor. Notice that the requirement for $h$ ensures that the number of items observed by the $h$'th compactor is at least $n_h \geq \tilde{n}$. Rather than using a buffer of size $m$ the compactor uses a buffer of size 2 and for every two observed items it outputs one of them uniformly at random.
 
-To analyze the memory requirement, notice that the compactors of levels $h=0,\ldots,H'$ are in fact performing reservoir sampling for every $2^{H'+1}$ items, meaning that they can be implemented in $O(1)$ memory. This means that the overall memory requirement is $O(m\log(\log(1/\delta)/m\eps^2))$. 
+To analyze the memory requirement, notice that the compactors of levels $h=0,\ldots,H'$ are in fact performing reservoir sampling for every $2^{H'+1}$ items, meaning that they can be implemented in $O(1)$ memory. This means that the overall memory requirement is $O(m\log(\log(1/\delta)/m\eps^2))$; for $m \geq 1/\eps^2$ this is $O(m\log\log(1/\delta))$. 
 
-As for the error, for the layers of level $h=H'+1,\ldots,H$ we get as in the deterministic case that the error for each is $n K_m$. Let us bound the error for the compactor of level $h \leq H'$. For the first $\tilde{n}$ items it observed, the error is bounded by $2^h\tilde{n}K_m \leq 2^{h-H'}nK_m$. Fix a query $q$; for the items following the first $\tilde{n}$ items the compactor is operating in the sampling mode. For every pair, the associated error w.r.t $q$ is a random variable, of mean zero and absolute value of at most $w_h=2^{h+1}$. There are $(n_h-\tilde{n})/2 \leq n_h$ such pairs and the overall error w.r.t.\ $q$ is the sum of these independent random variables. Chernoff bound implies that with probability $1-\delta$, the overall error is bounded by $E_h = O(w_h\sqrt{n_h\log(1/\delta)})$. Since $n_h \geq \tilde{n}2^{H'-h} = O(2^{H'-h}\log(1/\delta)/\eps^2)$ we get that
+We continue to bound the error. For the top compactors of level $h=H'+1,\ldots,H$ we get as in the deterministic case that the error for each is $n K_m$. Since we will use $m \geq 1/\eps^2$ we get that the error for all top compactors is $O(nK_m\log\log(1/\delta))$.
+Consider now a compactor of level $h \leq H'$. For the first $\tilde{n}$ items it observed, the error is bounded by $2^h\tilde{n}K_m \leq 2^{h-H'}nK_m$. Fix a query $q$; for the items following the first $\tilde{n}$ items the compactor is operating in the sampling mode. For every pair, the associated error w.r.t $q$ is a random variable, of mean zero and absolute value of at most $w_h=2^{h+1}$. There are $(n_h-\tilde{n})/2 \leq n_h$ such pairs and the overall error w.r.t.\ $q$ is the sum of these independent random variables. Chernoff bound implies that with probability $1-\delta$, the overall error is bounded by $E_h = O(w_h\sqrt{n_h\log(1/\delta)})$. Since $n_h \geq \tilde{n}2^{H'-h} = O(2^{H'-h}\log(1/\delta)/\eps^2)$ we get that
 $$ E_h = O\left(2^h n_h\frac{\eps}{2^{(H'-h)/2}}\right) = O(\eps n 2^{(h-H')/2}) $$
-We get that the sum of errors associated with the compactors of level $h=0,\ldots,H'$ for a geometric sequence dominated by the error of the $H'$ compactor, which is in turn $O(\eps n)$. For proper constants in $\tilde{n}$ we get a bound of $\eps n/2$ for the bottom compactors. For a budget of $m = \Omega(c^2(H-H')^2/\eps^2)$ for the buffers of the top compactors we guarantee an overall error of $\eps n/2$ for the top compactors. Since $H-H'$ by definition is 
-$$ H-H' = O(\log(\log(1/\delta)/m\eps^2)) =  O(\log(\log(1/\delta)/c^2(H-H')^2)) $$
-we get that 
-$$ H-H' = O(\log(\log(1/\delta)/c^2)), \ \  m=O(c^2\log^2(\log(1/\delta))/\eps^2) $$
-Plugging in $m$ to the bound on the memory leads to the required claim.
+We get that the sum of errors associated with the compactors of level $h=0,\ldots,H'$ form a geometric sequence dominated by the error of the $H'$ compactor, which is in turn $O(\eps n)$. For proper constants in $\tilde{n}$ we get a bound of $\eps n/2$ for the bottom compactors. For a budget of $m = \Omega(c^2\log^2(\log(1/\delta))/\eps^2)$ for the buffers of the top compactors we guarantee an overall error of $\eps n/2$ for the top compactors. 
+
+To conclude, we get an error of $\eps n$ w.p. $1-\delta$ for any fixed $q$ with a memory budget of
+$$O(m\log\log(1/\delta)) = O\left(c^2\log^3(\log(1/\delta))/\eps^2\right)$$
+as required.
 \end{proof}
 
+We are now ready for the proof of Theorem~\ref{thm:streaming12}. Here we extend the idea of \cite{DBLP:conf/focs/KarninLL16} applied for quantiles to general coresets. To explain the high level idea consider again the easier setting where we know $n$, the length of the stream in advance. As in the $K_m=c/\sqrt{m}$ case, we will split the compactor into top compactors acting deterministically and bottom compactors yielding random outputs. The issue comes from the choice of $m$. To handle the error of the top compactors we can choose $m=c/\eps \ll 1/\eps^2$. The fact that $m \ll 1/\eps^2$ means that the top random compactors observe a stream that is shorter than before and having a buffer of size 2 will result in a large error. To mitigate this we assign the compactors an exponentially decreasing buffer size starting from $m_h=m$, until reaching $m_h=2$. A careful analysis of the error will show that the bottom compactors have the required $\eps n$ error, while the overall memory they require is $O(m)$. 
+
 \zk{Still missing, Theorem~\ref{thm:streaming12} ...}
+
+\paragraph{Theorem~\ref{thm:streaming12}} 
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
+\begin{proof}
+\end{proof}
+
+
 
 
 %%%%%%%%%%%%%%
