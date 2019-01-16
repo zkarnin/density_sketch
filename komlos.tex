@@ -121,7 +121,7 @@ The size of the coreset above appears to be intimately tied to the discrepancy p
 \section{Discrepancy of a Function Class}
 We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript.
 
-\el{I am thinking about removing the $1/m$ from the definition. Pro: Its cleaner. Con: It's less like the Rademacher complexity. What do you think?}
+\el{I am thinking about removing the $1/m$ from the definition. Pro: Its cleaner. Con: It's less like the Rademacher complexity. What do you think?} \zk{think of term in stead of complexity}
 \begin{definition}
 Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the discrepancy of $A$ is 
 \[
@@ -391,7 +391,7 @@ where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \
 
 
 %The algorithm works as follows: Set $\sigma_1 = 1$. For $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
-\begin{theorem}
+\begin{theorem} \label{thm:disc simple kernel}
 The algorithm above achieves $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$.
 \end{theorem}
 
@@ -416,10 +416,9 @@ Using our induction assumption we get
 The first equality simply unpacks the squared vector norm, the second transition is due to the induction assumption and the last substitutes our choice of %$\sigma$. This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \sqrt{m}$ for all $q$.
 \end{proof}
 
-Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches, and greatly simplifies, the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Along with an $\eps$-net argument, it also gives rise to a streaming algorithm for kernel density estimation with a memory requirement of $O\left(\log\left(d\log(1/\eps)\right)^3/\eps^2\right)$ vectors.
-\el{We should confirm this statement. I believe the Lipshitz constant of $m$ kernels can be $m$ so we might need another $d$ inside the inner $log$.}
+Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches and simplifies the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Theorem~\ref{thm:streaming21} leads to a deterministic streaming algorithm with a memory complexity of $O(\log^3(\eps^2 n)/\eps^2)$. For $L$-Lipchitz kernels, meaning $K$ such that $|K(x,q+h) - K(x,q)|/\|h\| \leq L$ for all $h \neq 0$, Theorem~\ref{thm:streaming22} leads to a randomized streaming algorithm with a memory complexity of $O\left(\log^3 \left( d \log\left(RLn/\delta\eps\right) \right) / \eps^2 \right)$ that succeeds finding a coreset with probability $1-\delta$. The parameter $R$ is the maximum norm of a query. The argument goes through a union bound over an $\eps/L$-net over vectors of norm at most $R$, the size of which is $(RL/\eps)^{O(d)}$.
 
-\paragraph{Note} The Theorem above provides an upper bound of $\sqrt{m}$ for the sign discrepancy. One can in fact construct an example where this upper bound is indeed what the algorithm achieves. However, for real data with vectors clustered together, as one should expect when requiring a density estimation algorithm, we expect this algorithm to perform much better than the worst-case bound. We leave it to future work to define properties of the data that ensure better guarantees by our algorithm.
+\paragraph{Note} Theorem~\ref{thm:disc simple kernel} provides an upper bound of $\sqrt{m}$ for the sign discrepancy. Even if this upper bound is tight, meaning there exist a set of vectors that achieve it, for real data with vectors clustered together, as one should expect when requiring a density estimation algorithm, we expect this algorithm to perform much better than the worst-case bound. We leave it to future work to define properties of the data that ensure better guarantees by our algorithm.
 
 
 \bibliography{density}
@@ -628,6 +627,102 @@ Since we have $H \le log(\eps^2 n)$ such compactors the overall space complexity
 
 Proving Theorem~\ref{thm:streaming12} and Theorem~\ref{thm:streaming22} is more involved. 
 \el{Add the description of the randomized algorithms.}
+
+\zk{define compactor in an algorithm for thm about $\sqrt{m}$}
+
+%%%%%%%%%%%%%%
+%%%
+%%%
+%%%
+%%%%%%%%%%%%%%
+
+
+\section{yet another  Appendix...}
+
+
+The proofs of Theorems \ref{thm:streaming11}, \ref{thm:streaming12}, \ref{thm:streaming21}, and \ref{thm:streaming22} all use the basic concept of a compactor. A compactor consumes a stream of items and outputs another stream. 
+The output stream contains at most half the items from the input stream with double the weight. 
+It does so by keeping a buffer of a certain capacity $m$. When a new item is inserted into the compactor it is added to its buffer. 
+If the buffer is full, a compaction operation takes place. 
+The compaction takes the elements in the buffer $x_1,\ldots,x_m$ and finds a low discrepancy assignment $\sigma$ such that 
+$\max_q |\sum_i \sigma_i f(x_i,q)| \leq m K_m$. 
+Note that such a sequence is guarantied to exist by the definition of the discrepancy. For cases where an algorithm for finding this sequence $\sigma$ is not known, our result applies for the guarantee of the $\sigma$ sequence obtained by the algorithm. That is, if it is possible to obtain a bound of $K_m$ yet we can only find signs obtaining a bound of $\tilde{K}_m$, our results for the obtainable signs apply for $\tilde{K}_m$.
+Given the sign vector $\sigma$, the compactor appends either $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$ to the output stream. 
+
+Consider a stream of data points $x_1,\ldots,x_n$ and the output stream of a compactor $z_1,\ldots,z_{\tilde{n}}$. The error associated with the new stream w.r.t.\ a query $q$ is defined as
+$$ \sum_{i=1}^n f(x_i,q) - 2\sum_j f(z_j,q) \ .$$
+This is the difference between the value of $q$ on the original stream and the output stream. For a compactor we would like to bound both the length of the output stream, and the absolute value of its error.
+
+\begin{lemma} \label{lem:det compactor}
+A deterministic compactor output the smaller of the two sets  $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$. Given an input of length $n$, the output has at most $n/2$ items, and the error of the output stream is bounded in absolute value by $K_m n$
+\end{lemma}
+\begin{proof}
+We note that the argument about the length is obvious, so we proceed to bound the error. Consider a single compaction operation done on $m$ vectors $x_1,\ldots,x_m$. For a query $q$, let $F(q)=\sum_{i=1}^m f(x_i,q)$ be the evaluation on the items of the buffer. Let $\tilde F_{+}$ denote the function evaluated on $\{ x_i | \sigma_i = 1\}_{i=1}^m$ (similarly $\tilde F_{-}$ defined for negative signs). Also, let $E(q) = \sum_{i=1}^m \sigma_i f(x_i,q)$ for the signs $\sigma$ computed by the algorithm above. We have that 
+$$\tilde F_{+}(q) = \sum_{i ,\; \sigma_i=1} 2f(x_i, q) = \sum_{i} f(x_i, q) +  \sum_{i} \sigma_i f(x_i, q) = F(q) + E(q)$$
+$$\tilde F_{-}(q) = \sum_{i ,\; \sigma_i=-1} 2f(x_i, q) = \sum_{i} f(x_i, q) - \sum_{i} \sigma_i f(x_i, q) = F(q) - E(q)$$
+meaning that the error for the items of the single compaction is bounded by
+$$|\tilde F_{\pm}(q) - F(q)| = |E(q)| \le \max_q |\sum_i \sigma_i f(x_i,q)| = mK_m$$
+Summing over all $n/m$ compactions we get that the overall error is bounded, in absolute value, by $nK_m$.
+\end{proof}
+
+Lemma~\ref{lem:det compactor} alone already allow us to prove Theorems~\ref{thm:streaming11} and~\ref{thm:streaming21}. 
+The algorithms are a direct extension the well know MRL algorithm \cite{MRL} for quantile sketching. 
+Note that for quantiles, $f(x,q) = 1$ if $q > x$ and $0$ else. 
+A low discrepancy sequence is achieved simply by sorting the values and assigning $\sigma_i = 1$ for all evenly positioned values in the sorted order and $\sigma_i=-1$ to the odd positions. The above gives a discrepancy of $1/m$ for quantile approximation.
+Below we generalize this algorithm to any low discrepancy class.
+
+\paragraph{Theorem~\ref{thm:streaming11}}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
+\begin{proof}
+Consider feeding the output of the first compactor into a second one etc. Specifically, we start with a single compactor and open a second once it produced any output, then open a third compactor once the second produced output, etc.
+Number the compactors $0,\ldots,H$. The weight of item to compactors $h$ have weight $w_h = 2^h$. The length of the input stream seen by compactor is $n_h \le n/2^h$.
+Each compactor contributes at most $w_h n_h K_m \le n K_m$ error. Moreover since $n_h \le n/2^h$ and compactor number $H-1$ observed at least $m$ items we know that $H \le \floor{log_2(n/m)}+1$.
+The total error is therefore $H n K_m \le O(log(n/m) n K_m)$. 
+Setting $m \ge m_0 = O(c\log(\eps n/c)/\eps)$ and replacing $K_m = c/m$ we get that the error is at most $O(log(n/m) n K_m) \le \eps n$ for appropriate constants in the $O()$ term of $m_0$, as required. 
+Since we have $H = O(log(\eps n/c))$ compactors the overall space complexity is $O(c\log^2(\eps n/c)/\eps)$. 
+\end{proof}
+
+\paragraph{Theorem~\ref{thm:streaming21}}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$. 
+\begin{proof}
+The proof is identical to the one above except for the variable setting of
+Setting $m \ge m_0 = O(c^2\log^2(\eps^2 n/c^2)/\eps^2)$ and replacing $K_m = c/\sqrt{m}$. 
+We get that the error is at most $O(log(n/m) n K_m) \le \eps n$ for appropriate constants in the $O()$ term of $_0$, as required. 
+Since we have $H = O(log(\eps^2 n/c^2))$ such compactors the overall space complexity is $O\left(c^2\log^3(\eps^2 n/c^2) /\eps^2\right)$. 
+\end{proof}
+
+We proceed to prove Theorem~\ref{thm:streaming22}. To understand the motivation consider first an easier setting where the overall stream length $n$ is known to us in advance. Since $|f(x,q)| \leq 1$, standard concentration bounds will show that by sampling each item w.p.\ $\log(1/\delta)/n\eps^2$ we get an output stream of length $\log(1/\delta)/\eps^2$, that for any fixed query $q$, with probability at least $1-\delta$ suffers an error of $\eps n$ for that query. We can feed this output stream into a deterministic sketch, and given that the input length for the deterministic sketch is $\log(1/\delta)/\eps^2$, Theorem~\ref{thm:streaming21} leads to the required guarantee.
+
+Because we do not know the stream length in advance, we operate as in the deterministic case with compactors. The difference will be that each compactor will keep a count of how many items it has seen. Once a compactor observed more than $\tilde{n} = O(\log(1/\delta)/\eps^2)$ items, it will no longer use a buffer of size $m$ but rather a buffer of size 2. For every two items observed it will output a single one uniformly at random. It is easy to see that a sequence of such compactors can in fact be implemented with $O(1)$ memory via reservoir sampling. The memory of this process is therefor identical, at least asymptotically, to
+
+\paragraph{Theorem~\ref{thm:streaming22}}
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
+\begin{proof}
+As in the deterministic setting we maintain a sequence of compactors of levels $h=0,\ldots,H$. Notice that the value of $H$ is increasing as the stream grows longer. Recall that a compactor of level $h$ observes elements of weight $2^h$ and outputs elements of weight $2^{h+1}$. As before we use a buffer of $m$ and get that $H \leq  \floor{log_2(n/m)}+1$.
+The difference is that for a compactor of level $h$, once $h \leq H' = H - \log(\log(1/\delta)/m\eps^2)$, meaning we know that the number of items observed by the $h$'th compactor, $n_h \geq \tilde{n} = O(\log(1/\delta)/\eps^2)$, we change the mode of operation for this compactor. Rather than using a buffer of size $m$ the compactor uses a buffer of size 2 and for every two observed items it outputs one of them uniformly at random.
+
+To analyze the memory requirement, notice that the compactors of levels $h=0,\ldots,H'$ are in fact performing reservoir sampling for every $2^{H'+1}$ items, meaning that they can be implemented in $O(1)$ memory. This means that the overall memory requirement is $O(m\log(\log(1/\delta)/m\eps^2))$. 
+
+As for the error, for the layers of level $h=H'+1,\ldots,H$ we get as in the deterministic case that the error for each is $n K_m$. Let us bound the error for the compactor of level $h \leq H'$. For the first $\tilde{n}$ items it observed, the error is bounded by $2^h\tilde{n}K_m \leq 2^{h-H'}nK_m$. Fix a query $q$; for the items following the first $\tilde{n}$ items the compactor is operating in the sampling mode. For every pair, the associated error w.r.t $q$ is a random variable, of mean zero and absolute value of at most $w_h=2^{h+1}$. There are $(n_h-\tilde{n})/2 \leq n_h$ such pairs and the overall error w.r.t.\ $q$ is the sum of these independent random variables. Chernoff bound implies that with probability $1-\delta$, the overall error is bounded by $E_h = O(w_h\sqrt{n_h\log(1/\delta)})$. Since $n_h \geq \tilde{n}2^{H'-h} = O(2^{H'-h}\log(1/\delta)/\eps^2)$ we get that
+$$ E_h = O\left(2^h n_h\frac{\eps}{2^{(H'-h)/2}}\right) = O(\eps n 2^{(h-H')/2}) $$
+We get that the sum of errors associated with the compactors of level $h=0,\ldots,H'$ for a geometric sequence dominated by the error of the $H'$ compactor, which is in turn $O(\eps n)$. For proper constants in $\tilde{n}$ we get a bound of $\eps n/2$ for the bottom compactors. For a budget of $m = \Omega(c^2(H-H')^2/\eps^2)$ for the buffers of the top compactors we guarantee an overall error of $\eps n/2$ for the top compactors. Since $H-H'$ by definition is 
+$$ H-H' = O(\log(\log(1/\delta)/m\eps^2)) =  O(\log(\log(1/\delta)/c^2(H-H')^2)) $$
+we get that 
+$$ H-H' = O(\log(\log(1/\delta)/c^2)), \ \  m=O(c^2\log^2(\log(1/\delta))/\eps^2) $$
+Plugging in $m$ to the bound on the memory leads to the required claim.
+\end{proof}
+
+\zk{Still missing, Theorem~\ref{thm:streaming12} ...}
+
+
+%%%%%%%%%%%%%%
+%%%
+%%%
+%%%
+%%%%%%%%%%%%%%
+
+
+
 
 \section{Proofs for Section~\ref{sec:sketch}, Sketching Coresets} \label{app:sketch proof}
 
