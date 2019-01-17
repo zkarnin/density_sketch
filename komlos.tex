@@ -120,8 +120,6 @@ The size of the coreset above appears to be intimately tied to the discrepancy p
 
 \section{Discrepancy of a Function Class}
 We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript.
-
-\el{I am thinking about removing the $1/m$ from the definition. Pro: Its cleaner. Con: It's less like the Rademacher complexity. What do you think?}
 \begin{definition}
 Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the discrepancy of $A$ is 
 \[
@@ -341,7 +339,7 @@ The discrepancy of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ 
 \end{corollary}
 
 \begin{corollary}
-The discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$. \el{Is this result new? Hard to say...}
+The discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$.
 \end{corollary}
 
 
@@ -400,7 +398,7 @@ For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner p
 $ K(x,q) = \ip{\phi(x), \phi(q)} $.
 Using this function $\phi$ our objective function becomes
 \[
-|\sum_{i=1}^m \sigma_i K(x_i,q)| = |\sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} | = | \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)}| \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
+|\sum_{i=1}^m \sigma_i K(x_i,q)| = |\sum_{i=1}^m \sigma_i \ip{\phi(x_i), \phi(q)} | = \left| \ip{ \sum_{i=1}^m \sigma_i \phi(x_i), \phi(q)}\right| \leq  \|\phi(q)\| \cdot \left\|  \sum_{i=1}^m \sigma_i \phi(x_i) \right\| 
 \]
 Since $\|\phi(q)\| \leq 1$ we reduced the problem to bounding the norm of $ \sum_{i=1}^m \sigma_i \phi(x_i) $.
 %
