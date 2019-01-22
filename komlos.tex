@@ -101,7 +101,7 @@ This paper makes an explicit connection between low discrepancy, coresets, learn
 \section{Introduction}
 In both machine learning and in streaming and sketching problems our goal is (often) to approximate sums or expectations of well behaved functions.
 Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either sampled training examples or an arbitrary set of stream items. 
-Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn i.i.d.\ from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$. 
+Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn i.i.d.\ from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$ \zk{It seems confusing that we are moving from $f\in \F$ to a universal single function $f$, $f(q,x)$. I'm thinking of calling it $g \in \F$ above and saying the for $\Q \equiv \F$, meaning there is a bijective mapping between them, we have $g(x)=f(q,x)$ for all $x$, for any matching pair $f,q$}. 
 One should think about $q$ as either the model parameters or a query for the sketch. 
 
 The goal is to produce a coreset. This is a set of weights $w$ with at small number of non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
@@ -113,7 +113,7 @@ Moreover, if the resulting coresets are mergeable, this could be done on separat
 For bounded functions $f$, uniform sampling of $O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $O(\log(|\mathcal Q|)/\eps^2)$ items. 
 While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
 %
-We present a mechanism for producing coresets which are much smaller than those achieved by sampling for a large class of problems in a unified manner. 
+We present a mechanism for producing coresets which are much smaller than those achieved by sampling for a large class of problems in a unified manner.  
 Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
 The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
 
@@ -143,9 +143,9 @@ The discrepancy of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is
 K_m(\F) =  \min_{\sigma} \max_{f \in \F}  \left| \frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i)\right|
 \]
 \end{definition}
-The discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
-Throughout the manuscript we assume a one to one mapping between $\F$ and $\Q$. 
-Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$. 
+The discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m\}$ is the upper bound on any subset of $\X$ of size $m$.
+Throughout the manuscript we assume a bijective mapping between $\F$ and $\Q$. 
+Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$ and vice versa. 
 In the context of machine learning, one should think about $f(x,q)$ as the loss associated with example $x$ and model parameters $q$.
 The set $A$ is the set of possible induces losses. Namely, $a\in A$ if there is a model $q$ such $a_i = f(x_i,q)$.
 The equivalence between the definitions is therefore straight forward. 
@@ -158,17 +158,17 @@ Rademacher complexity uses random signs because it measures the effect of data b
 Trivially,  $K_m \le R_m$. We show, however, that $K_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
 
 
-To understand our motivation, consider the following informal explanation of the Radamacher Complexity applied to ML problems. 
-In PAC learning there exists a set of examples (with labels).
+To understand our motivation, consider the following informal explanation of the Rademacher Complexity applied to ML problems. 
+In PAC learning there exists a set of examples (often with labels).
 We aim to find a regressor/classifier from a given family that suffers the least loss on the set. 
-Having a low Radamacher complexity means that we can optimize over a sample of roughly half the examples at random (each w.p.\ $1/2$).
+Having a low Rademacher complexity means that we can optimize over a sample of roughly half the examples at random (each w.p.\ $1/2$).
 Low Rademacher complexity guaranties that, in expectation, twice the loss on the sample is roughly the same as the loss on the entire set.
 This translates to a generalization bound. 
-In other words, the Radamacher complexity gives a guarantee for the loss of coresets chosen uniformly at random.
+In other words, the Rademacher complexity gives a guarantee for the loss of coresets chosen uniformly at random.
 
 Coming back to discrepancy. Having the ability to choose the signs arbitrarily lets us choose an advantageous subset of examples.
 We can algorithmically choose to minimize the induced error and guaranty to have (roughly) the same performance on the entire set. 
-This set is, in fact, a coreset. The discrepancy of a problem helps us determine what coreset sized are possible. 
+This set is, in fact, a coreset. The discrepancy of a problem helps us determine the obtainable coreset size. 
 We will show in the following sections several examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. This will be done by showing that for a wide range of interesting problems in machine learning $K_m(\F) = o(R_m(\F))$.
 This intuition is restated more explicitly in the next section.
 
@@ -219,7 +219,7 @@ For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ the
 
 
 \begin{theorem} \label{thm:streaming22}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(1/\delta) /\eps^2\right)$ \el{$O\left(c^2\log^3\log(n?/\delta) /\eps^2\right)$}whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
+For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(1/\delta) /\eps^2\right)$ \el{$O\left(c^2\log^3\log(n?/\delta) /\eps^2\right)$} \zk{its not a typo - we only need the dependence on $n$ in the case of $K_m=c/m$} whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \end{theorem}
 
 Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provides a coreset for an entire family that matches the non-streaming version up to poly-logarithmic terms.
@@ -235,12 +235,12 @@ In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde 
 \begin{itemize}
 \item coresets - motivation, some papers, streaming algorithms for coresets
 
-\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of any analog to Radamacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability.
+\item Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of any analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability.
 %
 % There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
 
 %
-%\item Radamacher complexity \cite{Bartlett:2003:RGC:944919.944944}, There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
+%\item Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944}, There is literature about the complexity of active learning for the supervised setting but that is out of scope as we deal with the setting where all labels are available, or the problem is unsupervised. For the complexity of coresets, the total sensitivity of the dataset and the VC dimension of the function class is often used as tools for construction \zk{cite something?}. However, to the best of our knowledge there is no clear characterization of the size of coresets based on some complexity measure of the dataset and function class.
 
 \item Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
 $\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds.
@@ -427,7 +427,7 @@ Using the framework above this provides a deterministic coreset construction for
 \paragraph{Note} Theorem~\ref{thm:disc simple kernel} provides an upper bound of $\sqrt{m}$ for the sign discrepancy. 
 This upper bound is tight since there exists a set of vectors that requires it. 
 For data that lends itself to density estimation, however, one should expect input vectors to be clustered together.
-In such cases, the algorithm algorithm above performs much better than the worst-case bound predicts. We leave it to future work to define properties of the data that ensure better guarantees by our algorithm.
+In such cases, the algorithm above performs much better than the worst-case bound predicts. We leave it to future work to define properties of the data that ensure better guarantees by our algorithm.
 \bibliography{density}
 
 
@@ -467,7 +467,7 @@ In such cases, the algorithm algorithm above performs much better than the worst
 %%\el{this is clunky way to say this...}
 %The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. Moreover, the output length is a sum of $n/k$ independent random variables with mean $k/2$ and a maximum value of $k$. Chernoff-Hoeffding's bound can guarantee the stated concentration around $\E[m]$.
 %As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
-%$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
+%$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Rademacher r.v. scaled by a magnitude of at most $K_k$ as required.
 %\end{proof}
 %
 %Notice in the above lemma the last property of the streaming algorithm; it ensures that deterministically $|\text{Err}(q)| \leq (K_k/k) n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
@@ -683,7 +683,9 @@ For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ the
 \begin{proof}
 Consider feeding the output of the first compactor into a second one etc. Specifically, we start with a single compactor and open a second once it produced any output, then open a third compactor once the second produced output, etc.
 Number the compactors $0,\ldots,H$. The weight of items given to compactors $h$ have weight $w_h = 2^h$. The length of the input stream seen by compactor is $n_h \le n/2^h$.
-Each compactor contributes at most $w_h n_h K_m \le n K_m$ error. Moreover since $n_h \le n/2^h$ \el{and compactor number $H-1$ observed at least $m$ items we know that $H \le \floor{log_2(n/m)}+1$. TODO: Not sure this is going in the right direction...}
+Each compactor contributes at most $w_h n_h K_m \le n K_m$ error. Moreover since the $H-1$ layer had outputs, we must have $m \leq n_{H-1}$ and
+$$  \log_2(m) \leq \log_2(n_{H-1}) \leq \log_2(n) - (H-1)$$
+leading to a bound $H \le \floor{log_2(n/m)}+1$.
 The total error is therefore $H n K_m \le O(log(n/m) n K_m)$. 
 Setting $m \ge m_0 = O(c\log(\eps n/c)/\eps)$ and replacing $K_m = c/m$ we get that the error is at most $O(log(n/m) n K_m) \le \eps n$ for appropriate constants in the $O()$ term of $m_0$, as required. 
 Since we have $H = O(log(\eps n/c))$ compactors the overall space complexity is $O(c\log^2(\eps n/c)/\eps)$. 
@@ -830,7 +832,7 @@ Since there are $O(\log\log(n/\delta))$ such layers, we conclude that for $m=\Om
 %%\el{this is clunky way to say this...}
 %The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. Moreover, the output length is a sum of $n/k$ independent random variables with mean $k/2$ and a maximum value of $k$. Chernoff-Hoeffding's bound can guarantee the stated concentration around $\E[m]$.
 %As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
-%$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
+%$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Rademacher r.v. scaled by a magnitude of at most $K_k$ as required.
 %\end{proof}
 %
 %Notice in the above lemma the last property of the streaming algorithm; it ensures that deterministically $|\text{Err}(q)| \leq (K_k/k) n$, and that w.h.p.\ (via Chernoff's inequality) for a fixed $q$ 
