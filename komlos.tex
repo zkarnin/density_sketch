@@ -300,7 +300,7 @@ $$\psi(x) = \left[x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}
 
 
 We are now ready to apply Banaszczyk's theorem. 
-There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$.
+There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$, meaning $\|\psi\|_T \leq C$.
 Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that 
 $$\max_k \frac{\|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k}}{\sqrt{k \log^{3}(k)}} \le O\left( \sqrt{d} \right)$$
 \end{proof}
@@ -411,7 +411,7 @@ Using our induction assumption we get
 \begin{eqnarray*}
 \left\| \sum_{j=1}^{i}\sigma_j \phi(x_j)\right\|^2 &=& \left\|\sum_{j=1}^{i-1}\sigma_j \phi(x_j)\right\|^2 + \|\phi(x_i)\|^2 + 2\ip{ \sum_{j=1}^{i-1}\sigma_j \phi(x_j), \sigma_i \phi(x_i)} \\
 &\le& \sum_{j=1}^{i-1} \|\phi(x_j)\|^2 + \|\phi(x_i)\|^2 + 2\sigma_i \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)\\
-&\le& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2|\sum_{j=1}^{i-1}\sigma_j K(x_j, x_i)| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2 \\
+&=& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2\left| \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i) \right| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2 \\
 \end{eqnarray*}
 The first equality simply unpacks the squared vector norm, the second transition is due to the induction assumption and the last substitutes our choice of %$\sigma$. This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \sqrt{m}$ for all $q$.
 \end{proof}
