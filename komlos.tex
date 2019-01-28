@@ -53,6 +53,7 @@
 
 \newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
 \newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
 
 %\newcommand{\zk}[1]{}
 %\newcommand{\el}[1]{}
@@ -88,9 +89,8 @@
 \maketitle
 
 \begin{abstract}
-This paper defines the discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets.
-We provide general techniques for bounding the discrepancy of machine learning problems and specifically do so for matrix covariance approximation, logistic regression, kernel density and any analytic function of the dot product or the squared distance.
-Our result resolves a long standing open question regarding minimal cardinality coresets for Gaussian kernel density estimation.  
+This paper defines the notion of class discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets. We provide general techniques for bounding the discrepancy of machine learning problems and specifically do so for matrix covariance approximation, logistic regression, kernel density and any analytic function of the dot product or the squared distance.
+Our result resolves a long standing open question regarding the coreset complexity of Gaussian kernel density estimation.  
 We provide two more related but independent results. 
 First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
 Second, an extremely simple algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
@@ -118,37 +118,42 @@ Moreover, our solution creates streaming algorithms with fully mergeable sketche
 The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
 
 
-\section{Discrepancy of a Function Class}
+\section{Class Discrepancy and Coreset Discrepancy}
+
+\todo{Write short intro for this section}
+\subsection{Class Discrepancy}
 We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript.
 
-\begin{definition}
-Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the discrepancy of $A$ is 
+\begin{definition}[\bf Class Discrepancy] \label{cd1}
+Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the class discrepancy of $A$ is 
 \[
-K_m(A)  = \min_\sigma \max_{a\in A} \left| \frac{1}{m} \sum_i  \sigma_i  a_i\right| 
+K_m(A)  = \min_\sigma \max_{a\in A} \left| \frac{1}{m} \sum_{i=1}^{m}  \sigma_i  a_i\right| 
 \]
 \end{definition}
 %
-\begin{definition}
+\begin{definition}[\bf Class Discrepancy]\label{cd2}
 Let $f:\X,\Q\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
-The discrepancy of $f$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+The class discrepancy of $f$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
 K_m(f) =  \min_{\sigma} \max_{q \in \Q}  \left|\frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i,q)\right|
 \]
 \end{definition}
 %
-\begin{definition}
+\begin{definition}[\bf Class Discrepancy]\label{cd3}
 Let $\F$ be a family of functions $f:\X\rightarrow\R$ and $\sigma \in \{-1,1\}^m$. 
-The discrepancy of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
+The class discrepancy of $\F$ w.r.t.\ $\{x_1,\ldots,x_m\} \subset \X$ is 
 \[
 K_m(\F) =  \min_{\sigma} \max_{f \in \F}  \left| \frac{1}{m} \sum_{i=1}^{m}\sigma_i f(x_i)\right|
 \]
 \end{definition}
-The discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
+The class discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m\}$ is the upper bound on any such set.
 Throughout the manuscript we assume a one to one mapping between $\F$ and $\Q$. 
-Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$. 
+Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$.
 In the context of machine learning, one should think about $f(x,q)$ as the loss associated with example $x$ and model parameters $q$.
-The set $A$ is the set of possible induces losses. Namely, $a\in A$ if there is a model $q$ such $a_i = f(x_i,q)$.
-The equivalence between the definitions is therefore straight forward. 
+Definitions~\ref{cd2} and \ref{cd3} are therefore equivalent. 
+For the equivalence of Definition~\ref{cd1}, the set $A$ should be thought of as the set of possible induces losses. 
+Namely, $a\in A$ if there is a model $q$ such $a_i = f(x_i,q)$.
+The three equivalent definitions between the definitions is therefore straight forward. 
 
 
 These definition are very similar to the Rademacher complexity $R_m(\F)$.
@@ -168,63 +173,86 @@ In other words, the Radamacher complexity gives a guarantee for the loss of core
 
 Coming back to discrepancy. Having the ability to choose the signs arbitrarily lets us choose an advantageous subset of examples.
 We can algorithmically choose to minimize the induced error and guaranty to have (roughly) the same performance on the entire set. 
-This set is, in fact, a coreset. The discrepancy of a problem helps us determine what coreset sized are possible. 
+This set is, in fact, a coreset. The class discrepancy of a problem helps us determine what coreset sized are possible. 
 We will show in the following sections several examples for which a coreset can be significantly smaller than the random sample while maintaining the same guarantees. This will be done by showing that for a wide range of interesting problems in machine learning $K_m(\F) = o(R_m(\F))$.
 This intuition is restated more explicitly in the next section.
 
-\subsection{General Framework for Coresets}
-In what follows it will be convenient to use the notation $f(x,q)$ and consider $K_m(f)$.
-%
-%to represent the function family as a family of vectors representing the functions. The vector family will be denoted as $Q$, where we use $q$ to denote a single vector corresponding to a function. We a universal function $f$ such that $f(x,q)$ corresponds to the value of the function matching $q$ when applied to $x$. We will assume from hereon that for any $x,q$ $|f(x,q)| \leq 1$; this allows to simplify the presentation. Our results can extend to $|f(x,q)| \leq R$ and will have dependencies on the bound $R$. Achieving these bounds is a purely technical task that we defer for the sake of readability. 
-Consider the function $F(q) = \sum_{i=1}^{m} f(x_i,q)$ and the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
-Now consider $\tilde F_{+}(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $\tilde F_{-}(q) = F(q) - E(q)  =  \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. We have that both $\tilde F_{+}(q)$ and $\tilde F_{-}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|\tilde F_{\pm}(q)- F(q)| =  |E(q)|$.
+\subsection{Coreset Complexity}
+Here, we point out a direct connection between Coreset Complexity and Class Discrepancy.
+The connection is a direct application of the folklore argument know as the ``the halving trick".
 
-%
-The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
-Note that we can select signs such that $|E(q)| \le m K_m(f)$.
-The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$.
-The constant $c$ does not depend on $m$ but could depend on other parameters of the problem. 
+\begin{definition} [\bf Coreset Complexity] For a function $f:\X,\Q\rightarrow \R$ let $F(q) = \sum_{i=1}^{m} f(x_i,q)$ for a any set $\{x_1,\ldots,x_m\} \subset \X$.
+For a set $S \subset [m]$ let $\tilde F(q) = \sum_{i \in S}w_i f(x_i,q)$ for some $w\in\R_+^m$ which is independent of $q$.
+The Coreset Complexity of $f$ is the size of the smallest set $S$ such that $\forall q \in \Q \; |F(q)  - \tilde F(q)| \le \eps m$.
+\end{definition}
 
+\noindent The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$.
 \begin{fact}
-Let $f$ be a function with a corresponding discrepancy $K_m(f) = O(c/m)$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c/\eps)$ whose error is at most $\eps n$.
+Any function $f$ with Class Discrepancy $K_m(f) = O(c/m)$ has Coreset Complexity of $f$ $O(c/\eps)$.
+The constant $c$ does not depend on $m$.
 \end{fact}
 \begin{fact}
-Let $f$ be a function with a corresponding discrepancy $K_m(f) = O(c/\sqrt{m})$. Let $F(q) = \sum_{i=1}^{n}f(x_i, q)$. There exists a coreset for $F$ of size $O(c^2/\eps^2)$ whose error is at most $\eps n$.
+Any function $f$ with Class Discrepancy $K_m(f) = O(c/\sqrt{m})$ has Coreset Complexity $O(c^2/\eps^2)$.
+The constant $c$ does not depend on $m$.
 \end{fact}
+\begin{proof}
+\noindent 
 
-\noindent Proving both facts is trivial and known in the folklore as ``the halving trick". 
+Consider the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
+Now consider $\tilde F_{+}(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $\tilde F_{-}(q) = F(q) - E(q)  =  \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. We have that both $\tilde F_{+}(q)$ and $\tilde F_{-}(q)$ are approximations for $F(q)$ obtained by coresets of item weights of $2$ and an error at most $|\tilde F_{\pm}(q)- F(q)| =  |E(q)|$. The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
+By Definition we can select signs such that $|E(q)| \le m K_m(f)$.
+
+Naturally, one could iterate this process.
 At step one, create a coreset of size at most $n/2$ of items of weight $2$ and incur an error of at most $c$ or $c \sqrt{n}$.
-Then, we repeat the process and create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c$ or $2c\sqrt{n/2}  = c\sqrt{2n}$.
+Then, create a coreset of size $n/4$ of items of weight $4$. Here, you incur error of $2c$ or $2c\sqrt{n/2}  = c\sqrt{2n}$.
 Note that the sum of errors is a geometric sequence that is asymptotically dominated by its last element. 
 Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respectively achieves the goal.
+\end{proof}
+
+\subsection{Streaming Coreset Complexity}\label{sec:sketch}
+We claim that low Class Discrepancy implies concise streaming mergeable coresets as well. 
+%
+\begin{definition} [\bf Streaming Coreset Algorithm] 
+A streaming coreset algorithm for $f:\X,\Q \rightarrow \R$ receives and arbitrary set $\{x_1,\ldots,x_m\} \subset \X$ one item after the other.
+At time $t \le m$, the algorithm maintains a subset $S_t \subset \{x_1,\ldots,x_t\}$ and uses at most $O(|S_t|)$ auxiliary memory. 
+At the end of the stream, the algorithm must output $S$ and $w$ such that  $\forall q \in \Q \; |F(q)  - \tilde F(q)| \le \eps m$ where 
+$F(q) = \sum_{i=1}^{m} f(x_i,q)$ and $\tilde F(q) = \sum_{i \in S}w_i f(x_i,q)$.
+The size of the streaming coreset is $\max_t |S_t|$.
+\end{definition}
+
+\begin{definition} [\bf Streaming Coreset Complexity] 
+The Streaming Coreset Complexity for $f:\X,\Q \rightarrow \R$ is the minimal streaming coreset size among all possible 
+streaming coreset algorithms for $f$.
+\end{definition}
 
 
-
-\subsection{General Framework for Sketching}\label{sec:sketch}
-We claim that low discrepancy implies concise streaming mergeable coresets as well. 
-Surprisingly, the space complexity of the streaming algorithms is only poly-logarithmically larger than the best offline coreset.
-This section assumes access to an algorithm for finding low discrepancy signs $\sigma$.
+\noindent Surprisingly, we give upper bounds on streaming coreset complexities for functions which are only poly-logarithmically larger than their offline coreset complexities. %This section assumes access to an algorithm for finding low discrepancy signs $\sigma$.
 
 \begin{theorem} \label{thm:streaming11}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
+Any function $f$ with Class Discrepancy $K_m(f) = O(c/m)$ has Streaming Coreset Complexity of $O\left(c\log^2(\eps n/c)/\eps\right)$.
+The constant $c$ does not depend on $m$.
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming21}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
+Any function $f$ with Class Discrepancy $K_m = O(c/\sqrt{m})$ has Streaming Coreset Complexity of $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$.
+The constant $c$ does not depend on $m$.
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming12}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset randomized algorithm of size $O\left(c\log^2\log(n/\delta)/\eps\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
+Any function $f$ with Class Discrepancy $K_m(f) = O(c/m)$ has Streaming Coreset Complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
+The constant $c$ does not depend on $m$, $Q_\eps$ is an epsilon net for $f$ on $\Q$. 
+The streaming coreset algorithm is randomized and fails with probability at most $\delta$.
 \end{theorem}
-
 
 \begin{theorem} \label{thm:streaming22}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(1/\delta) /\eps^2\right)$ \el{$O\left(c^2\log^3\log(n?/\delta) /\eps^2\right)$}whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
+Any function $f$ with Class Discrepancy $K_m(f) = O(c/\sqrt{m})$ has Streaming Coreset Complexity of $O\left(c^2\log^3\log(|Q_\eps|/\delta) /\eps^2\right)$.
+The constant $c$ does not depend on $m$, $Q_\eps$ is an epsilon net for $f$ on $\Q$. 
+The streaming coreset algorithm is randomized and fails with probability at most $\delta$.
 \end{theorem}
 
-Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provides a coreset for an entire family that matches the non-streaming version up to poly-logarithmic terms.
+%Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provides a coreset for an entire family that matches the non-streaming version up to poly-logarithmic terms.
 
-The algorithms must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
+The algorithms above must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
 The proofs of the above two theorems are quite technical and delegated to Appendix~\ref{app:sketch proof}. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
 In the last section we argued that $\tilde F_{+}$ and $\tilde F_{-}$ are both good approximations for $F$. 
 We can also take $\tilde F_{\pm}$ which is $\tilde F_{+}$ or $\tilde F_{-}$ equally likely. 
@@ -254,11 +282,11 @@ $\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For th
 
 
 
-\section{The Complexity of Analytic Functions of Dot Products} \label{sec:analytic}
+\section{Class Discrepancy of Analytic Functions of Dot Products} \label{sec:analytic}
 
-Now that we proved the usefulness of discrepancy we move to upper bound it for common family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or squared Euclidean distance $\|q-x\|^2$. 
+Now that we proved the usefulness of low discrepancy, we move to upper bound it for common family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or squared Euclidean distance $\|q-x\|^2$. 
 
-The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
+The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. \todo{Can we say the same for $1/(1 + \exp(\ip{q,x}))$. It might be more interesting than the logistic loss cos it's not convex...}
 
 
 We start with some notation and trivial properties. 
@@ -464,7 +492,7 @@ In such cases, the algorithm algorithm above performs much better than the worst
 %%$$ \sum_i \sigma_i f(x_i, q) = \sum_i \sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in P} f(x_i,q) - \sum_i f(x_i, q)   $$
 %%$$ -\sum_i \sigma_i f(x_i, q) = \sum_i -\sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
 %%Thus, we draw a random coin and either output to the stream the data points of $P$ or $N$. We call this operation a single compaction. 
-%%\el{this is clunky way to say this...}
+%%\todo{this is clunky way to say this...}
 %The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. Moreover, the output length is a sum of $n/k$ independent random variables with mean $k/2$ and a maximum value of $k$. Chernoff-Hoeffding's bound can guarantee the stated concentration around $\E[m]$.
 %As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
 %$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
@@ -620,7 +648,7 @@ In such cases, the algorithm algorithm above performs much better than the worst
 %Each compactor contributes at most $w_h n_h K_m \le n K_m$ error. Moreover since $n_h \le n/2^h$ we know that $H \le log(n/m)$.
 %The total error is therefore $H n K_m \le log(n/m) n K_m$. 
 %Setting $m \ge c\log(\eps n/c)/\eps$ and replacing $K_m = c/m$ we get that the error is at most $log(n/m) n K_m \le \eps n$ as required. 
-%Since we have $H \le log(\eps n)$ such compactors the overall space complexity is $O(c\log^2(\eps n/c)/\eps)$. \el{TODO: double check the math.}
+%Since we have $H \le log(\eps n)$ such compactors the overall space complexity is $O(c\log^2(\eps n/c)/\eps)$. \todo: double check the math.}
 %\end{proof}
 %
 %\paragraph{Theorem~\ref{thm:streaming21}}
@@ -629,11 +657,11 @@ In such cases, the algorithm algorithm above performs much better than the worst
 %The proof is identical to the one above except for the variable setting of
 %Setting $m \ge c^2\log^2(\eps^2 n/c^2)/\eps^2$ and replacing $K_m = c/\sqrt{m}$. 
 %We get that the error is at most $log(n/m) n K_m \le \eps n$ as required. 
-%Since we have $H \le log(\eps^2 n)$ such compactors the overall space complexity is $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$. \el{TODO: double check the math.}
+%Since we have $H \le log(\eps^2 n)$ such compactors the overall space complexity is $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$. \todo: double check the math.}
 %\end{proof}
 %
 %Proving Theorem~\ref{thm:streaming12} and Theorem~\ref{thm:streaming22} is more involved. 
-%\el{Add the description of the randomized algorithms.}
+%\todo{Add the description of the randomized algorithms.}
 %
 %\zk{define compactor in an algorithm for thm about $\sqrt{m}$}
 
@@ -683,7 +711,7 @@ For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ the
 \begin{proof}
 Consider feeding the output of the first compactor into a second one etc. Specifically, we start with a single compactor and open a second once it produced any output, then open a third compactor once the second produced output, etc.
 Number the compactors $0,\ldots,H$. The weight of items given to compactors $h$ have weight $w_h = 2^h$. The length of the input stream seen by compactor is $n_h \le n/2^h$.
-Each compactor contributes at most $w_h n_h K_m \le n K_m$ error. Moreover since $n_h \le n/2^h$ \el{and compactor number $H-1$ observed at least $m$ items we know that $H \le \floor{log_2(n/m)}+1$. TODO: Not sure this is going in the right direction...}
+Each compactor contributes at most $w_h n_h K_m \le n K_m$ error. Moreover since $n_h \le n/2^h$ \todo{and compactor number $H-1$ observed at least $m$ items we know that $H \le \floor{log_2(n/m)}+1$. TODO: Not sure this is going in the right direction...}
 The total error is therefore $H n K_m \le O(log(n/m) n K_m)$. 
 Setting $m \ge m_0 = O(c\log(\eps n/c)/\eps)$ and replacing $K_m = c/m$ we get that the error is at most $O(log(n/m) n K_m) \le \eps n$ for appropriate constants in the $O()$ term of $m_0$, as required. 
 Since we have $H = O(log(\eps n/c))$ compactors the overall space complexity is $O(c\log^2(\eps n/c)/\eps)$. 
@@ -694,13 +722,13 @@ For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m
 \begin{proof}
 The proof is identical to the one above except for the variable setting of
 Setting $m \ge m_0 = O(c^2\log^2(\eps^2 n/c^2)/\eps^2)$ and replacing $K_m = c/\sqrt{m}$. 
-We get that the error is at most $O(log(n/m) n K_m) \le \eps n$ for appropriate constants in the $O()$ term of $_0$, as required. 
+We get that the error is at most $O(log(n/m) n K_m) \le \eps n$ for appropriate constants in the big-$O$ term of $m_0$, as required. 
 Since we have $H = O(log(\eps^2 n/c^2))$ such compactors the overall space complexity is $O\left(c^2\log^3(\eps^2 n/c^2) /\eps^2\right)$. 
 \end{proof}
 
 We proceed to prove Theorem~\ref{thm:streaming22}. To understand the motivation consider first an easier setting where the overall stream length $n$ is known to us in advance. Since $|f(x,q)| \leq 1$, standard concentration bounds will show that by sampling each item w.p.\ $\log(1/\delta)/n\eps^2$ we get an output stream of length $\log(1/\delta)/\eps^2$, that for any fixed query $q$, with probability at least $1-\delta$ suffers an error of $\eps n$ for that query. We can feed this output stream into a deterministic sketch, and given that the input length for the deterministic sketch is $\log(1/\delta)/\eps^2$, Theorem~\ref{thm:streaming21} leads to the required guarantee.
 
-Because we do not know the stream length in advance, we operate as in the deterministic case with compactors. The difference will be that each compactor will keep a count of how many items it has seen. Once a compactor observed more than $\tilde{n} = O(\log(1/\delta)/\eps^2)$ items, it will no longer use a buffer of size $m$ but rather a buffer of size 2. For every two items observed it will output a single one uniformly at random. It is easy to see that a sequence of such compactors can in fact be implemented with $O(1)$ memory via reservoir sampling. The memory of this process is therefor identical, at least asymptotically, to
+Because we do not know the stream length in advance, we operate as in the deterministic case with compactors. The difference will be that each compactor will keep a count of how many items it has seen. Once a compactor observed more than $\tilde{n} = O(\log(1/\delta)/\eps^2)$ items, it will no longer use a buffer of size $m$ but rather a buffer of size 2. For every two items observed it will output one of them uniformly at random. It is easy to see that a sequence of such compactors can in fact be implemented with $O(1)$ memory via reservoir sampling. The memory of this process is therefor identical, at least asymptotically, to the above.
 
 \paragraph{Theorem~\ref{thm:streaming22}}
 For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
@@ -815,7 +843,7 @@ Since there are $O(\log\log(n/\delta))$ such layers, we conclude that for $m=\Om
 %Note that signs achieving $max_q \left| \sum_{i=1}^{m} \sigma_i f(x_i, q)\right| \leq K_m$ are guarantied to exist by the definition of the discrepancy. In fact, the quantity above is potentially much smaller than its upper bound because it is computed for a specific set of points $x_i$ as opposed to the worst such possible set. 
 %
 %
-%\el{changed notation until here...}
+%\todo{changed notation until here...}
 %\begin{proof}
 %The algorithm operates as follows. It keeps a buffer of $k$ items. Once the buffer fills with $x_1,\ldots,x_k$ it obtains the signs guaranteeing
 %$$\max_q \left| \sum_i \sigma_i f(x_i, q)\right| \leq K_k$$
@@ -827,7 +855,7 @@ Since there are $O(\log\log(n/\delta))$ such layers, we conclude that for $m=\Om
 %%$$ \sum_i \sigma_i f(x_i, q) = \sum_i \sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in P} f(x_i,q) - \sum_i f(x_i, q)   $$
 %%$$ -\sum_i \sigma_i f(x_i, q) = \sum_i -\sigma_i f(x_i, q) + \sum_i f(x_i,q) - \sum_i f(x_i,q) = 2\sum_{i \in N} f(x_i,q) - \sum_i f(x_i, q)   $$
 %%Thus, we draw a random coin and either output to the stream the data points of $P$ or $N$. We call this operation a single compaction. 
-%%\el{this is clunky way to say this...}
+%%\todo{this is clunky way to say this...}
 %The expected output length is $k/2$ for every $k$ inputs, insuring $\E[m]=n/2$. Moreover, the output length is a sum of $n/k$ independent random variables with mean $k/2$ and a maximum value of $k$. Chernoff-Hoeffding's bound can guarantee the stated concentration around $\E[m]$.
 %As for the error term w.r.t.\ a fixed query $q$, it is clearly the sum of errors accumulated in each compaction. The error incurred in a compaction is either 
 %$\sum_i \sigma_i f(x_i, q)$ or $-\sum_i \sigma_i f(x_i, q)$ with equal probability. It follows that it is a Radamacher r.v. scaled by a magnitude of at most $K_k$ as required.
