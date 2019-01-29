@@ -113,14 +113,14 @@ Generating a concise representation $\tilde F$ for $F$ allows one to optimize ov
 Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
 
 For bounded functions $f$, uniform sampling of $O(\log(1/\delta)/\eps^2)$ combined with a union bound over $|\mathcal Q|$ always provides a valid solution using $O(\log(|\mathcal Q|)/\eps^2)$ items. 
-While $|\mathcal Q|$ is often infinite it reduces to a finite (albeit usually exponentially large) set through standard epsilon net arguments. 
+While $|\mathcal Q|$ is often infinite it can be replaced by a finite (albeit usually exponentially large) epsilon net $Q_\eps$. 
 %
 We present a mechanism for producing coresets which are much smaller than those achieved by sampling for a large class of problems in a unified manner.  
-Moreover, our solution creates streaming algorithms with fully mergeable sketches. 
-The size of the coreset above appears to be intimately tied to the discrepancy properties of the associated functions.
+Moreover, our solutions create streaming algorithms with fully mergeable sketches. 
+The size of the coreset above appears to be intimately tied to the class discrepancy properties of the associated functions.
 
 
-\section{Class Discrepancy and Coreset Discrepancy}
+\section{Class Discrepancy and Coreset Complexity}
 
 \todo{Write short intro for this section}
 \subsection{Class Discrepancy}
@@ -191,11 +191,11 @@ The coreset complexity of $f$ is the size of the smallest set $S$ such that $\fo
 \end{definition}
 
 \noindent The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$.
-\begin{fact}
+\begin{fact}\label{fct:eps1}
 Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has coreset complexity of $f$ $O(c/\eps)$.
 The constant $c$ does not depend on $m$.
 \end{fact}
-\begin{fact}
+\begin{fact}\label{fct:eps2}
 Any function $f$ with class discrepancy $K_m(f) = O(c/\sqrt{m})$ has coreset complexity $O(c^2/\eps^2)$.
 The constant $c$ does not depend on $m$.
 \end{fact}
@@ -210,6 +210,9 @@ Then, create a coreset of size $n/4$ of items of weight $4$. Here, you incur err
 Note that the sum of errors is a geometric sequence that is asymptotically dominated by its last element. 
 Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respectively achieves the goal.
 \end{proof}
+
+Notice that these bounds are (asymptotically) tight in the context of unweighted coresets. Taking for example the bound of Fact~\ref{fct:eps1}, we can guarantee the existence of an unweighted coreset of size $c/\eps$, then for $m$ items a coreset of size $m/2$ provides a sign assignment with an error of $\eps=2c/m$, leading to an upper bound of $O(c/m)$ on the class discrepancy.
+
 
 \subsection{Streaming Coreset Complexity}\label{sec:sketch}
 We claim that low class discrepancy implies concise streaming mergeable coresets as well. 
@@ -228,7 +231,8 @@ streaming coreset algorithms for $f$.
 \end{definition}
 
 
-\noindent Surprisingly, we give upper bounds on streaming coreset complexities for functions which are only poly-logarithmically larger than their offline coreset complexities. %This section assumes access to an algorithm for finding low discrepancy signs $\sigma$.
+%\noindent Surprisingly, we give upper bounds on streaming coreset complexities for functions which are only poly-logarithmically larger than their offline coreset complexities. %This section assumes access to an algorithm for finding low discrepancy signs $\sigma$.
+\noindent The following statements upper bound streaming coreset complexities for functions. Surprisingly, these bound are only poly-logarithmically larger than their offline counterparts. 
 
 \begin{theorem} \label{thm:streaming11}
 Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2(\eps n/c)/\eps\right)$.
@@ -239,6 +243,8 @@ The constant $c$ does not depend on $m$.
 Any function $f$ with class discrepancy $K_m = O(c/\sqrt{m})$ has streaming coreset complexity of $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$.
 The constant $c$ does not depend on $m$.
 \end{theorem}
+
+\noindent In the stream setting we can achieve smaller coresets via a randomized approach. Our argument go through a union bound over a $\eps$-net for $\Q$ we denote by $Q_\eps$, meaning a finite subset of $\Q$ such that for every $q \in \Q$ there exist some $\tilde{q} \in Q_\eps$ for which $\sup_{x \in \X} |f(q,x) - f(\tilde{q},x)| < \eps$. We note that although the size $|Q_\eps|$ is often exponential in the input size, our dependence over the failure probability is \emph{doubly} logarithmic, hence the extra log terms are still logarithmic in the input size.
 
 \begin{theorem} \label{thm:streaming12}
 Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
@@ -255,11 +261,11 @@ The streaming coreset algorithm is randomized and fails with probability at most
 %Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provides a coreset for an entire family that matches the non-streaming version up to poly-logarithmic terms.
 
 The algorithms above must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
-The proofs of the above two theorems are quite technical and delegated to Appendix~\ref{app:sketch proof}. Most of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}. Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
+The proofs of the above two theorems are quite technical and delegated to Appendix~\ref{app:sketch proof}. Although many of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}, generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
 In the last section we argued that $\tilde F_{+}$ and $\tilde F_{-}$ are both good approximations for $F$. 
 We can also take $\tilde F_{\pm}$ which is $\tilde F_{+}$ or $\tilde F_{-}$ equally likely. 
 Clearly $|\tilde F_{\pm} - F| \le |E|$ as before. But now, $\E[\tilde F_{\pm}] = F$ as well. 
-In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times over small subsets of items from the stream. This allows us to use concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $\tilde F_{\pm}$ no longer has exactly half the size $F$. In the general setting, this only true in expectation.
+In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times over small subsets of items from the stream. This allows us to use concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $\tilde F_{\pm}$ no longer has exactly half the size $F$. In the general setting, this only holds in expectation.
 
 \section{Related Work}
 \begin{itemize}
