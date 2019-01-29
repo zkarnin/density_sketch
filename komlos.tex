@@ -212,8 +212,8 @@ For a function $f:\X,\Q\rightarrow \R$ let $F(q) = \sum_{i=1}^{m} f(x_i,q)$ for 
 For a set $S \subset [m]$ let $\tilde F(q) = \sum_{i \in S}w_i f(x_i,q)$ for some $w\in\R_+^m$ which is independent of $q$.
 The coreset complexity of $f$ is the size of the smallest set $S$ such that $\forall q \in \Q \; |F(q)  - \tilde F(q)| \le \eps m$.
 \end{definition}
-
 \noindent The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$.
+\todo{add citation to jeff's thesis}.
 \begin{fact}\label{fct:eps1}
 Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has coreset complexity of $f$ $O(c/\eps)$.
 The constant $c$ does not depend on $m$.
@@ -259,15 +259,19 @@ streaming coreset algorithms for $f$.
 
 \begin{theorem} \label{thm:streaming11}
 Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2(\eps n/c)/\eps\right)$.
-The constant $c$ does not depend on $m$.
+%The constant $c$ does not depend on $m$.
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming21}
 Any function $f$ with class discrepancy $K_m = O(c/\sqrt{m})$ has streaming coreset complexity of $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$.
-The constant $c$ does not depend on $m$.
+%The constant $c$ does not depend on $m$.
 \end{theorem}
 
-\noindent In the stream setting we can achieve smaller coresets via a randomized approach. Our argument go through a union bound over a $\eps$-net for $\Q$ we denote by $Q_\eps$, meaning a finite subset of $\Q$ such that for every $q \in \Q$ there exist some $\tilde{q} \in Q_\eps$ for which $\sup_{x \in \X} |f(q,x) - f(\tilde{q},x)| < \eps$. We note that although the size $|Q_\eps|$ is often exponential in the input size, our dependence over the failure probability is \emph{doubly} logarithmic, hence the extra log terms are still logarithmic in the input size.
+\noindent In the stream setting we can achieve smaller coresets via a randomized approach. 
+Our argument goes through a union bound over an $\eps$-net for $\Q$ which we denote by $Q_\eps$, meaning a finite subset of $\Q$ such that for every $q \in \Q$ there exist some $\tilde{q} \in Q_\eps$ for which $\sup_{x \in \X} |f(q,x) - f(\tilde{q},x)| < \eps$. 
+We note that the size $|Q_\eps|$ is often exponential in the problem parameters. 
+Nevertheless, our dependence on the failure probability is \emph{doubly} logarithmic. 
+This means the dependence on the problem parameters is still only polylogarithmic.
 
 \begin{theorem} \label{thm:streaming12}
 Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
