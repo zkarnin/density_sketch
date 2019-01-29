@@ -100,12 +100,14 @@ This paper makes an explicit connection between low discrepancy, coresets, learn
 
 \section{Introduction}
 In both machine learning and in streaming and sketching problems our goal is (often) to approximate sums or expectations of well behaved functions.
-Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \mathcal X$ are either sampled training examples or an arbitrary set of stream items. 
-Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn i.i.d.\ from underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \mathcal Q$ to index into $\F$ explicitly $F(q) = \sum_{i=1}^{n} f(x_i, q)$ \zk{It seems confusing that we are moving from $f\in \F$ to a universal single function $f$, $f(q,x)$. I'm thinking of calling it $g \in \F$ above and saying the for $\Q \equiv \F$, meaning there is a bijective mapping between them, we have $g(x)=f(q,x)$ for all $x$, for any matching pair $f,q$}. 
+Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \X$ are either sampled training examples or an arbitrary set of stream items. 
+Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn i.i.d.\ from an underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \Q$ to index into $\F$ explicitly. 
+In other words, there is a bijective mapping between $\Q \equiv \F$ such that $f(x) \in \F$ iff there exists $q\in\Q$ such that $f(x,q)=f(x)$.
+We keep using the two different functions $f:\X\rightarrow\R$ and $f:\X,\Q\rightarrow\R$ interchangeably. 
 One should think about $q$ as either the model parameters or a query for the sketch. 
 
-The goal is to produce a coreset. This is a set of weights $w$ with at small number of non-zeros such that $\sum_{i=1}^{n}w_i f(x_i,q) := \tilde F(q)$ approximates $F(q)$.
-Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all $q \in \mathcal Q$ simultaneously or for every fixed $q$ with probability at least $1-\delta$. 
+The goal is to produce a coreset. This is a small set $S\subset [n]$ and weights $w \in\R_+^{n}$ such that $\tilde F(q) = \sum_{i \in S} w_i f(x_i,q)$ approximates $F(q)$.
+Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all $q \in \mathcal Q$ simultaneously. % or for every fixed $q$ with probability at least $1-\delta$. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript. 
 Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
 Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
@@ -178,21 +180,23 @@ We will show in the following sections several examples for which a coreset can 
 This intuition is restated more explicitly in the next section.
 
 \subsection{Coreset Complexity}
-Here, we point out a direct connection between Coreset Complexity and Class Discrepancy.
-The connection is a direct application of the folklore argument know as the ``the halving trick".
+In this section we point out a direct connection between coreset complexity and class discrepancy.
+The connection is a simple application of the folklore argument know as the ``the halving trick".
+For simplicity, in what follows we focus on functions $f$ whose range is $[0,1]$.
 
-\begin{definition} [\bf Coreset Complexity] For a function $f:\X,\Q\rightarrow \R$ let $F(q) = \sum_{i=1}^{m} f(x_i,q)$ for a any set $\{x_1,\ldots,x_m\} \subset \X$.
+\begin{definition} [\bf Coreset Complexity] 
+For a function $f:\X,\Q\rightarrow \R$ let $F(q) = \sum_{i=1}^{m} f(x_i,q)$ for a any set $\{x_1,\ldots,x_m\} \subset \X$.
 For a set $S \subset [m]$ let $\tilde F(q) = \sum_{i \in S}w_i f(x_i,q)$ for some $w\in\R_+^m$ which is independent of $q$.
-The Coreset Complexity of $f$ is the size of the smallest set $S$ such that $\forall q \in \Q \; |F(q)  - \tilde F(q)| \le \eps m$.
+The coreset complexity of $f$ is the size of the smallest set $S$ such that $\forall q \in \Q \; |F(q)  - \tilde F(q)| \le \eps m$.
 \end{definition}
 
 \noindent The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$.
 \begin{fact}
-Any function $f$ with Class Discrepancy $K_m(f) = O(c/m)$ has Coreset Complexity of $f$ $O(c/\eps)$.
+Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has coreset complexity of $f$ $O(c/\eps)$.
 The constant $c$ does not depend on $m$.
 \end{fact}
 \begin{fact}
-Any function $f$ with Class Discrepancy $K_m(f) = O(c/\sqrt{m})$ has Coreset Complexity $O(c^2/\eps^2)$.
+Any function $f$ with class discrepancy $K_m(f) = O(c/\sqrt{m})$ has coreset complexity $O(c^2/\eps^2)$.
 The constant $c$ does not depend on $m$.
 \end{fact}
 \begin{proof}
@@ -208,7 +212,7 @@ Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respec
 \end{proof}
 
 \subsection{Streaming Coreset Complexity}\label{sec:sketch}
-We claim that low Class Discrepancy implies concise streaming mergeable coresets as well. 
+We claim that low class discrepancy implies concise streaming mergeable coresets as well. 
 %
 \begin{definition} [\bf Streaming Coreset Algorithm] 
 A streaming coreset algorithm for $f:\X,\Q \rightarrow \R$ receives and arbitrary set $\{x_1,\ldots,x_m\} \subset \X$ one item after the other.
@@ -219,7 +223,7 @@ The size of the streaming coreset is $\max_t |S_t|$.
 \end{definition}
 
 \begin{definition} [\bf Streaming Coreset Complexity] 
-The Streaming Coreset Complexity for $f:\X,\Q \rightarrow \R$ is the minimal streaming coreset size among all possible 
+The streaming coreset complexity for $f:\X,\Q \rightarrow \R$ is the minimal streaming coreset size among all possible 
 streaming coreset algorithms for $f$.
 \end{definition}
 
@@ -227,23 +231,23 @@ streaming coreset algorithms for $f$.
 \noindent Surprisingly, we give upper bounds on streaming coreset complexities for functions which are only poly-logarithmically larger than their offline coreset complexities. %This section assumes access to an algorithm for finding low discrepancy signs $\sigma$.
 
 \begin{theorem} \label{thm:streaming11}
-Any function $f$ with Class Discrepancy $K_m(f) = O(c/m)$ has Streaming Coreset Complexity of $O\left(c\log^2(\eps n/c)/\eps\right)$.
+Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2(\eps n/c)/\eps\right)$.
 The constant $c$ does not depend on $m$.
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming21}
-Any function $f$ with Class Discrepancy $K_m = O(c/\sqrt{m})$ has Streaming Coreset Complexity of $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$.
+Any function $f$ with class discrepancy $K_m = O(c/\sqrt{m})$ has streaming coreset complexity of $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$.
 The constant $c$ does not depend on $m$.
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming12}
-Any function $f$ with Class Discrepancy $K_m(f) = O(c/m)$ has Streaming Coreset Complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
+Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
 The constant $c$ does not depend on $m$, $Q_\eps$ is an epsilon net for $f$ on $\Q$. 
 The streaming coreset algorithm is randomized and fails with probability at most $\delta$.
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming22}
-Any function $f$ with Class Discrepancy $K_m(f) = O(c/\sqrt{m})$ has Streaming Coreset Complexity of $O\left(c^2\log^3\log(|Q_\eps|/\delta) /\eps^2\right)$.
+Any function $f$ with class discrepancy $K_m(f) = O(c/\sqrt{m})$ has streaming coreset complexity of $O\left(c^2\log^3\log(|Q_\eps|/\delta) /\eps^2\right)$.
 The constant $c$ does not depend on $m$, $Q_\eps$ is an epsilon net for $f$ on $\Q$. 
 The streaming coreset algorithm is randomized and fails with probability at most $\delta$.
 \end{theorem}
@@ -341,7 +345,7 @@ $$\max_k \frac{\|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k}}{\sqrt{k \log^{3}(k)}}
 
 \begin{lemma} \label{lem:komlos anl}
 Let $f$ be a function of the inner product $f(x,q) = f(\langle x,q\rangle)$ and let $f = \sum_k \alpha_k \langle x,q\rangle^k$ be its Taylor expansion. 
-The discrepancy of $f$ indexed by $\|q\| \leq 1$ is bounded by
+The class discrepancy of $f$ indexed by $\|q\| \leq 1$ is bounded by
 \[
 K_m = \min_\sigma \sum_i \sigma_i f(x_i,q) =O\left( \sqrt{d} \sum_k  |\alpha_k|\sqrt{k\log^3(k)}\right)
 \]
@@ -361,7 +365,7 @@ $\left\| \sum_i \sigma_i x_i^{\otimes k}\right\|_{T_k} \le c\sqrt{d k \log^3(k)}
 \end{proof}
 
 \begin{theorem}\label{analitic1}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has discrepancy $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has class discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 Recall that for analytic functions $f$ we have $\left| \frac{d^k f}{dz^k}(z) \right|  \leq C^{k+1} k! $
@@ -371,24 +375,24 @@ corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result 
 \end{proof}
 
 \begin{corollary}
-The discrepancy of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
+The class discrepancy of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
 \end{corollary}
 
 \begin{corollary}
-The discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$.
+The class discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$.
 \end{corollary}
 
 
 
 \begin{theorem} \label{thm:analytic2}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has discrepancy $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has class discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 By transforming $x$ to $\tilde{x} = (1, \sqrt{2}x, \|x\|^2)$ and $q$ to $\tilde{q} = (\|q\|^2, -\sqrt{2}q, 1)$ we get $\ip{\tilde{x},\tilde{q}} = \|q-x\|^2$. Moreover, $\|q\| \le R$ gives $\|\tilde q\| \le R^2+1$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$.
 \end{proof}
 
 \begin{corollary}
-The discrepancy of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
+The class discrepancy of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
 \end{corollary} 
 This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. 
 This also resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
@@ -403,7 +407,7 @@ $ \sum_{k=0}^\infty \frac{\gamma^{k}\sqrt{ k\log^3(k)}}{k!} = O\left((1+\gamma) 
 
 
 \section{A Simple Algorithm for Kernel Density Estimation}
-From section \ref{sec:analytic} we know that the discrepancy of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. 
+From section \ref{sec:analytic} we know that the class discrepancy of the Gaussian kernel is $K_m = O(\sqrt{d}/m)$. 
 %The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
 Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
 In fact, we show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > \sqrt{m}$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
@@ -420,7 +424,7 @@ where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \
  \For{$i = 2,\ldots,m$}
  {$\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$}
 % \EndFor
- \caption{Low Discrepancy Algorithm for Positive Kernels}
+\caption{Low Discrepancy Algorithm for Positive Kernels}
 \end{algorithm}
 
 
@@ -681,7 +685,7 @@ It does so by keeping a buffer of a certain capacity $m$. When a new item is ins
 If the buffer is full, a compaction operation takes place. 
 The compaction takes the elements in the buffer $x_1,\ldots,x_m$ and finds a low discrepancy assignment $\sigma$ such that 
 $\max_q |\sum_i \sigma_i f(x_i,q)| \leq m K_m$. 
-Note that such a sequence is guarantied to exist by the definition of the discrepancy. For cases where an algorithm for finding this sequence $\sigma$ is not known, our result applies for the guarantee of the $\sigma$ sequence obtained by the algorithm. That is, if it is possible to obtain a bound of $K_m$ yet we can only find signs obtaining a bound of $\tilde{K}_m$, our results for the obtainable signs apply for $\tilde{K}_m$.
+Note that such a sequence is guarantied to exist by the definition of the class discrepancy. For cases where an algorithm for finding this sequence $\sigma$ is not known, our result applies for the guarantee of the $\sigma$ sequence obtained by the algorithm. That is, if it is possible to obtain a bound of $K_m$ yet we can only find signs obtaining a bound of $\tilde{K}_m$, our results for the obtainable signs apply for $\tilde{K}_m$.
 Given the sign vector $\sigma$, the compactor appends either $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$ to the output stream. 
 
 Consider a stream of data points $x_1,\ldots,x_n$ and the output stream of a compactor $z_1,\ldots,z_{\tilde{n}}$. The error associated with the new stream w.r.t.\ a query $q$ is defined as
@@ -703,11 +707,12 @@ Summing over all $n/m$ compactions we get that the overall error is bounded, in 
 Lemma~\ref{lem:det compactor} alone already allow us to prove Theorems~\ref{thm:streaming11} and~\ref{thm:streaming21}. 
 The algorithms are a direct extension the well know MRL algorithm \cite{MRL} for quantile sketching. 
 Note that for quantiles, $f(x,q) = 1$ if $q > x$ and $0$ else. 
-A low discrepancy sequence is achieved simply by sorting the values and assigning $\sigma_i = 1$ for all evenly positioned values in the sorted order and $\sigma_i=-1$ to the odd positions. The above gives a discrepancy of $1/m$ for quantile approximation.
+A low discrepancy sequence is achieved simply by sorting the values and assigning $\sigma_i = 1$ for all evenly positioned values in the sorted order and $\sigma_i=-1$ to the odd positions. The above gives class discrepancy of $1/m$ for quantile approximation.
 Below we generalize this algorithm to any low discrepancy class.
 
+\todo{Replace with the above?}
 \paragraph{Theorem~\ref{thm:streaming11}}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
+For any function family $\F$ with a corresponding class discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
 \begin{proof}
 Consider feeding the output of the first compactor into a second one etc. Specifically, we start with a single compactor and open a second once it produced any output, then open a third compactor once the second produced output, etc.
 Number the compactors $0,\ldots,H$. The weight of items given to compactors $h$ have weight $w_h = 2^h$. The length of the input stream seen by compactor is $n_h \le n/2^h$.
@@ -721,7 +726,7 @@ Since we have $H = O(log(\eps n/c))$ compactors the overall space complexity is 
 \end{proof}
 
 \paragraph{Theorem~\ref{thm:streaming21}}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$. 
+For any function family $\F$ with a corresponding class discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$. 
 \begin{proof}
 The proof is identical to the one above except for the variable setting of
 Setting $m \ge m_0 = O(c^2\log^2(\eps^2 n/c^2)/\eps^2)$ and replacing $K_m = c/\sqrt{m}$. 
@@ -734,7 +739,7 @@ We proceed to prove Theorem~\ref{thm:streaming22}. To understand the motivation 
 Because we do not know the stream length in advance, we operate as in the deterministic case with compactors. The difference will be that each compactor will keep a count of how many items it has seen. Once a compactor observed more than $\tilde{n} = O(\log(1/\delta)/\eps^2)$ items, it will no longer use a buffer of size $m$ but rather a buffer of size 2. For every two items observed it will output one of them uniformly at random. It is easy to see that a sequence of such compactors can in fact be implemented with $O(1)$ memory via reservoir sampling. The memory of this process is therefor identical, at least asymptotically, to the above.
 
 \paragraph{Theorem~\ref{thm:streaming22}}
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
+For any function family $\F$ with a corresponding class discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
 \begin{proof}
 As in the deterministic setting we maintain a sequence of compactors of levels $h=0,\ldots,H$. Notice that the value of $H$ is increasing as the stream grows longer. Recall that a compactor of level $h$ observes elements of weight $2^h$ and outputs elements of weight $2^{h+1}$. As before we use a buffer of $m$ and get that $H \leq  \floor{log_2(n/m)}+1$.
 The difference is that for a compactor of level $h$, once $h \leq H' = H - \log(\tilde{n}/m)$, where $\tilde{n} = O(\log(1/\delta)/\eps^2)$ with a constant in the $O()$ term that will be determined later, we change the mode of operation for this compactor. Notice that the requirement for $h$ ensures that the number of items observed by the $h$'th compactor is at least $n_h \geq \tilde{n}$. Rather than using a buffer of size $m$ the compactor uses a buffer of size 2 and for every two observed items it outputs one of them uniformly at random.
@@ -758,7 +763,7 @@ The memory requirement is now $O(m)$ and a careful analysis of the error will le
 
 
 \paragraph{Theorem~\ref{thm:streaming12}} 
-For any function family $\F$ with a corresponding discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
+For any function family $\F$ with a corresponding class discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
 \begin{proof}
 We start by describing the algorithm, from the perspective of a compactor of level $h$. The compactor observes an input stream of items with weight $2^h$ and outputs a stream of weight $2^{h+1}$. When created the compactor has a budget of $m_h=m$. Once it outputs items to an output stream for the first time, a new compactor of level $h+1$ is created. We keep track of $H$, the level of the top compactor, that did not yet output any items. When $H$ is updated, compactors of level $h<H$ might restrict their budget. Specifically, for some $H'=H-O(\log\log(n/\delta))$ where we set the constant of the $O()$ term later, a compactor of level $h \leq H'$ sets its buffer size to
 $$ m_h = \max\left\{2, \ceil{(2/3)^{h-H'}m} \right\} $$
