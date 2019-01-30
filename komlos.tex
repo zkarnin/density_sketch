@@ -296,7 +296,7 @@ In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde 
 
 Now that we proved the usefulness of low discrepancy, we move to upper bound it for common family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or squared Euclidean distance $\|q-x\|^2$. 
 
-The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$ or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. \todo{Can we say the same for $1/(1 + \exp(\ip{q,x}))$. It might be more interesting than the logistic loss cos it's not convex...}
+The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$, sigmoid activation $\sigma(q,x)=1/(1 + \exp(\ip{q,x}))$, or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
 
 
 We start with some notation and trivial properties. 
