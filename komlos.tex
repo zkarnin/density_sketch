@@ -102,7 +102,8 @@ This paper establishes some explicit connections between low class discrepancy, 
 The study of coresets in optimization as a whole and in machine learning specifically has a long history. 
 The basic setup is as follows.
 Suppose you are trying to optimize an expression over a set of items, data points, or examples.
-The optimization problem is difficult and often exponential in the input set size.
+%The optimization problem is difficult and often exponential in the input set size.
+The optimization problem is difficult and often square, cubic or even exponential in the input set size.
 Therefore, there is a strong incentive to reduce the cardinality of that set. 
 The goal is, therefore, to pinpoint a small subset of the data items which approximates the entire input set with respect to some function or geometric measure. Such small sets are called coresets. 
 This idea is very general and applies to geometric properties of the data \cite{agarwal2005geometric}, 
@@ -118,17 +119,19 @@ For example, one could consider the sum of sigmoid activation losses $F(q) = \su
 Using Chernoff's inequality and a union bound already shows that sampling $\tilde O(d/\eps^2)$ items give an $\eps n$ approximation to this sum.\footnote{Using $\tilde O(\cdot)$ to suppress poly-logarithmic terms.} 
 In general, for families of VC dimension $v$, a sample of $(1/\eps^2)(v+\log(1/\delta))$ suffices \cite{talagrand1994sharper}.
 For logistic regression and many other problems $O(d/\eps)$ samples are enough due to fast rate generalization results \cite{van2015fast}.
-For Gaussian kernel density, it is know that a sample size of $O(1/\eps^2)$ suffices independently of $d$.
+For Gaussian kernel density, it is known that a sample size of $O(1/\eps^2)$ suffices independently of $d$  \cite{lopez2015towards}.
 
-Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of a complete analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability. The connection between coresets and discrepancy have been known in the non-streaming setting. For example, \cite{phillips2009small} (Theorem 1.1) provide an analog to our Facts~\ref{fct:eps1},~\ref{fct:eps2}.
+Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of a complete analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability. 
+%The connection between coresets and discrepancy have been known in the non-streaming setting. For example, \cite{phillips2009small} (Theorem 1.1) provide an analog to our Facts~\ref{fct:eps1},~\ref{fct:eps2}.
+The connection between coresets and discrepancy have been known in the non-streaming setting \cite{phillips2009small}, Theorem 1.1.
 
 Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
-$\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for any Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds. The authors provide a simpler algorithm based on the Frank-Wolf method that achieves a $1/\eps^2$ sized coreset. It is in fact known (see \cite{lopez2015towards}, Theorem 1) that a uniform random sample of $\log(1/\delta)/\eps^2$ points gives a coreset w.p. $1-\delta$ for some kernel types. 
-In this paper we resolve this question and prove that the coreset complexity of Gaussian kernel density is indeed $O(\sqrt{d}/\eps)$ which matches the lower bound provided by \cite{DBLP:journals/corr/abs-1802-01751}. 
-In fact, we should that this is the coreset complexity for any analytic function of the squared distance $f(x,q) = g(\|x-q\|^2)$.
+$\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for any Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds. Additionally, they provide a simpler algorithm based on the Frank-Wolf method that achieves a $1/\eps^2$ sized coreset. It is in fact known (see \cite{lopez2015towards}, Theorem 1) that a uniform random sample of $\log(1/\delta)/\eps^2$ points gives a coreset w.p. $1-\delta$ for some kernel types. 
+In this paper we resolve the open question by \cite{DBLP:journals/corr/abs-1802-01751} and prove that the coreset complexity of Gaussian kernel density is indeed $O(\sqrt{d}/\eps)$, matching the lower bound. 
+In fact, we show that this is the coreset complexity for any analytic function of the squared distance $f(x,q) = g(\|x-q\|^2)$.
 Moreover, we provide a very simple and deterministic algorithm for constructing coresets of size $1/\eps^2$ for any positive kernel.
 
-Logistic Regression is an extremely popular technique for classification. We are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors.  
+Logistic Regression is an extremely popular technique for classification. We are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors.  Our results mentioned above prove that for an additive guarantee, it is possible to obtain a coreset of size $O(\sqrt{d}/\eps)$.
 
 
 \section{Class Discrepancy and Coreset Complexity}
@@ -220,15 +223,14 @@ For a function $f:\X,\Q\rightarrow \R$ let $F(q) = \sum_{i=1}^{m} f(x_i,q)$ for 
 For a set $S \subset [m]$ let $\tilde F(q) = \sum_{i \in S}w_i f(x_i,q)$ for some $w\in\R_+^m$ which is independent of $q$.
 The coreset complexity of $f$ is the size of the smallest set $S$ such that $\forall q \in \Q \; |F(q)  - \tilde F(q)| \le \eps m$.
 \end{definition}
-\noindent The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$.
-\todo{add citation to jeff's thesis}.
+\noindent The following facts are true for the common cases where $K_m = O(c/m)$ or $K_m = O(c/\sqrt{m})$. Although they were previously known (see e.g., \cite{phillips2009small}, Theorem 1.1) we give their proof here for completeness.
 \begin{fact}\label{fct:eps1}
-Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has coreset complexity of $f$ $O(c/\eps)$.
-The constant $c$ does not depend on $m$.
+Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has coreset complexity of $O(c/\eps)$.
+%The constant $c$ does not depend on $m$.
 \end{fact}
 \begin{fact}\label{fct:eps2}
 Any function $f$ with class discrepancy $K_m(f) = O(c/\sqrt{m})$ has coreset complexity $O(c^2/\eps^2)$.
-The constant $c$ does not depend on $m$.
+%The constant $c$ does not depend on $m$.
 \end{fact}
 \begin{proof}
 \noindent  Consider the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
@@ -726,9 +728,10 @@ Lemma~\ref{lem:det compactor} alone already allow us to prove Theorems~\ref{thm:
 The algorithms are a direct extension the well know MRL algorithm \cite{MRL} for quantile sketching. 
 Note that for quantiles, $f(x,q) = 1$ if $q > x$ and $0$ else. 
 A low discrepancy sequence is achieved simply by sorting the values and assigning $\sigma_i = 1$ for all evenly positioned values in the sorted order and $\sigma_i=-1$ to the odd positions. The above gives class discrepancy of $1/m$ for quantile approximation.
-Below we generalize this algorithm to any low discrepancy class.
+%Below we generalize this algorithm to any low discrepancy class.
+Theorems~\ref{thm:streaming11} and~\ref{thm:streaming21} below generalize this algorithm to any low discrepancy class.
 
-\todo{Replace with the above?}
+\el{Replace with the above?} \zk{changed `Below we generalize this algorithm to any low discrepancy class.' to the line above. Does that resolve the issue?}
 \paragraph{Theorem~\ref{thm:streaming11}}
 For any function family $\F$ with a corresponding class discrepancy $K_m = O(c/m)$ there exists an fully-mergeable streaming coreset deterministic algorithm of size $O\left(c\log^2(\eps n/c)/\eps\right)$ whose error is at most $\eps n$.
 \begin{proof}
@@ -781,7 +784,10 @@ The memory requirement is now $O(m)$ and a careful analysis of the error will le
 
 
 \paragraph{Theorem~\ref{thm:streaming12}} 
-For any function family $\F$ with a corresponding class discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
+Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
+$Q_\eps$ is an epsilon net for $f$ on $\Q$. 
+The streaming coreset algorithm is randomized and fails with probability at most $\delta$.
+%For any function family $\F$ with a corresponding class discrepancy $K_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
 \begin{proof}
 We start by describing the algorithm, from the perspective of a compactor of level $h$. The compactor observes an input stream of items with weight $2^h$ and outputs a stream of weight $2^{h+1}$. When created the compactor has a budget of $m_h=m$. Once it outputs items to an output stream for the first time, a new compactor of level $h+1$ is created. We keep track of $H$, the level of the top compactor, that did not yet output any items. When $H$ is updated, compactors of level $h<H$ might restrict their budget. Specifically, for some $H'=H-O(\log\log(n/\delta))$ where we set the constant of the $O()$ term later, a compactor of level $h \leq H'$ sets its buffer size to
 $$ m_h = \max\left\{2, \ceil{(2/3)^{h-H'}m} \right\} $$
