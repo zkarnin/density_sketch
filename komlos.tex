@@ -89,12 +89,13 @@
 \maketitle
 
 \begin{abstract}
-This paper defines the notion of class discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets. We provide general techniques for bounding the class discrepancy of machine learning problems and specifically do so for matrix covariance approximation, logistic regression, kernel density and any analytic function of the dot product or the squared distance.
+This paper defines the notion of class discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets. We provide general techniques for bounding the class discrepancy of machine learning problems. 
+As corollaries of the general technique we bound the discrepancy of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
 Our result resolves a long standing open problem regarding the coreset complexity of Gaussian kernel density estimation.  
 We provide two more related but independent results. 
 First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
-Second, an extremely simple algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
-This paper establishes some explicit connections between low class discrepancy, coreset complexity, learnability, and streaming algorithms. 
+Second, an extremely simple deterministic algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
+This paper establishes some explicit connections between class discrepancy, coreset complexity, learnability, and streaming algorithms. 
 \end{abstract}
 
 
@@ -116,14 +117,14 @@ In this manuscript, we focus solely on sums of functions applied to the input it
 That is, for $\{x_i,\ldots,x_n\} \subset \X$ we measure $F(q) = \sum_i f(x_i,q)$ for $q \in \Q$ which is either some model parameters or a query.
 For example, one could consider the sum of sigmoid activation losses $F(q) = \sum_{i=1}^{n} 1/(1+ \exp(\ip{x_i,q}))$ and $x,q\in \R^d$.
 Using Chernoff's inequality and a union bound already shows that sampling $\tilde O(d/\eps^2)$ items give an $\eps n$ approximation to this sum.\footnote{Using $\tilde O(\cdot)$ to suppress poly-logarithmic terms.} 
-In general, for families of VC dimension $v$, a sample of $(1/\eps^2)(v+\log(1/\delta))$ suffices \cite{talagrand1994sharper}.
+In general, for families of VC dimension $v$, a sample of $(v+\log(1/\delta))/\eps^2$ suffices \cite{talagrand1994sharper}.
 For logistic regression and many other problems $O(d/\eps)$ samples are enough due to fast rate generalization results \cite{van2015fast}.
 For Gaussian kernel density, it is know that a sample size of $O(1/\eps^2)$ suffices independently of $d$.
 
-Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of a complete analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability. The connection between coresets and discrepancy have been known in the non-streaming setting. For example, \cite{phillips2009small} (Theorem 1.1) provide an analog to our Facts~\ref{fct:eps1},~\ref{fct:eps2}.
+Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d.\ sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of a complete analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability. The connection between coresets and discrepancy have been known in the non-streaming setting. For example, \cite{phillips2009small} (Theorem 1.1) provide an analog to our Facts~\ref{fct:eps1},~\ref{fct:eps2}.
 
-Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
-$\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for any Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds. The authors provide a simpler algorithm based on the Frank-Wolf method that achieves a $1/\eps^2$ sized coreset. It is in fact known (see \cite{lopez2015towards}, Theorem 1) that a uniform random sample of $\log(1/\delta)/\eps^2$ points gives a coreset w.p. $1-\delta$ for some kernel types. 
+Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $\{x_1,\ldots,x_n\}$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
+$\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for any Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds. The authors provide a simple algorithm based on the Frank-Wolf method that achieves a $1/\eps^2$ sized coreset. It is in fact known (see \cite{lopez2015towards}, Theorem 1) that a uniform random sample of $\log(1/\delta)/\eps^2$ points gives a coreset w.p. $1-\delta$ for some kernel types. 
 In this paper we resolve this question and prove that the coreset complexity of Gaussian kernel density is indeed $O(\sqrt{d}/\eps)$ which matches the lower bound provided by \cite{DBLP:journals/corr/abs-1802-01751}. 
 In fact, we should that this is the coreset complexity for any analytic function of the squared distance $f(x,q) = g(\|x-q\|^2)$.
 Moreover, we provide a very simple and deterministic algorithm for constructing coresets of size $1/\eps^2$ for any positive kernel.
@@ -155,7 +156,8 @@ The size of the coreset above appears to be intimately tied to the class discrep
 
 
 \subsection{Class Discrepancy}
-We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript.
+We begin by giving three equivalent definitions of complexity based on discrepancy for sets, functions, and function families. We will use all three interchangeably throughout the manuscript. 
+Our notation is intentionally similar to the definition of the Rademacher complexity for reasons that will become clear later.
 
 \begin{definition}[\bf Class Discrepancy] \label{cd1}
 Let $A \subset \R^m$ and $\sigma \in \{-1,1\}^m$ the class discrepancy of $A$ is 
@@ -336,7 +338,7 @@ For any set of vectors $x_i \in \R^d$ with $\|x_i\| \leq 1$ there exist a set of
 The proof will use Banaszczyk's theorem \cite{Banaszczyk}. 
 Let $\mathcal K$ be a convex body in Euclidean space with Gaussian measure at least 1/2 ($\Pr[g \in \mathcal K] \ge 1/2$ when $g$ is i.i.d.\ Gaussian).
 Let $x_1,\ldots,x_n$ be vectors with $\|x_i\| \leq 1$. 
-Then, there exist signs $\sigma_i$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some constant $C$.
+Then, there exist signs $\sigma$ such that $\sum \sigma_i x_i \in C \mathcal K$ for some constant $C$.
 
 To use Banaszczyk's theorem we begin with defining our convex body.
 Define the norm $\|\psi\|_T$ of a vector $\psi$ as follows. Look at the first $d$ coordinates of $\psi$ as a vector $\psi_1$, the next $d^2$ coordinates of $\psi$ as a matrix $\psi_2$ the next $d^3$ coordinates as a three tensor $\psi_3$ etc.
@@ -385,7 +387,7 @@ $\left\| \sum_i \sigma_i x_i^{\otimes k}\right\|_{T_k} \le c\sqrt{d k \log^3(k)}
 \end{proof}
 
 \begin{theorem}\label{analitic1}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f = f(\ip{q,x})$, indexed by $\|q\| \leq R$, has class discrepancy $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that functions $f = f(\ip{q,x})$, indexed by $\|q\| \leq R$, have class discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 Recall that for analytic functions $f$ we have $\left| \frac{d^k f}{dz^k}(z) \right|  \leq C^{k+1} k! $
