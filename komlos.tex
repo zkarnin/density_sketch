@@ -115,7 +115,7 @@ While some problems obviously do not admit small coresets, other do.
 There are several results that connect the simplicity of the measure and its coreset complexity (the size of the minimal coreset).
 In this manuscript, we focus solely on sums of functions applied to the input items.
 That is, for $\{x_i,\ldots,x_n\} \subset \X$ we measure $F(q) = \sum_i f(x_i,q)$ for $q \in \Q$ which is either some model parameters or a query.
-For example, one could consider the sum of sigmoid activation losses $F(q) = \sum_{i=1}^{n} 1/(1+ \exp(\ip{x,q}))$ and $x,q\in \R^d$.
+For example, one could consider the sum of sigmoid activation losses $F(q) = \sum_{i=1}^{n} 1/(1+ \exp(\ip{x_i,q}))$ and $x,q\in \R^d$.
 Using Chernoff's inequality and a union bound already shows that sampling $\tilde O(d/\eps^2)$ items give an $\eps n$ approximation to this sum.\footnote{Using $\tilde O(\cdot)$ to suppress poly-logarithmic terms.} 
 In general, for families of VC dimension $v$, a sample of $(1/\eps^2)(v+\log(1/\delta))$ suffices \cite{talagrand1994sharper}.
 For logistic regression and many other problems $O(d/\eps)$ samples are enough due to fast rate generalization results \cite{van2015fast}.
@@ -277,11 +277,19 @@ Any function $f$ with class discrepancy $K_m = O(c/\sqrt{m})$ has streaming core
 %The constant $c$ does not depend on $m$.
 \end{theorem}
 
-\noindent In the stream setting we can achieve smaller coresets via a randomized approach. 
-Our argument goes through a union bound over an $\eps$-net for $\Q$ which we denote by $Q_\eps$, meaning a finite subset of $\Q$ such that for every $q \in \Q$ there exist some $\tilde{q} \in Q_\eps$ for which $\sup_{x \in \X} |f(q,x) - f(\tilde{q},x)| < \eps$. 
-We note that the size $|Q_\eps|$ is often exponential in the problem parameters. 
-Nevertheless, our dependence on the failure probability is \emph{doubly} logarithmic. 
-This means the dependence on the problem parameters is still only polylogarithmic.
+Theorems~\ref{thm:streaming11} and~\ref{thm:streaming21} are achieved by deterministic algorithms. 
+They could be thought of extensions of the MRL algorithm \cite{MRL} for streaming quantile sketching. 
+Quantile sketching falls into this framework since it corresponds to $f(x,q) = 1$ if $x>q$ and $0$ else. 
+More details and the proof of correctness are given in Appendix ~\ref{app:sketch proof}.
+
+Recently, {\cite{DBLP:conf/focs/KarninLL16} provided an improved (optimal) streaming quantile coreset algorithm. 
+Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} requires more work. 
+The main ideas are as follows. 
+We argued above that $\tilde F_{+}$ and $\tilde F_{-}$ are both good approximations for $F$. 
+We can also take $\tilde F_{\pm}$ which is $\tilde F_{+}$ or $\tilde F_{-}$ equally likely. 
+Clearly $|\tilde F_{\pm} - F| \le |E|$ as before. But now, $\E[\tilde F_{\pm}] = F$ as well. 
+In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times over small subsets of items from the stream. This allows us to use concentration results to bound the overall error. 
+The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $\tilde F_{\pm}$ has half the support of $F$ only in expectation.
 
 \begin{theorem} \label{thm:streaming12}
 Any function $f$ with class discrepancy $K_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
@@ -295,23 +303,17 @@ $Q_\eps$ is an epsilon net for $f$ on $\Q$.
 The streaming coreset algorithm is randomized and fails with probability at most $\delta$.
 \end{theorem}
 
-%Notice that the randomized versions above hold w.h.p.\ for any fixed $f \in \F$. Although $\F$ is typically inifinite, it is almost always the case that there exists an $\eps$-net over $\F$ whose size is exponential in the input parameters. Since the dependence over the error probability is doubly logarithmic, the randomized versions coupled with a union bound provides a coreset for an entire family that matches the non-streaming version up to poly-logarithmic terms.
-
-The algorithms above must be given $\eps, \delta$ as input but do not need to know the length of the stream, $n$, in advance. 
-The proofs of the above two theorems are quite technical and delegated to Appendix~\ref{app:sketch proof}. Although many of the ideas are already present in the recent breakthrough work on streaming quantiles \cite{DBLP:conf/focs/KarninLL16}, generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} required resolving some added complications. The main ideas are as follows. 
-In the last section we argued that $\tilde F_{+}$ and $\tilde F_{-}$ are both good approximations for $F$. 
-We can also take $\tilde F_{\pm}$ which is $\tilde F_{+}$ or $\tilde F_{-}$ equally likely. 
-Clearly $|\tilde F_{\pm} - F| \le |E|$ as before. But now, $\E[\tilde F_{\pm}] = F$ as well. 
-In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times over small subsets of items from the stream. This allows us to use concentration results to bound the overall error. The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $\tilde F_{\pm}$ no longer has exactly half the size $F$. In the general setting, this only holds in expectation.
-
-
+The set $Q_\eps$ is an $\eps$-net for $\Q$. 
+It is a finite subset of $\Q$ such that for every $q \in \Q$ there exist some $\tilde{q} \in Q_\eps$ for which $\sup_{x \in \X} |f(q,x) - f(\tilde{q},x)| < \eps$. 
+We note that the size $|Q_\eps|$ is often exponential in the problem parameters. 
+Nevertheless, our dependence on the failure probability is \emph{doubly} logarithmic. 
+This means the dependence on the problem parameters is still only polylogarithmic.
 
 \section{Class Discrepancy of Analytic Functions of Dot Products} \label{sec:analytic}
 
 Now that we proved the usefulness of low class discrepancy, we move to upper bound it for common family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or squared Euclidean distance $\|q-x\|^2$. 
-
-The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$, sigmoid activation $\sigma(q,x)=1/(1 + \exp(\ip{q,x}))$, or the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$. 
-
+%
+The idea is to find a set of signs that simultaneously balance $\ip{q,x}^k$ for all powers $k$ and unit vectors\footnote{We Assume that $\|x\|,\|q\| \leq 1$ for ease of presentation. As above our results extend to generic bounds on the radius of $q$} $q$. By controlling all powers of $\ip{q,x}$ we control any sum of these powers. It follows that this coreset can be used to control, for example, the logistic loss function $L(q,x) = \log(1+\exp(\ip{q,x}))$, the gaussian Kernel $K(q,x) = \exp(-\lambda \|q-x\|^2)$, or the sigmoid activation loss $1/(1 + \exp(\ip{q,x}))$.
 
 We start with some notation and trivial properties. 
 For a vector $q \in \R^d$ let $q^{\otimes k}$ represent the $k$-dimensional tensor obtained from the outer product of $q$ with itself $k$ times. For a $k$ dimensional tensor with $d^k$ entries $X$ we consider the measure
