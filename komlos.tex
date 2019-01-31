@@ -244,7 +244,7 @@ Note that the sum of errors is a geometric sequence that is asymptotically domin
 Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respectively achieves the goal.
 \end{proof}
 
-Notice that these bounds are (asymptotically) tight in the context of unweighted coresets. Taking for example the bound of Fact~\ref{fct:eps1}, we can guarantee the existence of an unweighted coreset of size $c/\eps$, then for $m$ items a coreset of size $m/2$ provides a sign assignment with an error of $\eps=2c/m$, leading to an upper bound of $O(c/m)$ on the class discrepancy.
+Notice that these bounds are (asymptotically) tight in the context of unweighted coresets. Taking for example the bound of Fact~\ref{fct:eps1}, if we can guarantee the existence of an unweighted coreset of size $c/\eps$, then for $m$ items a coreset of size $m/2$ provides a sign assignment with an error of $\eps=2c/m$, leading to an upper bound of $O(c/m)$ on the class discrepancy.
 
 
 \subsection{Streaming Coreset Complexity}\label{sec:sketch}
