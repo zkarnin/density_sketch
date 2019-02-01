@@ -453,7 +453,7 @@ where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \
         \STATE $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$
 \ENDFOR 
 \end{algorithmic}
-\caption{Low Discrepancy Algorithm for Positive Kernels}\label{kernelAlg}
+\caption{Low discrepancy algorithm for positive semi-definite kernels}\label{kernelAlg}
 \end{algorithm}
 
 
@@ -486,9 +486,10 @@ $\sigma$. This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \s
 Using the framework above provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches and simplifies the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Theorem~\ref{thm:streaming21} leads to a deterministic streaming algorithm with a memory complexity of $O(\log^3(\eps^2 n)/\eps^2)$. For $L$-Lipchitz kernels, meaning $K$ such that $|K(x,q+h) - K(x,q)|/\|h\| \leq L$ for all $h \neq 0$, Theorem~\ref{thm:streaming22} leads to a randomized streaming algorithm with a memory complexity of $O\left(\log^3 \left( d \log\left(RLn/\delta\eps\right) \right) / \eps^2 \right)$ that succeeds in finding a coreset with probability $1-\delta$. The parameter $R$ is the maximum norm of a query. The argument goes through a union bound over an $\eps/L$-net over vectors of norm at most $R$, the size of which is $(RL/\eps)^{O(d)}$.
 
 \paragraph{Note} Theorem~\ref{thm:disc simple kernel} provides an upper bound of $\sqrt{m}$ for the sign discrepancy. 
-This upper bound is tight since there exists a set of vectors that requires it. 
+This upper bound is tight since there exist sets of vectors in high dimensions that requires it. 
 For data that lends itself to density estimation, however, one should expect input vectors to be clustered together.
-In such cases, the algorithm above performs much better than the worst-case bound predicts. We leave it to future work to define properties of the data that ensure better guarantees by our algorithm.
+In such cases, the algorithm above performs much better than the worst-case bound predicts. 
+We leave it to future work to define properties of the data that ensure algorithm better guarantees by Algorithm~\ref{kernelAlg}.
 \bibliography{density}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
