@@ -109,7 +109,7 @@ Suppose you are trying to optimize an expression over a set of items, data point
 %The optimization problem is difficult and often exponential in the input set size.
 The optimization problem is difficult and often square, cubic or even exponential in the input set size.
 Therefore, there is a strong incentive to reduce the cardinality of that set. 
-The goal is, therefore, to pinpoint a small subset of the data items which approximates the entire input set with respect to some function or geometric measure. Such small sets are called coresets. 
+The goal is therefore, to pinpoint a small subset of the data items which approximates the entire input set with respect to some function or geometric measure. Such small sets are called coresets. 
 This idea is very general and applies to geometric properties of the data \cite{agarwal2005geometric}, 
 clustering \cite{DBLP:conf/compgeom/Har-PeledK05} \cite{DBLP:conf/stoc/FeldmanL11}, classification \cite{DBLP:conf/ijcai/Har-PeledRZ07}, regression \cite{DBLP:conf/nips/MunteanuSSW18} 
 machine learning \cite{bachem2017practical}, density estimation \cite{DBLP:journals/corr/abs-1802-01751}, and many other problems. 
@@ -127,25 +127,27 @@ For Gaussian kernel density, it is known that a sample size of $O(1/\eps^2)$ suf
 These results require different analyses and seem to stem from different mathematical underpinnings. 
 This paper provides a general framework for obtaining, and improving on, these results. 
 
-Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d.\ sampled points. 
-In that sense, Rademacher complexity is a good measure of sample complexity. 
-That is, the generalization of coresets which are chosen i.i.d.\ from the data (or the underlying distribution).
-A carefully selected coreset can be better than a uniformly sampled one. 
+Rademacher complexity (see for example \cite{Bartlett:2003:RGC:944919.944944}) is a standard measure of generalization.
+In other words, bounding the Rademacher complexity is a good way to upper bound the sample complexity. 
+A sample is an instance of a coreset which is chosen i.i.d.\ from the data (or the underlying distribution).
+A carefully selected coreset can, at least potentially, be better than a uniformly sampled one. 
 It can be smaller and still give the same generalization power. 
 Alternatively, it can give better generalization with the same number of data points. 
-That is the usefulness of coresets in the context of machine learning. 
-This paper defines the analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size.
+%That is the usefulness of coresets in the context of machine learning. 
+There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references therein that tie the coreset size to the VC dimension of the  function family, and the average sensitivity of the dataset. 
+These relationships come up as tools for constructing coresets rather than complexity measures aimed to characterize generalization ability. 
+This paper defines the analog to Rademacher complexity that aims to characterize the coreset complexity, i.e., the generalization ability of the best possible coreset of a fixed size.
  
-There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability. 
-Connection between coresets and discrepancy have been made in the non-streaming setting \cite{phillips2009small}, Theorem 1.1.
+%Connection between coresets and discrepancy have been made in the non-streaming setting \cite{phillips2009small}, Theorem 1.1.
 
+An important application of our generic coreset result is Kernel density estimation.
 Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
 $\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for any Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds. Additionally, they provide a simpler algorithm based on the Frank-Wolf method that achieves a $1/\eps^2$ sized coreset. It is in fact known (see \cite{lopez2015towards}, Theorem 1) that a uniform random sample of $\log(1/\delta)/\eps^2$ points gives a coreset w.p. $1-\delta$ for some kernel types. 
 In this paper we resolve the open question by \cite{DBLP:journals/corr/abs-1802-01751} and prove that the coreset complexity of Gaussian kernel density is indeed $O(\sqrt{d}/\eps)$, matching the lower bound. 
 In fact, we show that this is the coreset complexity for any analytic function of the squared distance $f(x,q) = g(\|x-q\|^2)$.
-Moreover, we provide a very simple and deterministic algorithm for constructing coresets of size $1/\eps^2$ for any positive kernel.
+Moreover, we provide a very simple and deterministic algorithm for constructing coresets of size $1/\eps^2$ for any positive kernel. Although the worst case lower bound is $1/\eps^2$, we conjecture that in realistic scenarios, the deterministic algorithm should outperform random sampling as it explicitly takes advantage of negative correlations.
 
-Logistic Regression is an extremely popular technique for classification. We are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors.  Our results prove that for an additive guarantee, it is possible to obtain a coreset of size $O(\sqrt{d}/\eps)$.
+Another application of our coreset results applies to logistic regression. Logistic Regression is an extremely popular technique for classification. We are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors.  Our results prove that for an additive guarantee, it is possible to obtain a coreset of size $O(\sqrt{d}/\eps)$.
 
 
 \section{Class Discrepancy and Coreset Complexity}
@@ -205,15 +207,15 @@ In the context of machine learning, one should think about $f(x,q)$ as the loss 
 The set $A$ should be thought of as the set of all possible induces losses vectors. 
 Namely, $a\in A$ if there is a model $q$ such $a_i = f(x_i,q)$.
 
-\todo{This paragraph seems to be repeated/duplicated bellow.}
+%\todo{This paragraph seems to be repeated/duplicated bellow.}
 
-These definition are intentionally very similar to those of the Rademacher complexity $R_m(\F)$.
-The only difference is that we consider the minimal value over $\sigma$ rather than its expectation for a uniform random $\sigma$.
-Rademacher complexity uses random signs because it measures the effect of data being chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them.\footnote{\cite{Bartlett:2003:RGC:944919.944944} use the term ``discrepancy'' to define a different quantity than the one above.}
-We claim that $D_m$ is the right measure of complexity for bounding the size of coresets (coreset complexity) and for creating mergeable sketches (streaming coreset complexity).
-Trivially,  $D_m \le R_m$. 
-We show, however, that $D_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
-This immediately proves the existence of small coresets for these problems. 
+%These definition are intentionally very similar to those of the Rademacher complexity $R_m(\F)$.
+%The only difference is that we consider the minimal value over $\sigma$ rather than its expectation for a uniform random $\sigma$.
+%Rademacher complexity uses random signs because it measures the effect of data being chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them.\footnote{\cite{Bartlett:2003:RGC:944919.944944} use the term ``discrepancy'' to define a different quantity than the one above.}
+%We claim that $D_m$ is the right measure of complexity for bounding the size of coresets (coreset complexity) and for creating mergeable sketches (streaming coreset complexity).
+%Trivially,  $D_m \le R_m$. 
+%We show, however, that $D_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
+%This immediately proves the existence of small coresets for these problems. 
 
 To understand our motivation, consider the following informal explanation of the Rademacher Complexity applied to ML problems. 
 In PAC learning there exists a set of examples (often with labels).
@@ -434,13 +436,13 @@ By transforming $x$ to $\tilde{x} = (1, \sqrt{2}x, \|x\|^2)$ and $q$ to $\tilde{
 \end{proof}
 
 \begin{corollary}
-The class discrepancy of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O((1+\gamma)\exp(\gamma)\sqrt{d}/m)$.
+For cases where $\|q-x\| \leq 1$ for all $q,x$, the class discrepancy of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ in dimension $d$ is $O(\gamma\exp(\gamma)\sqrt{d}/m)$.
 \end{corollary} 
 This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. 
 This also resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
 For non-constant $\gamma$ assume w.l.o.g. $\|q-x\| \le 1$. The Taylor series of the Gaussian kernel $K$ exhibits $|\alpha_k| \le \gamma^k/k!$.
 Plugging into the equation in the proof of Theorem~\ref{thm:analytic2} we get that the sum determining the constant is upper bounded by
-$\sum_{k=1}^\infty \gamma^{k}(k\log^3(k))^{1/2}/k! = O\left((1+\gamma) \exp(\gamma)\right)$.
+$$\sum_{k=1}^\infty \gamma^{k}(k\log^3(k))^{1/2}/k! = O\left(\sum_{k=1}^\infty \gamma^{k}/(k-1)!\right) = O\left(\gamma \exp(\gamma)\right)$$
 
 %\end{proof}
 
