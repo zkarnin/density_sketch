@@ -26,14 +26,17 @@
 
 \usepackage{amsmath}
 %\usepackage{amsthm}
-\usepackage[noend]{algorithmic}
 \usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+%\usepackage{algorithmic}
+%\usepackage{algorithm}
+%\usepackage[noend]{algorithmic}
 %\usepackage[margin=1in]{geometry}
 \usepackage{xcolor}
 \usepackage{amsfonts}
 \usepackage{ amssymb }
 
-\usepackage[]{algorithm2e}
+\usepackage{algorithm2e}
 
 %\newtheorem{theorem}{Theorem}[section]
 %\newtheorem{conjecture}{Conjecture}[section]
@@ -398,18 +401,22 @@ $ \sum_k  |\alpha_k| R^k \sqrt{ k\log^3(k)} \leq C \sum_k  (CR)^k \sqrt{ k\log^3
 corresponding to Lemma~\ref{lem:komlos anl} converges to a constant. The result follows.
 \end{proof}
 
-\begin{corollary}
+\begin{corollary}\label{cdlogistic}
 The class discrepancy of the Logistic function $f(\ip{q,x}) = \log(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
 \end{corollary}
+\begin{corollary}\label{cdsigmoid}
+The class discrepancy of the sigmoid activation loss function $f(\ip{q,x}) = 1/(1+\exp(\ip{q,x}))$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$.
+\end{corollary}
+
 
 \begin{corollary}
-The class discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$.
+The class discrepancy of the covariance function $f(\ip{q,x}) = \ip{q,x}^2$ in dimension $d$, for $\|q\| \leq 1$ is $O(\sqrt{d}/m)$. This gives coresets for matrix column subset selection such that $\|XX^T - \tilde X \tilde X^T\| \le \eps n$ where $\tilde X$ contains only $O(\sqrt{d}/\eps)$ rescaled columns of the matrix $X$.
 \end{corollary}
 
 
 
 \begin{theorem} \label{thm:analytic2}
-Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function family of functions $f_q(x) = f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has class discrepancy $O(\sqrt{d}/m)$. 
+Let $f:\R\rightarrow\R$ be analytic. There exist a radius $R$ such that the function $f(\|x-q\|^2)$, indexed by $\|q\| \leq R$, has class discrepancy $O(\sqrt{d}/m)$. 
 \end{theorem}
 \begin{proof}
 By transforming $x$ to $\tilde{x} = (1, \sqrt{2}x, \|x\|^2)$ and $q$ to $\tilde{q} = (\|q\|^2, -\sqrt{2}q, 1)$ we get $\ip{\tilde{x},\tilde{q}} = \|q-x\|^2$. Moreover, $\|q\| \le R$ gives $\|\tilde q\| \le R^2+1$. The result follows from applying Theorem~\ref{analitic1} to $f(\ip{ \tilde q, \tilde x}) = f(\|q-x\|^2)$.
@@ -420,13 +427,10 @@ The class discrepancy of the Gaussian kernel $K(q,x) = \exp(-\gamma \|x-q\|^2)$ 
 \end{corollary} 
 This improves upon the recent result of \cite{DBLP:journals/corr/abs-1802-01751} by proving the existence of $\eps$ approximation corsets of size $\sqrt{d}/\eps$ for Gaussian kernel density, in the case where $\gamma$ is constant. 
 This also resolves the open problem raised by \cite{DBLP:journals/corr/abs-1802-01751} and matches their lower bound.   
-
-\begin{proof}
-W.l.o.g. the maximum distance $\|q-x\|$ is 1. The Taylor series of the Gaussian kernel $K$ becomes
-$ \sum_{k=0}^\infty \frac{(-\gamma)^k}{k!} $.
+For non-constant $\gamma$ assume w.l.o.g. $\|q-x\| \le 1$. The Taylor series of the Gaussian kernel $K$ exhibits $|\alpha_k| \le \gamma^k/k!$.
 Plugging into the equation in the proof of Theorem~\ref{thm:analytic2} we get that the sum determining the constant is upper bounded by
-$ \sum_{k=0}^\infty \frac{\gamma^{k}\sqrt{ k\log^3(k)}}{k!} = O\left((1+\gamma) \exp(\gamma)\right)$.
-\end{proof}
+$\sum_{k=1}^\infty \gamma^{k}(k\log^3(k))^{1/2}/k! = O\left((1+\gamma) \exp(\gamma)\right)$.
+
 %\end{proof}
 
 
@@ -435,30 +439,30 @@ From section \ref{sec:analytic} we know that the class discrepancy of the Gaussi
 %The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
 Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
 In fact, we show that for any positive kernel $K_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > \sqrt{m}$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
-Given a collection of data points $X = x_1,\ldots, x_n$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as 
-$$ F(q) = \sum_{i=1}^{n} K(x_i,q) $$
-Here, $K$ is a \emph{positive definite kernel} function, typically based on the distance between $x,y$. The most frequent examples include
-$$ K(x,q) = \exp(- \|x-y\|_2^2/\lambda^2)\;\;\; K(x,q) = \exp(- \|x-q\|/\lambda) \; \mbox{and}\;\;\; K(x,y) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
-where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \leq 1$ for all data points. Notice that for any kernel based on distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
+Given a collection of data points $X = \{x_1,\ldots, x_n\}$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as $ F(q) = \sum_{i=1}^{n} K(x_i,q) $.
+Here, $K$ is any \emph{positive semi-definite kernel} function. The most frequent examples include
+$$ K(x,q) = \exp(- \|x-q\|_2^2/\lambda^2),\;\; K(x,q) = \exp(- \|x-q\|/\lambda) ,\;\;  K(x,q) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
+where $\lambda$ is a scaling parameter. For simplicity, we assume that $K(x,x) \leq 1$ for all data points. Notice that for any kernel based on the distance we have $K(x,x)=1$ exactly for all $x \in \R^d$.
 
-\begin{algorithm}[H]
- \KwData{Kernel function $K:(\R^d,\R^d)\rightarrow[0,1]$, points  $x_1,\ldots,x_m$}
- \KwResult{$\sigma \in \{-1,1\}^m$ such that $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$}
- $\sigma_1 = 1$;\\
- \For{$i = 2,\ldots,m$}
- {$\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$}
-% \EndFor
-\caption{Low Discrepancy Algorithm for Positive Kernels}
+\begin{algorithm}
+\begin{algorithmic}
+\STATE {\bf input:} Kernel function $K:(\R^d,\R^d)\rightarrow[0,1]$, points  $\{x_1,\ldots,x_m\}$
+\STATE {\bf output:} $\sigma \in \{-1,1\}^m$ such that $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$
+\STATE$\sigma_1 = 1$
+\FOR {$i = 2,\ldots,m$} 
+        \STATE $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$
+\ENDFOR 
+\end{algorithmic}
+\caption{Low Discrepancy Algorithm for Positive Kernels}\label{kernelAlg}
 \end{algorithm}
 
 
-%The algorithm works as follows: Set $\sigma_1 = 1$. For $i=2,\ldots,m$ set $\sigma_i = -\operatorname{sign} (\sum_{j=1}^{i-1}\sigma_j  K(x_j, x_i))$.
 \begin{theorem} \label{thm:disc simple kernel}
-The algorithm above achieves $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$.
+Algorithm \ref{kernelAlg} achieves $\max_q |\sum_i \sigma_i K(x_i,q) | \le \sqrt{m}$.
 \end{theorem}
 
 \begin{proof}
-For any kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
+For any positive semi-definite kernel $K$ there exist a mapping $\phi: \R^d \to {\cal V}$ to an inner product space $\cal V$ such that 
 $ K(x,q) = \ip{\phi(x), \phi(q)} $.
 Using this function $\phi$ our objective function becomes
 \[
@@ -467,7 +471,7 @@ Using this function $\phi$ our objective function becomes
 Since $\|\phi(q)\| \leq 1$ we reduced the problem to bounding the norm of $ \sum_{i=1}^m \sigma_i \phi(x_i) $.
 %
 We show by induction on $i$ that 
-$$\left\| \sum_{j=1}^i \sigma_j \phi(x_j) \right\|^2 \le \sum_{j=1}^i \left\|\phi(x_j)\right\|^2 \leq i$$
+$\left\| \sum_{j=1}^i \sigma_j \phi(x_j) \right\|^2 \le \sum_{j=1}^i \left\|\phi(x_j)\right\|^2 \leq i$.
 This is trivially true for $i=1$ since $\|\phi(x)\| \leq 1$. 
 Using our induction assumption we get
 \begin{eqnarray*}
@@ -478,7 +482,7 @@ Using our induction assumption we get
 The first equality simply unpacks the squared vector norm, the second transition is due to the induction assumption and the last substitutes our choice of %$\sigma$. This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \sqrt{m}$ for all $q$.
 \end{proof}
 
-Using the framework above this provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches and simplifies the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Theorem~\ref{thm:streaming21} leads to a deterministic streaming algorithm with a memory complexity of $O(\log^3(\eps^2 n)/\eps^2)$. For $L$-Lipchitz kernels, meaning $K$ such that $|K(x,q+h) - K(x,q)|/\|h\| \leq L$ for all $h \neq 0$, Theorem~\ref{thm:streaming22} leads to a randomized streaming algorithm with a memory complexity of $O\left(\log^3 \left( d \log\left(RLn/\delta\eps\right) \right) / \eps^2 \right)$ that succeeds finding a coreset with probability $1-\delta$. The parameter $R$ is the maximum norm of a query. The argument goes through a union bound over an $\eps/L$-net over vectors of norm at most $R$, the size of which is $(RL/\eps)^{O(d)}$.
+Using the framework above provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches and simplifies the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Theorem~\ref{thm:streaming21} leads to a deterministic streaming algorithm with a memory complexity of $O(\log^3(\eps^2 n)/\eps^2)$. For $L$-Lipchitz kernels, meaning $K$ such that $|K(x,q+h) - K(x,q)|/\|h\| \leq L$ for all $h \neq 0$, Theorem~\ref{thm:streaming22} leads to a randomized streaming algorithm with a memory complexity of $O\left(\log^3 \left( d \log\left(RLn/\delta\eps\right) \right) / \eps^2 \right)$ that succeeds in finding a coreset with probability $1-\delta$. The parameter $R$ is the maximum norm of a query. The argument goes through a union bound over an $\eps/L$-net over vectors of norm at most $R$, the size of which is $(RL/\eps)^{O(d)}$.
 
 \paragraph{Note} Theorem~\ref{thm:disc simple kernel} provides an upper bound of $\sqrt{m}$ for the sign discrepancy. 
 This upper bound is tight since there exists a set of vectors that requires it. 
