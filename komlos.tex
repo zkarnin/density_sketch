@@ -114,18 +114,29 @@ This idea is very general and applies to geometric properties of the data \cite{
 clustering \cite{DBLP:conf/compgeom/Har-PeledK05} \cite{DBLP:conf/stoc/FeldmanL11}, classification \cite{DBLP:conf/ijcai/Har-PeledRZ07}, regression \cite{DBLP:conf/nips/MunteanuSSW18} 
 machine learning \cite{bachem2017practical}, density estimation \cite{DBLP:journals/corr/abs-1802-01751}, and many other problems. 
 
-Obtaining small coresets and understanding the coreset complexity of different problems is of significant theoretical and practical importance.
+Obtaining small coresets and understanding the coreset complexity (the size of the minimal coreset) of different problems is of significant theoretical and practical importance.
 While some problems obviously do not admit small coresets, other do. 
-There are several results that connect the simplicity of the measure and its coreset complexity (the size of the minimal coreset).
+There are several results that connect the simplicity of the measure and its coreset complexity.
 In this manuscript, we focus solely on sums of functions applied to the input items.
 That is, for $\{x_i,\ldots,x_n\} \subset \X$ we measure $F(q) = \sum_i f(x_i,q)$ for $q \in \Q$ which is either some model parameters or a query.
 For example, one could consider the sum of sigmoid activation losses $F(q) = \sum_{i=1}^{n} 1/(1+ \exp(\ip{x_i,q}))$ and $x,q\in \R^d$.
-Using Chernoff's inequality and a union bound already shows that sampling $\tilde O(d/\eps^2)$ items give an $\eps n$ approximation to this sum.\footnote{Using $\tilde O(\cdot)$ to suppress poly-logarithmic terms.} 
+Using Chernoff's inequality and a union bound already shows that sampling $\tilde O(d/\eps^2)$ items gives an $\eps n$ approximation to this sum.\footnote{Using $\tilde O(\cdot)$ to suppress poly-logarithmic terms.} 
 In general, for families of VC dimension $v$, a sample of $(v+\log(1/\delta))/\eps^2$ suffices \cite{talagrand1994sharper}.
 For logistic regression and many other problems $O(d/\eps)$ samples are enough due to fast rate generalization results \cite{van2015fast}.
 For Gaussian kernel density, it is known that a sample size of $O(1/\eps^2)$ suffices independently of $d$  \cite{lopez2015towards}.
+These results require different analyses and seem to stem from different mathematical underpinnings. 
+This paper provides a general framework for obtaining, and improving on, these results. 
 
-Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d.\ sampled points. A carefully selected set of points can potentially obtain a better generalization bound, and that is the usefulness of coresets in the context of machine learning. We are not aware of a complete analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size. There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability. 
+Rademacher complexity \cite{Bartlett:2003:RGC:944919.944944} is a known method to estimate the generalization ability of an empirical risk minimizer (ERM) of a family of function over a finite set of i.i.d.\ sampled points. 
+In that sense, Rademacher complexity is a good measure of sample complexity. 
+That is, the generalization of coresets which are chosen i.i.d.\ from the data (or the underlying distribution).
+A carefully selected coreset can be better than a uniformly sampled one. 
+It can be smaller and still give the same generalization power. 
+Alternatively, it can give better generalization with the same number of data points. 
+That is the usefulness of coresets in the context of machine learning. 
+This paper defines the analog to Rademacher complexity that aims to measure the generalization ability of a coreset of a fixed finite size.
+ 
+There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references within that tie the coreset to the VC dimension of the family function, and the average sensitivity of the dataset. However, these relationships come up more as tools for constructing a coreset rather than a single complexity measure aimed to characterize some generalization ability. 
 Connection between coresets and discrepancy have been made in the non-streaming setting \cite{phillips2009small}, Theorem 1.1.
 
 Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
