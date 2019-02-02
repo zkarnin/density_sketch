@@ -131,8 +131,7 @@ Rademacher complexity (see for example \cite{Bartlett:2003:RGC:944919.944944}) i
 In other words, bounding the Rademacher complexity is a good way to upper bound the sample complexity. 
 A sample is an instance of a coreset which is chosen i.i.d.\ from the data (or the underlying distribution).
 A carefully selected coreset can, at least potentially, be better than a uniformly sampled one. 
-It can be smaller and still give the same generalization power. 
-Alternatively, it can give better generalization with the same number of data points. 
+It can be smaller and still give the same generalization power or give better generalization with the same number of data points. 
 %That is the usefulness of coresets in the context of machine learning. 
 There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references therein that tie the coreset size to the VC dimension of the  function family, and the average sensitivity of the dataset. 
 These relationships come up as tools for constructing coresets rather than complexity measures aimed to characterize generalization ability. 
@@ -141,13 +140,14 @@ This paper defines the analog to Rademacher complexity that aims to characterize
 %Connection between coresets and discrepancy have been made in the non-streaming setting \cite{phillips2009small}, Theorem 1.1.
 
 We show that our result applies to any analytic function of the dot product. 
-These include Logistic Regression $F(q) =  \sum_i \log(1+\exp(\ip{y_ix_i,q}))$, Covariance or matrix approximation  $F(q) =  \sum_i \ip{x_i,q}^2$, sigmoid activation loss $F(q) =  \sum_i 1/(1+\exp(\ip{y_ix_i,q}))$, linear regression $F(q) =  \sum_i (\ip{y_ix_i,q} -y_i)^2$ and many others. For all the aforementioned  $x,q \in R^d$ and $y_i \in \{-1,-1\}$.
+These include Logistic Regression $F(q) =  \sum_i \log(1+\exp(\ip{y_ix_i,q}))$, Covariance or matrix approximation  $F(q) =  \sum_i \ip{x_i,q}^2$, sigmoid activation loss $F(q) =  \sum_i 1/(1+\exp(\ip{y_ix_i,q}))$, linear regression $F(q) =  \sum_i (\ip{y_ix_i,q} -y_i)^2$ and many others. For all the aforementioned  $x,q \in R^d$ and $y_i \in \{-1,1\}$.
 By bounding the class discrepancy of all such functions we obtain coresets of size $O(\sqrt{d}/\eps)$ for all of them.
 
 We note that while we obtain universal {\it additive guarantee} it is often much harder to get a  {\it multiplicative guarantee}
 For Logistic regression, for example, a recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a  {\it multiplicative guarantee} that is based on an average sensitivity property of the dataset. 
-They provide a lower bound for the size of a multiplicative error coreset.
-They show that in general it is not possible to achieve $m \ll n$. 
+They provide a lower bound for the size of a multiplicative error coreset
+proving in particular that in general it is not possible to achieve $m \ll n$. 
+%They show that in general it is not possible to achieve $m \ll n$. 
 The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. 
 The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors. 
 
@@ -170,7 +170,7 @@ In fact, we show that this is the coreset complexity for any analytic function o
 
 We also provide another independent result; 
 a very simple and deterministic algorithm for constructing coresets of size $O(1/\eps^2)$ for any positive semi-definite kernel. 
-Although the worst case lower bound is $O(1/\eps^2)$ which matches the coreset achieved by sampling, we conjecture that in realistic scenarios, the deterministic algorithm will outperform random sampling as it explicitly takes advantage of negative correlations.
+Although the worst case lower bound is $\Omega(1/\eps^2)$ which matches the coreset achieved by sampling, we conjecture that in realistic scenarios, the deterministic algorithm will outperform random sampling as it explicitly takes advantage of negative correlations.
 
 \section{Class Discrepancy and Coreset Complexity}
 
