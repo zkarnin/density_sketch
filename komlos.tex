@@ -140,15 +140,37 @@ This paper defines the analog to Rademacher complexity that aims to characterize
  
 %Connection between coresets and discrepancy have been made in the non-streaming setting \cite{phillips2009small}, Theorem 1.1.
 
-An important application of our generic coreset result is Kernel density estimation.
-Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. A thorough survey could be found in \cite{silverman2018density}. Given a set of $n$ data points $x_1,\ldots,x_n$ and a query $q$, the density estimate of $q$ is the average $\frac{1}{n} \sum_i K(x_i,q)$ of the kernel evaluations with the data points. The task of finding a coreset for kernel density estimates consists of obtaining a set of points $z_1,\ldots,z_m$ with weights $w_1,\ldots,w_m$ for some $m \ll n$ such that for any query $q$ it holds that 
-$\frac{1}{n} \sum_i K(x_i,q) = \frac{1}{m} \sum_i w_i K(z_i,q) \pm \eps$. For this task, the state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751}, achieving $m=\sqrt{d\log(1/\eps)}/\eps$ where $d$ is the dimension of the original data points. Their result holds for any Lipchitz bounded positive semi-definite kernels. The result is constructive though it is polynomial rather than (quasi-)linear in the data size. The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds. Additionally, they provide a simpler algorithm based on the Frank-Wolf method that achieves a $1/\eps^2$ sized coreset. It is in fact known (see \cite{lopez2015towards}, Theorem 1) that a uniform random sample of $\log(1/\delta)/\eps^2$ points gives a coreset w.p. $1-\delta$ for some kernel types. 
+We show that our result applies to any analytic function of the dot product. 
+These include Logistic Regression $F(q) =  \sum_i \log(1+\exp(\ip{y_ix_i,q}))$, Covariance or matrix approximation  $F(q) =  \sum_i \ip{x_i,q}^2$, sigmoid activation loss $F(q) =  \sum_i 1/(1+\exp(\ip{y_ix_i,q}))$, linear regression $F(q) =  \sum_i (\ip{y_ix_i,q} -y_i)^2$ and many others. For all the aforementioned  $x,q \in R^d$ and $y_i \in \{-1,-1\}$.
+By bounding the class discrepancy of all such functions we obtain coresets of size $O(\sqrt{d}/\eps)$ for all of them.
+
+We note that while we obtain universal {\it additive guarantee} it is often much harder to get a  {\it multiplicative guarantee}
+For Logistic regression, for example, a recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a  {\it multiplicative guarantee} that is based on an average sensitivity property of the dataset. 
+They provide a lower bound for the size of a multiplicative error coreset.
+They show that in general it is not possible to achieve $m \ll n$. 
+The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. 
+The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors. 
+
+We show that our result also applies to any analytic function of the squared distance.
+A prime example of that is Gaussian kernel density estimation.
+Kernel density estimation is a popular tool in data analysis aimed to estimate a continuous distribution with a finite set of points. 
+Among other applications, this tool is used for outlier detection \cite{schubert2014generalized}, regression \cite{fan2018local}, and clustering \cite{rinaldo2010generalized}. 
+A thorough survey could be found in \cite{silverman2018density}. 
+Given a set of $n$ data points $\{x_1,\ldots,x_n\}$ and a query $q$, the Gaussian density estimate at point $q$ is given by $\sum_i K(x_i,q) = \sum_i e^{-\|x-q\|^2}$. 
+Obtaining the smallest possible coreset for this problem has been open for several years.
+The state-of-the-art is given by \cite{DBLP:journals/corr/abs-1802-01751} (see references within). 
+They achieve coresets of size $O(\sqrt{d\log(1/\eps)}/\eps)$ where $d$ is the dimension of the original data points. 
+Their result holds for any Lipchitz bounded positive semi-definite kernels. 
+The result is constructive though it is polynomial rather than (quasi-)linear in the data size. 
+The authors give an almost matching lower bound of $\sqrt{d}/\eps$ and pose an open question for closing the gap between the bounds. 
+Additionally, they provide an algorithm based on the Frank-Wolf method that achieves a $1/\eps^2$ sized coreset. 
+It is, in fact, known (see \cite{lopez2015towards}, Theorem 1) that a uniform random sample of $\log(1/\delta)/\eps^2$ points gives a coreset w.p. $1-\delta$ for some kernel types. 
 In this paper we resolve the open question by \cite{DBLP:journals/corr/abs-1802-01751} and prove that the coreset complexity of Gaussian kernel density is indeed $O(\sqrt{d}/\eps)$, matching the lower bound. 
-In fact, we show that this is the coreset complexity for any analytic function of the squared distance $f(x,q) = g(\|x-q\|^2)$.
-Moreover, we provide a very simple and deterministic algorithm for constructing coresets of size $1/\eps^2$ for any positive kernel. Although the worst case lower bound is $1/\eps^2$, we conjecture that in realistic scenarios, the deterministic algorithm should outperform random sampling as it explicitly takes advantage of negative correlations.
+In fact, we show that this is the coreset complexity for any analytic function of the squared distance $f(x,q) = f(\|x-q\|^2)$.
 
-Another application of our coreset results applies to logistic regression. Logistic Regression is an extremely popular technique for classification. We are given a set of $n$ pairs $x_i,y_i$ with $x_i \in \R^d$ and $y_i \in \{-1,1\}$. The objective is to find a regressor $q \in \R^d$ minimizing the logistic loss defined as $\E_i \log(1+\exp(x_i^\top q y_i))$. A coreset for logistic regression is a set of $m \ll n$ pairs $z_i, v_i$ in $\R^d, \{-1,1\}$ correspondingly along with weights $w_i$, with the property that for any regressor $q$, either $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) \pm \eps$ or $\E_i \log(1+\exp(x_i^\top q y_i)) = \E_i \log(1+\exp(z_i^\top q v_i)) (1 \pm \eps)$. A recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a multiplicative guarantee that is based on an average sensitivity property of the dataset. They provide a lower bound for the size of a multiplicative coreset showing that in general it is not possible to achieve $m \ll n$. The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors.  Our results prove that for an additive guarantee, it is possible to obtain a coreset of size $O(\sqrt{d}/\eps)$.
-
+We also provide another independent result; 
+a very simple and deterministic algorithm for constructing coresets of size $O(1/\eps^2)$ for any positive semi-definite kernel. 
+Although the worst case lower bound is $O(1/\eps^2)$ which matches the coreset achieved by sampling, we conjecture that in realistic scenarios, the deterministic algorithm will outperform random sampling as it explicitly takes advantage of negative correlations.
 
 \section{Class Discrepancy and Coreset Complexity}
 
