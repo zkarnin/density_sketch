@@ -187,7 +187,7 @@ We keep using the two different functions $f:\X\rightarrow\R$ and $f:\X,\Q\right
 One should think about $q$ as either the model parameters or a query for the sketch. 
 
 The goal is to produce a coreset. This is a small set $S\subset [n]$ and weights $w \in\R_+^{n}$ such that $\tilde F(q) = \sum_{i \in S} w_i f(x_i,q)$ approximates $F(q)$.
-Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all $q \in \mathcal Q$ simultaneously. % or for every fixed $q$ with probability at least $1-\delta$. 
+Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ for all $q \in \mathcal Q$ simultaneously. % or for every fixed $q$ with probability at least $1-\delta$. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript. 
 Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
 Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
@@ -197,7 +197,7 @@ While $|\mathcal Q|$ is often infinite it can be replaced by a finite (albeit us
 %
 We present a mechanism for producing coresets which are much smaller than those achieved by sampling for a large class of problems in a unified manner.  
 Moreover, our solutions create streaming algorithms with fully mergeable sketches. 
-The size of the coreset above appears to be intimately tied to the class discrepancy properties of the associated functions.
+The size of the coresets appear to be intimately tied to the class discrepancy properties of the associated functions.
 
 
 \subsection{Class Discrepancy}
