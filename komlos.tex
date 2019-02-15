@@ -1,5 +1,5 @@
-\documentclass[anon,12pt]{colt2019} % Anonymized submission
-% \documentclass[12pt]{colt2019} % Include author names
+%\documentclass[anon,12pt]{colt2019} % Anonymized submission
+\documentclass[12pt]{colt2019} % Include author names
 
 % The following packages will be automatically loaded:
 % amsmath, amssymb, natbib, graphicx, url, algorithm2e
@@ -91,6 +91,8 @@
 
 \maketitle
 
+
+
 \begin{abstract}
 This paper defines the notion of class discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets. We provide general techniques for bounding the class discrepancy of machine learning problems. 
 As corollaries of the general technique we bound the discrepancy of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
@@ -99,6 +101,9 @@ We provide two more related but independent results.
 First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
 Second, an extremely simple deterministic algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
 This paper establishes some explicit connections between class discrepancy, coreset complexity, learnability, and streaming algorithms. 
+
+
+%In this talk we ask the question, how much data do you really need? To answer that, we explore the notion of coresets in machine learning. Those are small sets of data points (or examples) with the following unique property.  For all models, the loss suffered on the coreset is roughly the same as the loss on the entire data. As a result, optimizing (training) over the coreset is simultaneously more efficient and provably close to optimal. Much research was devoted to finding small coresets for logistic regression, linear regression, clustering, density estimation, covariance approximation and many other problems. This talk will present a new measure of function class complexity, namely, class discrepancy. Class discrepancy captures the coreset complexity (minimal coreset size) for all the above problems and many others. These coresets are asymptotically smaller than those currently known and are often provably optimal. In fact, there exist mergeable streaming coreset constructions for all machine learning problems with bounded class discrepancy. This, information theoretically, allows for communication free, distributed, order agnostic, streaming machine learning. 
 \end{abstract}
 
 
@@ -182,7 +187,7 @@ We keep using the two different functions $f:\X\rightarrow\R$ and $f:\X,\Q\right
 One should think about $q$ as either the model parameters or a query for the sketch. 
 
 The goal is to produce a coreset. This is a small set $S\subset [n]$ and weights $w \in\R_+^{n}$ such that $\tilde F(q) = \sum_{i \in S} w_i f(x_i,q)$ approximates $F(q)$.
-Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ either for all $q \in \mathcal Q$ simultaneously. % or for every fixed $q$ with probability at least $1-\delta$. 
+Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ for all $q \in \mathcal Q$ simultaneously. % or for every fixed $q$ with probability at least $1-\delta$. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript. 
 Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
 Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
@@ -192,7 +197,7 @@ While $|\mathcal Q|$ is often infinite it can be replaced by a finite (albeit us
 %
 We present a mechanism for producing coresets which are much smaller than those achieved by sampling for a large class of problems in a unified manner.  
 Moreover, our solutions create streaming algorithms with fully mergeable sketches. 
-The size of the coreset above appears to be intimately tied to the class discrepancy properties of the associated functions.
+The size of the coresets appear to be intimately tied to the class discrepancy properties of the associated functions.
 
 
 \subsection{Class Discrepancy}
