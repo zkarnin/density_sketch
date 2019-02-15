@@ -473,7 +473,7 @@ $$\sum_{k=1}^\infty \gamma^{k}(k\log^3(k))^{1/2}/k! = O\left(\sum_{k=1}^\infty \
 From section \ref{sec:analytic} we know that the class discrepancy of the Gaussian kernel is $D_m = O(\sqrt{d}/m)$. 
 %The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
 Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
-In fact, we show that for any positive kernel $D_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > \sqrt{m}$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
+In fact, we show that for any positive kernel $D_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > m$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
 Given a collection of data points $X = \{x_1,\ldots, x_n\}$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as $ F(q) = \sum_{i=1}^{n} K(x_i,q) $.
 Here, $K$ is any \emph{positive semi-definite kernel} function. The most frequent examples include
 $$ K(x,q) = \exp(- \|x-q\|_2^2/\lambda^2),\;\; K(x,q) = \exp(- \|x-q\|/\lambda) ,\;\;  K(x,q) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
