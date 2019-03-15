@@ -3,37 +3,62 @@ from numpy.linalg import norm
 from math import exp
 
 class DensitySketch:
-    def __init__(self, vectors):
+    def __init__(self, vectors, kernel_type='gaussian', kernel_scale=1.0):
         self.vectors = vectors
-        self.n = vectors.shape[0]
+        self.size = vectors.shape[0]
+        self.w = 1.0/float(self.size)
         self.d = vectors.shape[1]
-        self.weights = ones(self.n)
+        self.kernel_scale = kernel_scale
+        if kernel_type.lower() in ['gaussian','g',0]:
+            self.kernel = self.kernel_gaussian
+        elif kernel_type.lower() in ['exponential','e',1]:
+            self.kernel = self.kernel_exponential
+        elif kernel_type.lower() in ['cauchy','c',2]:
+            self.kernel = self.kernel_cauchy
+        else:
+            raise ValueError('kernel_type must be from the follwing values ["gaussian","exponential","cauchy"]')
 
     # Could be replaced with any positive semidefinite kernel 
-    def kernel(self, v1,v2, scale_lambda=1.0):
-        return exp(-(norm(v1-v2)/scale_lambda)**2)
+    def kernel_gaussian(self, v1,v2, scale=1.0):
+        return exp(-(norm(v1-v2)/scale)**2)
+    
+    def kernel_exponential(self, v1,v2, scale=1.0):
+        return exp(-norm(v1-v2)/scale)
+
+    def kernel_cauchy(self, v1,v2, scale=1.0):
+        return 1.0/(1.0 + norm(v1-v2)/scale)
 
     # Computes the density at a point in a really slow way.
     def density(self, vector):
         density_sum = 0.0
-        for i in range(self.n):
-            density_sum += self.weights[i]*self.kernel(self.vectors[i],vector)
-        return density_sum/self.n
+        for other in self.vectors:
+            density_sum += self.kernel(vector, other, self.kernel_scale)
+        return self.w*density_sum
 
-    def coreset(self):
-        s_pos = []
-        s_neg = []
-        for i in range(self.n):
+    def split(self):
+        s1 = []
+        s2 = []
+        for i in range(self.size):
             vi = self.vectors[i]
             err = 0.0
-            err += sum(self.kernel(vi,vj) for vj in s_pos)
-            err -= sum(self.kernel(vi,vj) for vj in s_neg)
-            if err >= 0.0:
-                s_neg.append(vi)
+            err += sum(self.kernel(vi,vj,self.kernel_scale) for vj in s1)
+            err -= sum(self.kernel(vi,vj,self.kernel_scale) for vj in s2)
+            if err < 0.0:
+                s1.append(vi)
             else:
-                s_pos.append(vi)
-                                
-        if len(s_pos)<len(s_neg):
-            return array(s_pos)
-        else:
-            return array(s_neg)
+                s2.append(vi)                
+        return (s1,s2)                   
+
+    def compress(self, k=None):
+        if k == None:
+            k = self.size-1
+      
+        while self.size > k:
+            (s1,s2) = self.split()
+            if len(s1)<len(s2):
+                self.vectors = array(s1)
+            else:
+                self.vectors = array(s2)
+            self.size = len(self.vectors)
+            self.w = 2.0*self.w
+            
