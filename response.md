@@ -1,8 +1,19 @@
+### Suggested modifcations edits
+* unify n and m if possible
+* Add a generalization like result for ERM on the coreset
+* Add many citation (all from the reviews) plus Bernard Chazelle's book.
+* Add more discussion on the compactors (is the page limit really 12 pages?)
+* Answer TODO questions below
+* Discuss the algorithm explicitly
+* Are there other results on additive coresets that we are missing? 
+* How does the matrix column subsets selection compare to BSS?
+
+
+
 ### Interesting paper with new but simple techniques. References and comparisons are missing
 
 
-
-The paper does _not_ offer new bound on the Rademacher complexity. It suggests a new measure of complexity. Namely, the class discrepancy. The two quantities are contrasted and compared for discussion and intuition building. In fact, the new bound don’t hold for sampling but rather for algorithmic selection of coresets.  
+The paper does _not_ offer new bound on the Rademacher complexity. It suggests a new measure of complexity. Namely, the Class Discrepancy. The two quantities are contrasted and compared for discussion and intuition building. In fact, the new bound don’t hold for sampling but rather for algorithmic selection of coresets only.  
 
 Regarding additive coresets, indeed, coresets are more often discussed in the context of multiplicative approximation. The authors will make sure to emphasize that this is not the case here. It is important to note that additive bounds for coresets and sketches are quite common. One could argue that additive error bounds are more important because they give smaller coresets while still allowing generalization results.
 
@@ -70,9 +81,7 @@ The core of the paper is based on three contribution all of which are new
 3. Tight bound on the class discrepancy of several well studied problems (which require some mathematically involved lemmas)
 
 
-  
-  
-  
+
 
 ### Interesting general framework, but comparison and presentation are not compelling
 
@@ -107,7 +116,7 @@ We are not aware of additive bounds for regression coresets.
 
 *3.B) Similarly, bounds for multiplicative error in matrix column subset selection are of the order of d/eps. Here we achieve d^(1/2)/eps, but for additive bound. How does this result compares to existing work e.g. in spectral graph sparsification.*
 
-We have corresponded about this topic with experts in these areas including Chris Musco, Nikhil Srivastava, and Nikhil Bansal. These appear to be new results that don’t quite stack against existing work due to the different kind of bounds (additive) they produce.  They do, however, greatly overperform matrix concentration-based sampling results (which is unsurprising and therefore not boasted in the paper)
+We have corresponded about this topic with experts in these areas including Christopher Musco, Nikhil Srivastava, and Nikhil Bansal. These appear to be new results that don’t quite stack against existing work due to the different kind of bounds (additive) they produce.  They do, however, greatly overperform matrix concentration-based sampling results (which is unsurprising and therefore not boasted in the paper)
 
 *If there are computationally efficient (i.e. at least poly(n)) algorithms that could be extracted from this framework, it should be discussed in the paper, at least at the level of conjectures.* 
 
