@@ -61,9 +61,11 @@
 \maketitle
 
 \begin{abstract}
-This paper defines the notion of class discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets. We provide general techniques for bounding the class discrepancy of machine learning problems. 
+This paper defines the notion of class discrepancy for families of functions.  
+It shows that low discrepancy classes admit small offline and streaming coresets. 
+We provide general techniques for bounding the class discrepancy of machine learning problems. 
 As corollaries of the general technique we bound the discrepancy of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
-Our result resolves a long standing open problem regarding the coreset complexity of Gaussian kernel density estimation.  
+Our result resolves a long-standing open problem regarding the coreset complexity of Gaussian kernel density estimation.  
 We provide two more related but independent results. 
 First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
 Second, an extremely simple deterministic algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
@@ -77,13 +79,13 @@ The basic setup is as follows.
 Suppose you are trying to optimize an expression over a set of items, data points, or examples.
 The optimization problem is difficult and often square, cubic or even exponential in the input set size.
 Therefore, there is a strong incentive to reduce the cardinality of that set. 
-The goal is therefore, to pinpoint a small subset of the data items which approximates the entire input set with respect to some function or geometric measure. Such small sets are called coresets. 
+The goal is, therefore, to pinpoint a small subset of the data items which approximates the entire input set with respect to some function or geometric measure. Such small sets are called coresets. 
 This idea is very general and applies to geometric properties of the data \cite{agarwal2005geometric}, 
 clustering \cite{DBLP:conf/compgeom/Har-PeledK05} \cite{DBLP:conf/stoc/FeldmanL11}, classification \cite{DBLP:conf/ijcai/Har-PeledRZ07}, regression \cite{DBLP:conf/nips/MunteanuSSW18} 
 machine learning \cite{bachem2017practical}, density estimation \cite{DBLP:journals/corr/abs-1802-01751}, and many other problems. 
 
 Obtaining small coresets and understanding the coreset complexity (the size of the minimal coreset) of different problems is of significant theoretical and practical importance.
-While some problems obviously do not admit small coresets, other do. 
+While some problems obviously do not admit small coresets, others do. 
 There are several results that connect the simplicity of the measure and its coreset complexity.
 In this manuscript, we focus solely on sums of functions applied to the input items.
 That is, for $\{x_i,\ldots,x_n\} \subset \X$ we measure $F(q) = \sum_i f(x_i,q)$ for $q \in \Q$ which is either some model parameters or a query.
@@ -93,25 +95,26 @@ In general, for families of VC dimension $v$, a sample of $(v+\log(1/\delta))/\e
 For logistic regression and many other problems $O(d/\eps)$ samples are enough due to fast rate generalization results \cite{van2015fast}.
 For Gaussian kernel density, it is known that a sample size of $O(1/\eps^2)$ suffices independently of $d$  \cite{lopez2015towards}.
 These results require different analyses and seem to stem from different mathematical underpinnings. 
-This paper provides a general framework for obtaining, and improving on, these results. 
+This paper provides a general framework for obtaining and improving on these results. 
 
 Rademacher complexity (see for example \cite{Bartlett:2003:RGC:944919.944944}) is a standard measure of generalization.
 In other words, bounding the Rademacher complexity is a good way to upper bound the sample complexity. 
 A sample is an instance of a coreset which is chosen i.i.d.\ from the data (or the underlying distribution).
 A carefully selected coreset can, at least potentially, be better than a uniformly sampled one. 
 It can be smaller and still give the same generalization power or give better generalization with the same number of data points. 
-There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references therein that tie the coreset size to the VC dimension of the  function family, and the average sensitivity of the dataset. 
+There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references therein that tie the coreset size to the VC dimension of the function family, and the average sensitivity of the dataset. 
 These relationships come up as tools for constructing coresets rather than complexity measures aimed to characterize generalization ability. 
 This paper defines the analog to Rademacher complexity that aims to characterize the coreset complexity, i.e., the generalization ability of the best possible coreset of a fixed size.
  
 We show that our result applies to any analytic function of the dot product. 
-These include Logistic Regression $F(q) =  \sum_i \log(1+\exp(\ip{y_ix_i,q}))$, Covariance or matrix approximation  $F(q) =  \sum_i \ip{x_i,q}^2$, sigmoid activation loss $F(q) =  \sum_i 1/(1+\exp(\ip{y_ix_i,q}))$, linear regression $F(q) =  \sum_i (\ip{y_ix_i,q} -y_i)^2$ and many others. For all the aforementioned  $x,q \in R^d$ and $y_i \in \{-1,1\}$.
+These include Logistic Regression $F(q) =  \sum_i \log(1+\exp(\ip{y_ix_i,q}))$, Covariance or matrix approximation 
+$F(q) =  \sum_i \ip{x_i,q}^2$, sigmoid activation loss $F(q) =  \sum_i 1/(1+\exp(\ip{y_ix_i,q}))$, linear regression $F(q) =  \sum_i (\ip{y_ix_i,q} -y_i)^2$ and many others. 
+For all the aforementioned  $x,q \in R^d$ and $y_i \in \{-1,1\}$.
 By bounding the class discrepancy of all such functions we obtain coresets of size $O(\sqrt{d}/\eps)$ for all of them.
 
-We note that while we obtain universal {\it additive guarantee} it is often much harder to get a  {\it multiplicative guarantee}
+We note that while we obtain a universal {\it additive guarantee} it is often much harder to get a  {\it multiplicative guarantee}.
 For Logistic regression, for example, a recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a  {\it multiplicative guarantee} that is based on an average sensitivity property of the dataset. 
-They provide a lower bound for the size of a multiplicative error coreset
-proving in particular that in general it is not possible to achieve $m \ll n$. 
+They provide a lower bound for the size of a multiplicative error coreset proving in particular that in general, it is not possible to achieve $m \ll n$. 
 The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. 
 The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors. 
 
@@ -134,13 +137,14 @@ In fact, we show that this is the coreset complexity for any analytic function o
 
 We also provide another independent result; 
 a very simple and deterministic algorithm for constructing coresets of size $O(1/\eps^2)$ for any positive semi-definite kernel. 
-Although the worst case lower bound is $\Omega(1/\eps^2)$ which matches the coreset achieved by sampling, we conjecture that in realistic scenarios, the deterministic algorithm will outperform random sampling as it explicitly takes advantage of negative correlations.
+Although the worst-case lower bound is $\Omega(1/\eps^2)$ which matches the coreset achieved by sampling, we conjecture that in realistic scenarios, the deterministic algorithm will outperform random sampling as it explicitly takes advantage of negative correlations.
 
 \section{Class Discrepancy and Coreset Complexity}
 
-In both machine learning and in streaming and sketching problems our goal is (often) to approximate sums or expectations of well behaved functions.
+In both machine learning and in streaming and sketching problems our goal is (often) to approximate sums or expectations of well-behaved functions.
 Specifically, we need to approximate $\E_x f(x)$ or $\frac{1}{n}\sum_{i=1}^{n} f(x_i)$ for every $f\in \F$ where $\F$ is a family of functions and $x_i \in \X$ are either sampled training examples or an arbitrary set of stream items. 
-Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn i.i.d.\ from an underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. For notational convenience we use a parameter $q \in \Q$ to index into $\F$ explicitly. 
+Standard generalization results show that for a large enough value of $n$ the average approximates the mean if the complexity of $\F$ is bounded and the samples $x_i$ are drawn i.i.d.\ from an underlying distribution. We therefore focus on approximating the average, or rather, the sum $\sum_{i=1}^{n} f(x_i)$. 
+For notational convenience, we use a parameter $q \in \Q$ to index into $\F$ explicitly. 
 In other words, there is a bijective mapping between $\Q \equiv \F$ such that $f(x) \in \F$ iff there exists $q\in\Q$ such that $f(x,q)=f(x)$.
 We keep using the two different functions $f:\X\rightarrow\R$ and $f:\X,\Q\rightarrow\R$ interchangeably. 
 One should think about $q$ as either the model parameters or a query for the sketch. 
@@ -156,7 +160,7 @@ While $|\mathcal Q|$ is often infinite it can be replaced by a finite (albeit us
 %
 We present a mechanism for producing coresets which are much smaller than those achieved by sampling for a large class of problems in a unified manner.  
 Moreover, our solutions create streaming algorithms with fully mergeable sketches. 
-The size of the coresets appear to be intimately tied to the class discrepancy properties of the associated functions.
+The size of the optimal coreset appears to be intimately tied to the class discrepancy properties of the associated functions.
 
 
 \subsection{Class Discrepancy}
@@ -186,7 +190,7 @@ D_m(\F) =  \min_{\sigma} \max_{f \in \F}  \left| \frac{1}{m} \sum_{i=1}^{m}\sigm
 $.
 \end{definition}
 The class discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m\}$ is the upper bound on any subset of $\X$ of size $m$.
-Throughout the manuscript we assume a bijective mapping between $\F$ and $\Q$. 
+Throughout the manuscript, we assume a bijective mapping between $\F$ and $\Q$. 
 Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$ and vice versa. 
 In the context of machine learning, one should think about $f(x,q)$ as the loss associated with example $x$ and model parameters $q$.
 The set $A$ should be thought of as the set of all possible induces losses vectors. 
@@ -207,7 +211,7 @@ We will show in the following sections several examples for which a coreset can 
 This intuition is restated more explicitly in the next section.
 
 \subsection{Coreset Complexity}
-In this section we point out a direct connection between coreset complexity and class discrepancy.
+In this section, we point out a direct connection between coreset complexity and class discrepancy.
 The connection is a simple application of the folklore argument know as the ``the halving trick".
 For simplicity, in what follows we focus on functions $f$ whose range is $[0,1]$.
 
@@ -416,7 +420,8 @@ $$\sum_{k=1}^\infty \gamma^{k}(k\log^3(k))^{1/2}/k! = O\left(\sum_{k=1}^\infty \
 \section{A Simple Algorithm for Kernel Density Estimation}
 From section \ref{sec:analytic} we know that the class discrepancy of the Gaussian kernel is $D_m = O(\sqrt{d}/m)$. 
 Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
-In fact, we show that for any positive kernel $D_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > m$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
+In fact, we show that for any positive kernel $D_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > m$. 
+More importantly, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
 Given a collection of data points $X = \{x_1,\ldots, x_n\}$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as $ F(q) = \sum_{i=1}^{n} K(x_i,q) $.
 Here, $K$ is any \emph{positive semi-definite kernel} function. The most frequent examples include
 $$ K(x,q) = \exp(- \|x-q\|_2^2/\lambda^2),\;\; K(x,q) = \exp(- \|x-q\|/\lambda) ,\;\;  K(x,q) = (1+\|x-q\|/_2^2/\lambda^2)^{-1}$$
@@ -483,7 +488,7 @@ It does so by keeping a buffer of a certain capacity $m$. When a new item is ins
 If the buffer is full, a compaction operation takes place. 
 The compaction takes the elements in the buffer $x_1,\ldots,x_m$ and finds a low discrepancy assignment $\sigma$ such that 
 $\max_q |\sum_i \sigma_i f(x_i,q)| \leq m D_m$. 
-Note that such a sequence is guarantied to exist by the definition of the class discrepancy. For cases where an algorithm for finding this sequence $\sigma$ is not known, our result applies for the guarantee of the $\sigma$ sequence obtained by the algorithm. That is, if it is possible to obtain a bound of $D_m$ yet we can only find signs obtaining a bound of $\tilde{K}_m$, our results for the obtainable signs apply for $\tilde{K}_m$.
+Note that such a sequence is guaranteed to exist by the definition of the class discrepancy. For cases where an algorithm for finding this sequence $\sigma$ is not known, our result applies for the guarantee of the $\sigma$ sequence obtained by the algorithm. That is, if it is possible to obtain a bound of $D_m$ yet we can only find signs obtaining a bound of $\tilde{K}_m$, our results for the obtainable signs apply for $\tilde{K}_m$.
 Given the sign vector $\sigma$, the compactor appends either $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$ to the output stream. 
 
 Consider a stream of data points $x_1,\ldots,x_n$ and the output stream of a compactor $z_1,\ldots,z_{\tilde{n}}$. The error associated with the new stream w.r.t.\ a query $q$ is defined as
@@ -533,7 +538,8 @@ Since we have $H = O(log(\eps^2 n/c^2))$ such compactors the overall space compl
 
 We proceed to prove Theorem~\ref{thm:streaming22}. To understand the motivation consider first an easier setting where the overall stream length $n$ is known to us in advance. Since $|f(x,q)| \leq 1$, standard concentration bounds will show that by sampling each item w.p.\ $\log(1/\delta)/n\eps^2$ we get an output stream of length $\log(1/\delta)/\eps^2$, that for any fixed query $q$, with probability at least $1-\delta$ suffers an error of $\eps n$ for that query. We can feed this output stream into a deterministic sketch, and given that the input length for the deterministic sketch is $\log(1/\delta)/\eps^2$, Theorem~\ref{thm:streaming21} leads to the required guarantee.
 
-Because we do not know the stream length in advance, we operate as in the deterministic case with compactors. The difference will be that each compactor will keep a count of how many items it has seen. Once a compactor observed more than $\tilde{n} = O(\log(1/\delta)/\eps^2)$ items, it will no longer use a buffer of size $m$ but rather a buffer of size 2. For every two items observed it will output one of them uniformly at random. It is easy to see that a sequence of such compactors can in fact be implemented with $O(1)$ memory via reservoir sampling. The memory of this process is therefor identical, at least asymptotically, to the above.
+Because we do not know the stream length in advance, we operate as in the deterministic case with compactors. The difference will be that each compactor will keep a count of how many items it has seen. Once a compactor observed more than $\tilde{n} = O(\log(1/\delta)/\eps^2)$ items, it will no longer use a buffer of size $m$ but rather a buffer of size 2. For every two items observed it will output one of them uniformly at random. It is easy to see that a sequence of such compactors can, in fact, be implemented with $O(1)$ memory via reservoir sampling. 
+The memory of this process is therefore identical, at least asymptotically, to the above.
 
 \paragraph{Theorem~\ref{thm:streaming22}}
 For any function family $\F$ with a corresponding class discrepancy $D_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset randomized algorithm of size $O\left(c^2\log^3\log(n/\delta) /\eps^2\right)$ whose error for any fixed function $f \in \F$ is at most $\eps n$ with probability at least $1-\delta$. 
@@ -553,7 +559,7 @@ $$O(m\log\log(1/\delta)) = O\left(c^2\log^3(\log(1/\delta))/\eps^2\right)$$
 as required.
 \end{proof}
 
-We are now ready for the proof of Theorem~\ref{thm:streaming12}. Here we extend the idea of \cite{DBLP:conf/focs/KarninLL16} applied for quantiles to general coresets. To explain the high level idea consider again the easier setting where we know $n$, the length of the stream in advance. As in the $D_m=c/\sqrt{m}$ case, we will split the compactors into the top $\log\log(1/\delta)$ ones acting deterministically and bottom compactors yielding random outputs. The issue comes from the choice of $m$. To handle the error of the top compactors it suffices to set $m=c/\eps \ll 1/\eps^2$. The fact that $m \ll 1/\eps^2$ means that the top random compactors observe a stream that is shorter than before and having a buffer of size 2 will result in a large error. We can mitigate this by adding $\log(1/\eps)$ more deterministic compactors and replace the $\log\log(1/\delta)^2$ term in the memory requirement with $\left(\log\log(1/\delta)/\eps\right)^2$. If $\log(1/\delta) \gg 1/\eps$ then this is a good solution. However, for cases where $\eps$ is small we can avoid the $\log(1/\eps)$ term altogether. To do that, the random compactors will not have a buffer of size 2, but a buffer size of $m_h$ depending on their level. Specifically the sequence of $m_h$ starting from the top random level $h= H-\log\log(1/\delta)$ and ending with $h=0$ is exponentially decreasing until hitting the minimal buffer size of $2$.
+We are now ready for the proof of Theorem~\ref{thm:streaming12}. Here we extend the idea of \cite{DBLP:conf/focs/KarninLL16} applied for quantiles to general coresets. To explain the high-level idea consider again the easier setting where we know $n$, the length of the stream in advance. As in the $D_m=c/\sqrt{m}$ case, we will split the compactors into the top $\log\log(1/\delta)$ ones acting deterministically and bottom compactors yielding random outputs. The issue comes from the choice of $m$. To handle the error of the top compactors it suffices to set $m=c/\eps \ll 1/\eps^2$. The fact that $m \ll 1/\eps^2$ means that the top random compactors observe a stream that is shorter than before and having a buffer of size 2 will result in a large error. We can mitigate this by adding $\log(1/\eps)$ more deterministic compactors and replace the $\log\log(1/\delta)^2$ term in the memory requirement with $\left(\log\log(1/\delta)/\eps\right)^2$. If $\log(1/\delta) \gg 1/\eps$ then this is a good solution. However, for cases where $\eps$ is small we can avoid the $\log(1/\eps)$ term altogether. To do that, the random compactors will not have a buffer of size 2, but a buffer size of $m_h$ depending on their level. Specifically the sequence of $m_h$ starting from the top random level $h= H-\log\log(1/\delta)$ and ending with $h=0$ is exponentially decreasing until hitting the minimal buffer size of $2$.
 
 The memory requirement is now $O(m)$ and a careful analysis of the error will lead to an $\eps n$ term coming from the bottom layers. One subtle issue we will need to take into account is that for random compactors with budget $m_h>2$ the output stream is only half as long as the input stream in expectation. Luckily, the output stream length is sharply concentrated around its mean so a union bound can ensure that w.p. $1-\delta$ the output stream is not much longer than its expectation.
 
