@@ -25,58 +25,27 @@
 %  \addr Address}
 
 \usepackage{amsmath}
-%\usepackage{amsthm}
 \usepackage{algorithm}
 \usepackage[noend]{algorithmic}
-%\usepackage{algorithmic}
-%\usepackage{algorithm}
-%\usepackage[noend]{algorithmic}
-%\usepackage[margin=1in]{geometry}
 \usepackage{xcolor}
 \usepackage{amsfonts}
 \usepackage{ amssymb }
-
 \usepackage{algorithm2e}
-
-%\newtheorem{theorem}{Theorem}[section]
-%\newtheorem{conjecture}{Conjecture}[section]
-%\newtheorem{claim}[theorem]{Claim}
-%\newtheorem{lemma}[theorem]{Lemma}
-%\newtheorem{remark}[theorem]{Remark}
-%\newtheorem{definition}[theorem]{Definition}
-%\newtheorem{observation}[theorem]{Observation}
-%\newtheorem{corollary}[theorem]{Corollary}
-%\newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{fact}[theorem]{Fact}
-%\newtheorem*{definition*}{Definition}
-%\newtheorem{definition}{Definition}
-%\newtheorem{claim}{Claim}
-%\newtheorem{theorem}{Theorem}
 
-
-\newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
-\newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
-\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
-
-%\newcommand{\zk}[1]{}
-%\newcommand{\el}[1]{}
-
+%\newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
+%\newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
+%\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
 
 \newcommand{\ip}[1]{\left \langle #1 \right \rangle}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
-\newcommand{\D}{\rho}
 \newcommand{\eps}{\epsilon}
 \newcommand{\F}{\mathcal{F}}
 \newcommand{\X}{\mathcal{X}}
 \newcommand{\Q}{\mathcal{Q}}
-%\usepackage{ntheorem}
 \newcommand{\floor}[1]{\left \lfloor #1 \right \rfloor}
 \newcommand{\ceil}[1]{\left \lceil #1 \right \rceil}
-\newcommand{\disc}{\text{disc}}
-\renewcommand{\Pr}{\operatorname{Pr}}
-
-\newcommand{\komconstant}{c}
 
 
 % Authors with different addresses:
@@ -91,8 +60,6 @@
 
 \maketitle
 
-
-
 \begin{abstract}
 This paper defines the notion of class discrepancy for families of functions.  It shows that low discrepancy classes admit small offline and streaming coresets. We provide general techniques for bounding the class discrepancy of machine learning problems. 
 As corollaries of the general technique we bound the discrepancy of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
@@ -101,9 +68,6 @@ We provide two more related but independent results.
 First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
 Second, an extremely simple deterministic algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
 This paper establishes some explicit connections between class discrepancy, coreset complexity, learnability, and streaming algorithms. 
-
-
-%In this talk we ask the question, how much data do you really need? To answer that, we explore the notion of coresets in machine learning. Those are small sets of data points (or examples) with the following unique property.  For all models, the loss suffered on the coreset is roughly the same as the loss on the entire data. As a result, optimizing (training) over the coreset is simultaneously more efficient and provably close to optimal. Much research was devoted to finding small coresets for logistic regression, linear regression, clustering, density estimation, covariance approximation and many other problems. This talk will present a new measure of function class complexity, namely, class discrepancy. Class discrepancy captures the coreset complexity (minimal coreset size) for all the above problems and many others. These coresets are asymptotically smaller than those currently known and are often provably optimal. In fact, there exist mergeable streaming coreset constructions for all machine learning problems with bounded class discrepancy. This, information theoretically, allows for communication free, distributed, order agnostic, streaming machine learning. 
 \end{abstract}
 
 
@@ -111,7 +75,6 @@ This paper establishes some explicit connections between class discrepancy, core
 The study of coresets in optimization as a whole and in machine learning specifically has a long history. 
 The basic setup is as follows.
 Suppose you are trying to optimize an expression over a set of items, data points, or examples.
-%The optimization problem is difficult and often exponential in the input set size.
 The optimization problem is difficult and often square, cubic or even exponential in the input set size.
 Therefore, there is a strong incentive to reduce the cardinality of that set. 
 The goal is therefore, to pinpoint a small subset of the data items which approximates the entire input set with respect to some function or geometric measure. Such small sets are called coresets. 
@@ -137,13 +100,10 @@ In other words, bounding the Rademacher complexity is a good way to upper bound 
 A sample is an instance of a coreset which is chosen i.i.d.\ from the data (or the underlying distribution).
 A carefully selected coreset can, at least potentially, be better than a uniformly sampled one. 
 It can be smaller and still give the same generalization power or give better generalization with the same number of data points. 
-%That is the usefulness of coresets in the context of machine learning. 
 There are papers such as \cite{langberg2010universal, tolochinsky2018coresets} and references therein that tie the coreset size to the VC dimension of the  function family, and the average sensitivity of the dataset. 
 These relationships come up as tools for constructing coresets rather than complexity measures aimed to characterize generalization ability. 
 This paper defines the analog to Rademacher complexity that aims to characterize the coreset complexity, i.e., the generalization ability of the best possible coreset of a fixed size.
  
-%Connection between coresets and discrepancy have been made in the non-streaming setting \cite{phillips2009small}, Theorem 1.1.
-
 We show that our result applies to any analytic function of the dot product. 
 These include Logistic Regression $F(q) =  \sum_i \log(1+\exp(\ip{y_ix_i,q}))$, Covariance or matrix approximation  $F(q) =  \sum_i \ip{x_i,q}^2$, sigmoid activation loss $F(q) =  \sum_i 1/(1+\exp(\ip{y_ix_i,q}))$, linear regression $F(q) =  \sum_i (\ip{y_ix_i,q} -y_i)^2$ and many others. For all the aforementioned  $x,q \in R^d$ and $y_i \in \{-1,1\}$.
 By bounding the class discrepancy of all such functions we obtain coresets of size $O(\sqrt{d}/\eps)$ for all of them.
@@ -152,7 +112,6 @@ We note that while we obtain universal {\it additive guarantee} it is often much
 For Logistic regression, for example, a recent paper \cite{DBLP:journals/corr/abs-1805-08571} provides a coreset with a  {\it multiplicative guarantee} that is based on an average sensitivity property of the dataset. 
 They provide a lower bound for the size of a multiplicative error coreset
 proving in particular that in general it is not possible to achieve $m \ll n$. 
-%They show that in general it is not possible to achieve $m \ll n$. 
 The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  \cite{tolochinsky2018coresets} gives a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. 
 The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors. 
 
@@ -187,7 +146,7 @@ We keep using the two different functions $f:\X\rightarrow\R$ and $f:\X,\Q\right
 One should think about $q$ as either the model parameters or a query for the sketch. 
 
 The goal is to produce a coreset. This is a small set $S\subset [n]$ and weights $w \in\R_+^{n}$ such that $\tilde F(q) = \sum_{i \in S} w_i f(x_i,q)$ approximates $F(q)$.
-Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ for all $q \in \mathcal Q$ simultaneously. % or for every fixed $q$ with probability at least $1-\delta$. 
+Approximation here means that $|\tilde F(q)  - F(q)| \le \eps n$ for all $q \in \mathcal Q$ simultaneously. 
 There are more complicated formulations such as weak coresets which we will not touch upon in this manuscript. 
 Generating a concise representation $\tilde F$ for $F$ allows one to optimize over $\tilde F$ instead of $F$ which is more efficient. 
 Moreover, if the resulting coresets are mergeable, this could be done on separate streams without the need for communication or assuming randomness in the partitioning.
@@ -230,19 +189,8 @@ The class discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m
 Throughout the manuscript we assume a bijective mapping between $\F$ and $\Q$. 
 Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$ and vice versa. 
 In the context of machine learning, one should think about $f(x,q)$ as the loss associated with example $x$ and model parameters $q$.
-%Definitions~\ref{cd2} and \ref{cd3} are therefore equivalent. 
 The set $A$ should be thought of as the set of all possible induces losses vectors. 
 Namely, $a\in A$ if there is a model $q$ such $a_i = f(x_i,q)$.
-
-%\todo{This paragraph seems to be repeated/duplicated bellow.}
-
-%These definition are intentionally very similar to those of the Rademacher complexity $R_m(\F)$.
-%The only difference is that we consider the minimal value over $\sigma$ rather than its expectation for a uniform random $\sigma$.
-%Rademacher complexity uses random signs because it measures the effect of data being chosen uniformly at random (or drawn from an unknown distribution). See \cite{Bartlett:2003:RGC:944919.944944} for other notions of complexity and relationships between them.\footnote{\cite{Bartlett:2003:RGC:944919.944944} use the term ``discrepancy'' to define a different quantity than the one above.}
-%We claim that $D_m$ is the right measure of complexity for bounding the size of coresets (coreset complexity) and for creating mergeable sketches (streaming coreset complexity).
-%Trivially,  $D_m \le R_m$. 
-%We show, however, that $D_m(\F) = o(R_m(\F))$ for a wide range of interesting problems in machine learning.
-%This immediately proves the existence of small coresets for these problems. 
 
 To understand our motivation, consider the following informal explanation of the Rademacher Complexity applied to ML problems. 
 In PAC learning there exists a set of examples (often with labels).
@@ -271,11 +219,9 @@ The coreset complexity of $f$ is the size of the smallest set $S$ such that $\fo
 \noindent The following facts are true for the common cases where $D_m = O(c/m)$ or $D_m = O(c/\sqrt{m})$. Although they were previously known (see e.g., \cite{phillips2009small}, Theorem 1.1) we give their proof here for completeness.
 \begin{fact}\label{fct:eps1}
 Any function $f$ with class discrepancy $D_m(f) = O(c/m)$ has coreset complexity of $O(c/\eps)$.
-%The constant $c$ does not depend on $m$.
 \end{fact}
 \begin{fact}\label{fct:eps2}
 Any function $f$ with class discrepancy $D_m(f) = O(c/\sqrt{m})$ has coreset complexity $O(c^2/\eps^2)$.
-%The constant $c$ does not depend on $m$.
 \end{fact}
 \begin{proof}
 \noindent  Consider the signed sum of error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
@@ -309,17 +255,14 @@ streaming coreset algorithms for $f$.
 \end{definition}
 
 
-%\noindent Surprisingly, we give upper bounds on streaming coreset complexities for functions which are only poly-logarithmically larger than their offline coreset complexities. %This section assumes access to an algorithm for finding low discrepancy signs $\sigma$.
 \noindent The following statements upper bound streaming coreset complexities for functions. Surprisingly, these bound are only poly-logarithmically larger than their offline counterparts. 
 
 \begin{theorem} \label{thm:streaming11}
 Any function $f$ with class discrepancy $D_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2(\eps n/c)/\eps\right)$.
-%The constant $c$ does not depend on $m$.
 \end{theorem}
 
 \begin{theorem} \label{thm:streaming21}
 Any function $f$ with class discrepancy $D_m = O(c/\sqrt{m})$ has streaming coreset complexity of $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$.
-%The constant $c$ does not depend on $m$.
 \end{theorem}
 
 Theorems~\ref{thm:streaming11} and~\ref{thm:streaming21} are achieved by deterministic algorithms. 
@@ -398,7 +341,6 @@ Consider a random i.i.d.\ Gaussian Tensor $g_k \in \R^{d^k}$.
 A trivial modification of Theorem 1 from \cite{tomioka2014spectral} shows that $\Pr[\|g_k\|_{T_k} \ge c\sqrt{d\log(k)}] \le 1/10k^2$ for some constant $c$. The only change needed in the proof is the size of the epsilon net which changes from $(2\log(3/2)/k)^{kd}$ for \cite{tomioka2014spectral} to $(2\log(3/2)/k)^d$. The reason we require a net over a smaller space is due to us bounding the inner product with a rank one tensor rather than rank $k$. Union bounding on all values of $k$ we get $\sum_k 1/10k^2 \le 1/2$ which shows $g = [g_1, \operatorname{flat}(g_2), \operatorname{flat}(g_3), \ldots]$ belongs to $\mathcal K$ with probability at least $1/2$, where $\operatorname{flat}(g_k)$ is the flattening of the tensor into a one dimensional vector. 
 %
 We now define a mapping $\psi(x)$ of $x\in \R^d$ to a high dimensional space. 
-%The function $\operatorname{flat}(X)$ simply strings the entry values of the tensor $X$ into a vector.
 $$\psi(x) = \left[x, \frac{\operatorname{flat}(x^{\otimes 2})}{\sqrt{2\log^2(2)}}, \frac{\operatorname{flat}(x^{\otimes 3})}{\sqrt{3\log^2(3)}}, \ldots,\frac{\operatorname{flat}(x^{\otimes k})}{\sqrt{k\log^2(k)}},\ldots \right]$$
 
 \noindent Note that for $\|x\| \le 1$ we have $\|\psi(x)\|_2 = (\sum_k  1/k\log^2(k))^{1/2} = O(1)$.
@@ -471,12 +413,8 @@ For non-constant $\gamma$ assume w.l.o.g. $\|q-x\| \le 1$. The Taylor series of 
 Plugging into the equation in the proof of Theorem~\ref{thm:analytic2} we get that the sum determining the constant is upper bounded by
 $$\sum_{k=1}^\infty \gamma^{k}(k\log^3(k))^{1/2}/k! = O\left(\sum_{k=1}^\infty \gamma^{k}/(k-1)!\right) = O\left(\gamma \exp(\gamma)\right)$$
 
-%\end{proof}
-
-
 \section{A Simple Algorithm for Kernel Density Estimation}
 From section \ref{sec:analytic} we know that the class discrepancy of the Gaussian kernel is $D_m = O(\sqrt{d}/m)$. 
-%The result however is non-constructive in the sense that we are not aware of an algorithm that can obtain the $\sigma$ signs efficiently. 
 Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
 In fact, we show that for any positive kernel $D_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > m$. More importantly though, there is a very simple, intuitive, and deterministic algorithm for computing the signs $\sigma$. 
 Given a collection of data points $X = \{x_1,\ldots, x_n\}$ in $\R^d$ the density function $f: \R^d \rightarrow \R$ of a point $q$ is defined as $ F(q) = \sum_{i=1}^{n} K(x_i,q) $.
@@ -625,7 +563,6 @@ The memory requirement is now $O(m)$ and a careful analysis of the error will le
 Any function $f$ with class discrepancy $D_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
 $Q_\eps$ is an epsilon net for $f$ on $\Q$. 
 The streaming coreset algorithm is randomized and fails with probability at most $\delta$.
-%For any function family $\F$ with a corresponding class discrepancy $D_m = O(c/\sqrt{m})$ there exists a fully-mergeable streaming coreset deterministic algorithm of size $O\left(c^2\log^3(\eps^2 n/c) /\eps^2\right)$ whose error is at most $\eps n$.
 \begin{proof}
 We start by describing the algorithm, from the perspective of a compactor of level $h$. The compactor observes an input stream of items with weight $2^h$ and outputs a stream of weight $2^{h+1}$. When created the compactor has a budget of $m_h=m$. Once it outputs items to an output stream for the first time, a new compactor of level $h+1$ is created. We keep track of $H$, the level of the top compactor, that did not yet output any items. When $H$ is updated, compactors of level $h<H$ might restrict their budget. Specifically, for some $H'=H-O(\log\log(n/\delta))$ where we set the constant of the $O()$ term later, a compactor of level $h \leq H'$ sets its buffer size to
 $$ m_h = \max\left\{2, \ceil{(2/3)^{h-H'}m} \right\} $$
@@ -678,7 +615,5 @@ Since there are $O(\log\log(n/\delta))$ such layers, we conclude that for $m=\Om
 
 
 \end{proof}
-
-
 
 \end{document}
