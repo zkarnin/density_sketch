@@ -401,6 +401,7 @@ We are now ready to apply Banaszczyk's theorem.
 There exist signs $\sigma_i$ such that $\psi  = \sum_i \sigma_i \psi(x_i) \in C \mathcal K$, meaning $\|\psi\|_T \leq C$.
 Since $\psi_k = \sum_i \sigma_i x_i^{\otimes k}/\sqrt{k \log^2{k}}$ we get that 
 $$\max_k \frac{\|\sum_i \sigma_i  x_i^{\otimes k}\|_{T_k}}{\sqrt{k \log^{3}(k)}} \le O\left( \sqrt{d} \right)$$
+This concludes the proof of the statement.
 \end{proof}
 
 \begin{lemma} \label{lem:komlos anl}
@@ -510,7 +511,7 @@ Using our induction assumption we get
 &=& \sum_{j=1}^{i} \|\phi(x_j)\|^2 - 2\left| \sum_{j=1}^{i-1}\sigma_j K(x_j, x_i) \right| \le \sum_{j=1}^{i} \|\phi(x_j)\|^2 \\
 \end{eqnarray*}
 The first equality simply unpacks the squared vector norm, the second transition is due to the induction assumption and the last substitutes our choice of 
-$\sigma$. This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \sqrt{m}$ for all $q$.
+$\sigma$ (and $\operatorname{sign}(z)\cdot z =  |z|$). This completes the proof that $|\sum_{i=1}^m \sigma_i K(x_i,q)| \le \sqrt{m}$ for all $q$.
 \end{proof}
 
 Using the framework above provides a deterministic coreset construction for kernel density estimation of size $O(1/\eps^2)$ such that $\forall \;q\;\; |\tilde F(q) - F(q)| \le \eps n$. This matches and simplifies the results achieved by \cite{DBLP:conf/soda/PhillipsT18} and \cite{DBLP:journals/corr/abs-1802-01751}. Theorem~\ref{thm:streaming21} leads to a deterministic streaming algorithm with a memory complexity of $O(\log^3(\eps^2 n)/\eps^2)$. For $L$-Lipchitz kernels, meaning $K$ such that $|K(x,q+h) - K(x,q)|/\|h\| \leq L$ for all $h \neq 0$, Theorem~\ref{thm:streaming22} leads to a randomized streaming algorithm with a memory complexity of $O\left(\log^3 \left( d \log\left(RLn/\delta\eps\right) \right) / \eps^2 \right)$ that succeeds in finding a coreset with probability $1-\delta$. The parameter $R$ is the maximum norm of a query. The argument goes through a union bound over an $\eps/L$-net over vectors of norm at most $R$, the size of which is $(RL/\eps)^{O(d)}$.
@@ -519,7 +520,7 @@ Using the framework above provides a deterministic coreset construction for kern
 This upper bound is tight since there exist sets of vectors in high dimensions that requires it. 
 For data that lends itself to density estimation, however, one should expect input vectors to be clustered together.
 In such cases, the algorithm above performs much better than the worst-case bound predicts. 
-We leave it to future work to define properties of the data that ensure algorithm better guarantees by Algorithm~\ref{kernelAlg}.
+We leave it to future work to define properties of the data that ensure better guarantees for Algorithm~\ref{kernelAlg}.
 \bibliography{density}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
