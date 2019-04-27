@@ -74,6 +74,10 @@ Second, an extremely simple deterministic algorithm for finding low discrepancy 
 This paper establishes some explicit connections between class discrepancy, coreset complexity, learnability, and streaming algorithms. 
 \end{abstract}
 
+\paragraph{Acknowledgments:} The authors sincerely thank Nikhil Bansal, Nikhil Srivastava, Jeff Phillips, Wai Ming Tai, and Camron Musco 
+for generously sharing their time and ideas.
+They helped us uncover the usefulness of Banaszczyk's theorem for proving Lemma~\ref{uc}, compare to other results on coresets and discrepancy
+(specifically on Gaussian Kernel Density estimation), and understand the connection to graph sparsification and matrix column subset selection results. 
 
 \section{Introduction}
 The study of coresets in optimization as a whole and in machine learning specifically has a long history. 
@@ -302,7 +306,7 @@ streaming coreset algorithms for $f$.
 \end{definition}
 
 
-\noindent The following statements upper bound streaming coreset complexities for functions. Surprisingly, these bound are only poly-logarithmically larger than their offline counterparts. 
+\noindent The following statements upper bound streaming coreset complexities for functions. Surprisingly, these bounds are only poly-logarithmically larger than their offline counterparts. 
 
 \begin{theorem} \label{thm:streaming11}
 Any function $f$ with class discrepancy $D_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2(\eps n/c)/\eps\right)$.
@@ -321,9 +325,9 @@ Recently, {\cite{DBLP:conf/focs/KarninLL16} provided an improved (optimal) strea
 Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} requires more work. 
 The main ideas are as follows. 
 We argued above that $\tilde F_{+}$ and $\tilde F_{-}$ are both good approximations for $F$. 
-We can also take $\tilde F_{\pm}$ which is $\tilde F_{+}$ or $\tilde F_{-}$ equally likely. 
+We can also take $\tilde F_{\pm}$ which is $\tilde F_{+}$ or $\tilde F_{-}$ with equally probability. 
 Clearly $|\tilde F_{\pm} - F| \le |E|$ as before. But now, $\E[\tilde F_{\pm}] = F$ as well. 
-In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times over small subsets of items from the stream. This allows us to use concentration results to bound the overall error. 
+In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times to small subsets of items from the stream. This allows us to use concentration results to bound the overall error. 
 The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $\tilde F_{\pm}$ has half the support of $F$ only in expectation.
 
 \begin{theorem} \label{thm:streaming12}
@@ -358,7 +362,7 @@ $\|X\|_{T_k}$ is a norm
 \end{fact}
 \begin{proof}
 We prove the claim directly from the definition of a norm.
-Notice that for any $X \neq 0$, $\ip{X, q^{\otimes}}$ is a non-zero polynomial in $q$. It follows that there must be $q$ for which its value is non-zero, meaning that $\|X\|_{T_k}=0$ iff $X=0$. For a scalar $a$, we clearly have by definition that
+Notice that for any $X \neq 0$, $\ip{X, q^{\otimes k}}$ is a non-zero polynomial in $q$. It follows that there must be $q$ for which its value is non-zero, meaning that $\|X\|_{T_k}=0$ iff $X=0$. For a scalar $a$, we clearly have by definition that
 $\|aX\|_{T_k} = |a|\|X\|_{T_k}$.  Lastly, by the max definition we  have
 $ \|X+Y\|_{T_k} =  \max_q \left| \langle X+Y, q^{\otimes k}\rangle \right| \leq 
 \max_q \left| \langle X, q^{\otimes k}\rangle \right| + \max_q\left| \langle Y, q^{\otimes k}\rangle \right| = \|X\|_{T_k} + \|Y\|_{T_k}$
