@@ -46,7 +46,7 @@ The authors thought it was not worth including in paper but would be happy to in
 ### Program Committee Member3
 
 * We indeed depend on a scaling parameter unlike the result of Philips et al. Still, the contribution is a new view and the application of kernel density estimation is one of many
-* Corollaries 17,18 follow from observing the Taylor expansion of the functions they apply to. We will note this in the paper
+* Corollaries 17,18 follow from a trivial bound to the coefficient in the Taylor expansion of the functions they apply to. We will note this in the paper
 * Theorem 16 indeed "plays with notations" mainly in order to make the vector balancing lemma (14) standalone. It applies for compact sets, in particular of radius R. We will make this clearer
 * The improved merge-and-reduce hold for *all* queries exactly like previous constructions. The analysis goes through a single query high probability bound and union bound which might be the source of confusion.
 
@@ -65,8 +65,8 @@ Some do not. This is a side effect of using a Taylor series based argument which
 
 The core of the paper is based on three contribution all of which are new
 1. A new measure of complexity for function classes, the class discrepancy.
-2. New generalization results, coresets, and streaming algorithms based only on class discrepancy. Offline coresets constructions are indeed trivial and provided for completeness (which is clearly stated and not ‚"over sold"). The streaming algorithms are new and improve on prior results.
-3. Tight bound on the class discrepancy of several well studied problems. This requires some mathematically involved lemmas will be useful independently in generalizing our results. 
+2. New generalization results, coresets, and streaming algorithms based only on class discrepancy. Offline coresets constructions are indeed trivial and provided for completeness (which is clearly stated and not "over sold"). The streaming algorithms are new and improve on prior results.
+3. Tight bound on the class discrepancy of several well studied problems. This requires some mathematically involved lemmas independently useful in generalizing our results. 
 
 
 

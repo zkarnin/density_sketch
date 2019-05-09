@@ -238,33 +238,51 @@ Any function $f$ with class discrepancy $D_m = O(c/m)$ has coreset complexity of
 Any function $f$ with class discrepancy $D_m = O(c/\sqrt{m})$ has coreset complexity $O(c^2/\eps^2)$.
 \end{fact}
 \begin{proof}
-\noindent  Consider the signed-sum error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
-Now consider $\tilde F_{+}(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $\tilde F_{-}(q) = F(q) - E(q)  =  \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. 
+\noindent For a set of $n$ points $x_1,\ldots,x_n$ and arbitrary query $q$, consider the signed-sum error function $E(q) = \sum_{i=1}^{n} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
+Recalling $F(q) = \sum f(x_i,q)$, we consider $\tilde F_{+}(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $\tilde F_{-}(q) = F(q) - E(q)  =  \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. 
 We have that both $\tilde F_{+}(q)$ and $\tilde F_{-}(q)$ are approximations for $F(q)$ obtained by coresets of item-weight $2$. 
-The error is at most $|\tilde F_{\pm}(q)- F(q)| =  |E(q)|$. 
+The error is at most $|\tilde F_{\pm}(q)- F(q)| =  |E(q)|$, and one of the coresets are of cardinality of at most $n/2$. 
 The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
-By Definition we can select signs such that $|E(q)| \le m D_m$. 
+By definition we can select signs such that $|E(q)| \le m D_n$. 
 
-\add{
 Naturally, one could iterate this process. Starting with $n$ items and ending with $m$.
-Let $F_t$ denote the (unweighted) sum of functions $f$ after $t$ iterations and $n_t$ denote the cardinality of the coreset. 
+Let $F_t$ denote the (unweighted) sum of functions $f$ after $t$ iterations and $n_t$ denote the cardinality of the coreset\footnote{The expression $a=b \pm c$ means $|a-b| \leq c$}. 
 \[
 F = F_0 = 2F_1 \pm n_0D_{n_0} = 4F_{2} \pm 2n_1D_{n_1} \pm n_0D_{n_0} = \ldots = 2^T F_T \pm \sum_{t=0}^{T-1} 2^t n_t D_{n_t}
 \]
-Here $T$ stand for the total number of iterations needed for reaching a coreset of size $m$. 
-Given $n_t \le n/2^{t}$ and the polynomial dependence of $D_m$ on $m$ we have 
-$\sum_{t=0}^{T-1} 2^t n_t D_{n_t} \le n \sum_{t=0}^{T-1} D_{n/2^t} = n\cdot O(D_{n_T})$ for all $T$.
-Specifically, for $T$ such that $n_T \approx m$, setting the weights $w = 2^T$ we have $F(q) = \tilde F(q) \pm O(nD_m)$.
-Substituting the above expressions for $D_m$ completes the proof.
-}
-\st{
-Naturally, one could iterate this process.
-Noting that the last term in above is a geometric sum we can conclude that 
-At step one, create a coreset of size at most $m/2$ of items of weight $2$ and incur an error of at most $c$ or $c \sqrt{m}$.
-Then, create a coreset of size $m/4$ of items of weight $4$. Here, you incur error of $2c$ or $2c\sqrt{m/2}  = c\sqrt{2m}$.
-Note that the sum of errors is a geometric sequence that is asymptotically dominated by its last element. 
-Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respectively achieves the goal.
-}
+Here $T$ stand for the total number of iterations. Let us analyze the error term.
+Given $n_t \le n/2^{t} \approx m$ and the polynomial dependence of $D_m$ on $m$ we have 
+$$\sum_{t=0}^{T-1} 2^t n_t D_{n_t} \le n \sum_{t=0}^{T-1} D_{n/2^t} = n\cdot O(D_{m}) . $$ 
+Setting $m$ for which $D_{m} = \eps$ gets coresets with appropriate cardinalities and completes the proof.
+
+%
+%\noindent  Consider the signed-sum error function $E(q) = \sum_{i=1}^{m} \sigma_i f(x_i,q)$ where $\sigma_i \in \{-1,1\}$.
+%Now consider $\tilde F_{+}(q) = F(q) + E(q)   = \sum_{i | \sigma_i=1} 2 f(x_i,q)$ and similarly $\tilde F_{-}(q) = F(q) - E(q)  =  \sum_{i | \sigma_i=-1} 2 f(x_i,q)$. 
+%We have that both $\tilde F_{+}(q)$ and $\tilde F_{-}(q)$ are approximations for $F(q)$ obtained by coresets of item-weight $2$. 
+%The error is at most $|\tilde F_{\pm}(q)- F(q)| =  |E(q)|$. 
+%The above is true for any choice of signs $\sigma$, specifically, for those minimizing $\max_q | E(q)|$.
+%By definition we can select signs such that $|E(q)| \le m D_m$. 
+%
+%\add{
+%Naturally, one could iterate this process. Starting with $n$ items and ending with $m$.
+%Let $F_t$ denote the (unweighted) sum of functions $f$ after $t$ iterations and $n_t$ denote the cardinality of the coreset. 
+%\[
+%F = F_0 = 2F_1 \pm n_0D_{n_0} = 4F_{2} \pm 2n_1D_{n_1} \pm n_0D_{n_0} = \ldots = 2^T F_T \pm \sum_{t=0}^{T-1} 2^t n_t D_{n_t}
+%\]
+%Here $T$ stand for the total number of iterations needed for reaching a coreset of size $m$. 
+%Given $n_t \le n/2^{t}$ and the polynomial dependence of $D_m$ on $m$ we have 
+%$\sum_{t=0}^{T-1} 2^t n_t D_{n_t} \le n \sum_{t=0}^{T-1} D_{n/2^t} = n\cdot O(D_{n_T})$ for all $T$.
+%Specifically, for $T$ such that $n_T \approx m$, setting the weights $w = 2^T$ we have $F(q) = \tilde F(q) \pm O(nD_m)$.
+%Substituting the above expressions for $D_m$ completes the proof.
+%}
+%\st{
+%Naturally, one could iterate this process.
+%Noting that the last term in above is a geometric sum we can conclude that 
+%At step one, create a coreset of size at most $m/2$ of items of weight $2$ and incur an error of at most $c$ or $c \sqrt{m}$.
+%Then, create a coreset of size $m/4$ of items of weight $4$. Here, you incur error of $2c$ or $2c\sqrt{m/2}  = c\sqrt{2m}$.
+%Note that the sum of errors is a geometric sequence that is asymptotically dominated by its last element. 
+%Halting the compression at $\Theta(c/\eps)$ or $\Theta(c^2/\eps^2)$ items respectively achieves the goal.
+%}
 \end{proof}
 
 \begin{fact}
@@ -273,7 +291,7 @@ Class discrepancy bounds are tight asymptoticly for {\it unweighted} coreset com
 \begin{proof}Taking for example the bound of Fact~\ref{fct:eps1}, if we can guarantee the existence of an unweighted coreset of size $c/\eps$, then for $m$ items a coreset of size $m/2$ provides a sign assignment with an error of $\eps=2c/m$, leading to an upper bound of $O(c/m)$ on the class discrepancy.
 \end{proof}
 
-\add{
+
 The following it a straight forward fact which is provided mainly for convenience. 
 It loosely says that optimizing models on coresets generalizes. In other words, ERM works as expected.
 \begin{fact}
@@ -291,7 +309,7 @@ R(\tilde q) = \frac1n F(\tilde q)  \le  \frac{1}{n} \tilde F(\tilde q) + O(D_m) 
 The first and last transitions are by definition. The second and fourth are by the approximation bounds above.
 The third transition is due to the optimality of $\tilde q$ for $\tilde F$
 \end{proof}
-}
+
 
 \subsection{Streaming Coreset Complexity}\label{sec:sketch}
 We claim that low class discrepancy implies concise streaming mergeable coresets as well. 
@@ -469,7 +487,10 @@ For non-constant $\gamma$ assume w.l.o.g. $\|q-x\| \le 1$. The Taylor series of 
 Plugging into the equation in the proof of Theorem~\ref{thm:analytic2} we get that the sum determining the constant is upper bounded by
 $$\sum_{k=1}^\infty \gamma^{k}(k\log^3(k))^{1/2}/k! = O\left(\sum_{k=1}^\infty \gamma^{k}/(k-1)!\right) = O\left(\gamma \exp(\gamma)\right)$$
 
-\section{A Simple Algorithm for Kernel Density Estimation}\label{kde2}
+
+\subsection{Towards an Efficient Algorithm}\label{kde2}
+%\section{A Simple Algorithm for Kernel Density Estimation}
+
 From section \ref{sec:analytic} we know that the class discrepancy of the Gaussian kernel is $D_m = O(\sqrt{d}/m)$. 
 Here, we provide a computationally efficient bound that can be achieved with a straightforward algorithm of complexity $O(m^2)$. Together with the results of Section~\ref{sec:sketch} this provides an efficient sketching algorithm for Kernel Density Estimation. 
 In fact, we show that for any positive kernel $D_m = O(1/\sqrt{m})$. This bound is superior to that of the previous section for high dimensions $d > m$. 
@@ -525,7 +546,7 @@ This upper bound is tight since there exist sets of vectors in high dimensions t
 For data that lends itself to density estimation, however, one should expect input vectors to be clustered together.
 In such cases, the algorithm above performs much better than the worst-case bound predicts. 
 We leave it to future work to define properties of the data that ensure better guarantees for Algorithm~\ref{kernelAlg}.
-\bibliography{karninliberty19}
+\bibliography{density}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix
