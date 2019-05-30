@@ -34,6 +34,9 @@
 \newtheorem{fact}[theorem]{Fact}
 \usepackage{soul}
 
+
+\newtheorem*{theorem*}{Theorem}
+
 %\newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
 \newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
 \newcommand{\add}[1]{\textcolor{blue}{ADD: #1}}
@@ -66,10 +69,10 @@
 This paper defines the notion of class discrepancy for families of functions.  
 It shows that low discrepancy classes admit small offline and streaming coresets. 
 We provide general techniques for bounding the class discrepancy of machine learning problems. 
-As corollaries of the general technique we bound the discrepancy of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
+As corollaries of the general technique we bound the discrepancy (and therefore coreset complexity) of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
 Our result resolves a long-standing open problem regarding the coreset complexity of Gaussian kernel density estimation.  
 We provide two more related but independent results. 
-First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
+First, an exponential improvement of the widely used merge-and-reduce trick \cite{BENTLEY1980301} which gives improved streaming sketches for any low discrepancy problem.
 Second, an extremely simple deterministic algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
 This paper establishes some explicit connections between class discrepancy, coreset complexity, learnability, and streaming algorithms. 
 \end{abstract}
@@ -561,7 +564,8 @@ It does so by keeping a buffer of a certain capacity $m$. When a new item is ins
 If the buffer is full, a compaction operation takes place. 
 The compaction takes the elements in the buffer $x_1,\ldots,x_m$ and finds a low discrepancy assignment $\sigma$ such that 
 $\max_q |\sum_i \sigma_i f(x_i,q)| \leq m D_m$. 
-Note that such a sequence is guaranteed to exist by the definition of the class discrepancy. For cases where an algorithm for finding this sequence $\sigma$ is not known, our result applies for the guarantee of the $\sigma$ sequence obtained by the algorithm. That is, if it is possible to obtain a bound of $D_m$ yet we can only find signs obtaining a bound of $\tilde{K}_m$, our results for the obtainable signs apply for $\tilde{K}_m$.
+Note that such a sequence is guaranteed to exist by the definition of the class discrepancy. For cases where an algorithm for finding this sequence $\sigma$ is not known, our result applies for the guarantee of the $\sigma$ sequence obtained by the algorithm. 
+That is, if it is possible to obtain a bound of $D_m$ yet we can only find signs obtaining a bound of $\tilde{D}_m > D_m$, our results for the obtainable signs apply for $\tilde{D}_m$.
 Given the sign vector $\sigma$, the compactor appends either $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$ to the output stream. 
 
 Consider a stream of data points $x_1,\ldots,x_n$ and the output stream of a compactor $z_1,\ldots,z_{\tilde{n}}$. The error associated with the new stream w.r.t.\ a query $q$ is defined as
@@ -569,7 +573,7 @@ $$ \sum_{i=1}^n f(x_i,q) - 2\sum_j f(z_j,q) \ .$$
 This is the difference between the value of $q$ on the original stream and the output stream. For a compactor we would like to bound both the length of the output stream, and the absolute value of its error.
 
 \begin{lemma} \label{lem:det compactor}
-A deterministic compactor output the smaller of the two sets  $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$. Given an input of length $n$, the output has at most $n/2$ items, and the error of the output stream is bounded in absolute value by $D_m n$
+A deterministic compactor output the smaller of the two sets  $\{ x_i | \sigma_i = 1\}$ or  $\{ x_i | \sigma_i = -1\}$. Given an input of length $n$, the output has at most $n/2$ items, and the error of the output stream is bounded in absolute value by $nD_m$
 \end{lemma}
 \begin{proof}
 We note that the argument about the length is obvious, so we proceed to bound the error. Consider a single compaction operation done on $m$ vectors $x_1,\ldots,x_m$. For a query $q$, let $F(q)=\sum_{i=1}^m f(x_i,q)$ be the evaluation on the items of the buffer. Let $\tilde F_{+}$ denote the function evaluated on $\{ x_i | \sigma_i = 1\}_{i=1}^m$ (similarly $\tilde F_{-}$ defined for negative signs). Also, let $E(q) = \sum_{i=1}^m \sigma_i f(x_i,q)$ for the signs $\sigma$ computed by the algorithm above. We have that 
@@ -596,7 +600,7 @@ Each compactor contributes at most $w_h n_h D_m \le n D_m$ error. Moreover since
 $$  \log_2(m) \leq \log_2(n_{H-1}) \leq \log_2(n) - (H-1)$$
 leading to a bound $H \le \floor{log_2(n/m)}+1$.
 The total error is therefore $H n D_m \le O(log(n/m) n D_m)$. 
-Setting $m \ge m_0 = O(c\log(\eps n/c)/\eps)$ and replacing $D_m = c/m$ we get that the error is at most $O(log(n/m) n D_m) \le \eps n$ for appropriate constants in the $O()$ term of $m_0$, as required. 
+Setting $m \ge m_0 = O(c\log(\eps n/c)/\eps)$ and replacing $D_m = c/m$ we get that the error is at most $O(log(n/m) n D_m) \le \eps n$.
 Since we have $H = O(log(\eps n/c))$ compactors the overall space complexity is $O(c\log^2(\eps n/c)/\eps)$. 
 \end{proof}
 
@@ -605,7 +609,7 @@ For any function family $\F$ with a corresponding class discrepancy $D_m = O(c/\
 \begin{proof}
 The proof is identical to the one above except for the variable setting of
 Setting $m \ge m_0 = O(c^2\log^2(\eps^2 n/c^2)/\eps^2)$ and replacing $D_m = c/\sqrt{m}$. 
-We get that the error is at most $O(log(n/m) n D_m) \le \eps n$ for appropriate constants in the big-$O$ term of $m_0$, as required. 
+We get that the error is at most $O(log(n/m) n D_m) \le \eps n$. 
 Since we have $H = O(log(\eps^2 n/c^2))$ such compactors the overall space complexity is $O\left(c^2\log^3(\eps^2 n/c^2) /\eps^2\right)$. 
 \end{proof}
 
@@ -691,8 +695,27 @@ $$ \sum_{h=1}^H E_h(q) \leq (4c/m) n $$
 Concluding the analysis for the bottom $H'$ layers, w.p.\ at least $1-\delta$ their error is $(4c/m) n$ and the output stream of the $H'$ compactor outputs at most $3n/2^{H'+1}$ items, each having a weight of $2^{H'+1}$. With the length of the output stream we use the fact that the top layers are deterministic and can apply Lemma~\ref{lem:det compactor} to bound their error of each of these layers by
 $$ 3D_m n \leq (3c/m) n $$
 Since there are $O(\log\log(n/\delta))$ such layers, we conclude that for $m=\Omega(\log\log(n/\delta) c/\eps)$ with appropriate constant it holds for a fixed $q$, w.p.\ at least $1-\delta$ that the overall error of the sketch is bounded by $\eps n$. The resulting memory requirement $O(\log^2\log(n/\delta) c/\eps)$, as claimed.
-
-
 \end{proof}
+
+%\section{Signed sum of matrices}
+%%\begin{theorem}[Nikhil Bansal]\label{BansalInDaHouz}
+%\begin{theorem*}
+%For any set of matrices $X_1,...,X_n \in \R^{d_1 \times d_2}$ such that $\|X_i\|_{F} \le 1$ there exists a set of signs $\sigma_i \in \{-1,1\}$ such that $||\sum_i \sigma_i X_i||_{2} \le O(\sqrt{d_1 + d_2})$.
+%\end{theorem*}
+%\begin{proof}
+%First, recount Banaszczyk's theorem. 
+%Let $\mathcal K$ be a convex body in $\R^d$ such that $\Pr[g \in \mathcal K] \ge 1/2$ where $g$ is Gaussian i.i.d.
+%Let $x_1,\ldots,x_n$ be vectors in $\R^d$ with $\|x_i\| \le 1$. 
+%Then, there exist signs $s_i$ such that $\sum s_i x_i \in C \mathcal K$ for some universal constant $C$.
+%
+%To invoke Banaszczyk's theorem here we set $x_i \in \R^{d_1d_2}$ to be the flattening of $X_i$ into a vector by concatenating its rows. 
+%Let $\mathcal K$ be the set of vectors in $\R^{d_1d_2}$ whose stacking (the inverse of flattening) results in a matrix whose spectral norm is less then $10\sqrt{d_1 + d_2}$.
+%More accurately $\mathcal K = \{x  \in \R^{d_1d_2} |\;\; ||\operatorname{stack}(x)||_2 \le 10\sqrt{d_1+d_2}\}$. 
+%Due to $\operatorname{stack}$ being linear $\mathcal K$ is convex. 
+%Moreover $\Pr[g \in \mathcal K] \ge 1/2$ due to standard results on the operator norm of random Gaussian matrices.
+%Banaszczyk's theorem says that there exist signs $s_i$ such that $\sum s_i \operatorname{flatten}(X_i) \in C \mathcal K$.
+%In other words $\| \sum s_i X_i\| = \| \operatorname{stack}( \sum s_i \operatorname{flatten}(x_i x_i^T)) \| \le 10 C \sqrt{d}$. 
+%\end{proof}
+
 
 \end{document}
