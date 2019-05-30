@@ -70,7 +70,8 @@ This paper defines the notion of class discrepancy for families of functions.
 It shows that low discrepancy classes admit small offline and streaming coresets. 
 We provide general techniques for bounding the class discrepancy of machine learning problems. 
 As corollaries of the general technique we bound the discrepancy (and therefore coreset complexity) of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
-Our result resolves a long-standing open problem regarding the coreset complexity of Gaussian kernel density estimation.  
+Our results prove the existence of $\eps$-approximation $O(\sqrt{d}/\eps)$ sized coresets for the above problems. 
+This resolves the long-standing open problem regarding the coreset complexity of Gaussian kernel density estimation.  
 We provide two more related but independent results. 
 First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
 Second, an extremely simple deterministic algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
@@ -375,7 +376,7 @@ Nevertheless, our dependence on the failure probability is \emph{doubly} logarit
 This means the dependence on the problem parameters is still only polylogarithmic.
 The above improves on the well-known merge-and-reduce tree construction by \cite{BENTLEY1980301}.
 Moreover, it is likely that a uniform $\eps$-net for $\Q$ is not required for the sake of minimization (ERM on the final sketch).
-See literature on weak coresets and (e.g. \cite{Feldman:2007:PKC:1247069.1247072}) concentration results based on doubling dimensions in classification/query space \cite{BSHOUTY2009323}. The refinement of the above results is left for future work.
+See literature on weak coresets (e.g. \cite{Feldman:2007:PKC:1247069.1247072}) and concentration results based on doubling dimensions in classification/query space \cite{BSHOUTY2009323}. The refinement of the above results is left for future work.
  
 \section{Class Discrepancy of Analytic Functions of Dot Products} \label{sec:analytic}
 
