@@ -72,7 +72,7 @@ We provide general techniques for bounding the class discrepancy of machine lear
 As corollaries of the general technique we bound the discrepancy (and therefore coreset complexity) of logistic regression, sigmoid activation loss, matrix covariance, kernel density and any analytic function of the dot product or the squared distance.
 Our result resolves a long-standing open problem regarding the coreset complexity of Gaussian kernel density estimation.  
 We provide two more related but independent results. 
-First, an exponential improvement of the widely used merge-and-reduce trick \cite{BENTLEY1980301} which gives improved streaming sketches for any low discrepancy problem.
+First, an exponential improvement of the widely used merge-and-reduce trick which gives improved streaming sketches for any low discrepancy problem.
 Second, an extremely simple deterministic algorithm for finding low discrepancy sequences (and therefore coresets) for any positive semi-definite kernel. 
 This paper establishes some explicit connections between class discrepancy, coreset complexity, learnability, and streaming algorithms. 
 \end{abstract}
@@ -372,6 +372,8 @@ It is a finite subset of $\Q$ such that for every $q \in \Q$ there exist some $\
 We note that the size $|Q_\eps|$ is often exponential in the problem parameters. 
 Nevertheless, our dependence on the failure probability is \emph{doubly} logarithmic. 
 This means the dependence on the problem parameters is still only polylogarithmic.
+The above improves on the well know merge-and-reduce tree construction by \cite{BENTLEY1980301}.
+
 
 \section{Class Discrepancy of Analytic Functions of Dot Products} \label{sec:analytic}
 
