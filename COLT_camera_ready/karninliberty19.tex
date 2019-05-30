@@ -40,7 +40,7 @@
 %\newcommand{\zk}[1]{\textcolor{red}{ZK: #1}}
 \newcommand{\el}[1]{\textcolor{blue}{EL: #1}}
 \newcommand{\add}[1]{\textcolor{blue}{ADD: #1}}
-%\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
 
 \newcommand{\ip}[1]{\left \langle #1 \right \rangle}
 \newcommand{\R}{\mathbb{R}}
@@ -129,6 +129,7 @@ They provide a lower bound for the size of a multiplicative error coreset provin
 The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  
 \cite{tolochinsky2018coresets} give a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. 
 The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors. 
+Additive approximation coresets are also studies in the $\eps$-approximation literature which is also related to the discrepancy of the problem \cite{DBLP:journals/corr/MustafaV17}.
 
 We show that our result also applies to any analytic function of the squared distance.
 A prime example of that is Gaussian kernel density estimation.
@@ -372,7 +373,10 @@ It is a finite subset of $\Q$ such that for every $q \in \Q$ there exist some $\
 We note that the size $|Q_\eps|$ is often exponential in the problem parameters. 
 Nevertheless, our dependence on the failure probability is \emph{doubly} logarithmic. 
 This means the dependence on the problem parameters is still only polylogarithmic.
-The above improves on the well know merge-and-reduce tree construction by \cite{BENTLEY1980301}.
+The above improves on the well-known merge-and-reduce tree construction by \cite{BENTLEY1980301}.
+Moreover, it is quite likely that a uniform $\eps$-net for $\Q$ for the sake of minimization (ERM on the final sketch).
+See literature on weak coresets and concentration results based on doubling dimensions for Lipchitz functions. \todo{add citation}
+ 
 
 
 \section{Class Discrepancy of Analytic Functions of Dot Products} \label{sec:analytic}
