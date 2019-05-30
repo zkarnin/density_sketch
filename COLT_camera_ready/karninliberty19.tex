@@ -374,11 +374,9 @@ We note that the size $|Q_\eps|$ is often exponential in the problem parameters.
 Nevertheless, our dependence on the failure probability is \emph{doubly} logarithmic. 
 This means the dependence on the problem parameters is still only polylogarithmic.
 The above improves on the well-known merge-and-reduce tree construction by \cite{BENTLEY1980301}.
-Moreover, it is quite likely that a uniform $\eps$-net for $\Q$ for the sake of minimization (ERM on the final sketch).
-See literature on weak coresets and concentration results based on doubling dimensions for Lipchitz functions. \todo{add citation}
+Moreover, it is likely that a uniform $\eps$-net for $\Q$ is not required for the sake of minimization (ERM on the final sketch).
+See literature on weak coresets and (e.g. \cite{Feldman:2007:PKC:1247069.1247072}) concentration results based on doubling dimensions in classification/query space \cite{BSHOUTY2009323}. The refinement of the above results is left for future work.
  
-
-
 \section{Class Discrepancy of Analytic Functions of Dot Products} \label{sec:analytic}
 
 Now that we proved the usefulness of low class discrepancy, we move to upper bound it for common family functions. We provide a coreset suitable for analytical functions of the inner product $\ip{q,x}$ or squared Euclidean distance $\|q-x\|^2$. 
