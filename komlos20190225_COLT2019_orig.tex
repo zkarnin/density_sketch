@@ -228,7 +228,7 @@ $.
 \end{definition}
 The class discrepancy of $f$ or $\F$ without a reference a set $\{x_1,\ldots,x_m\}$ is the upper bound on any subset of $\X$ of size $m$.
 Throughout the manuscript we assume a bijective mapping between $\F$ and $\Q$. 
-Specifically, $f \in \F$ if there exists $q \in \Q$ such that $f(x) = f(x,q)$ and vice versa. 
+Specifically, every element of $\F$ can be written as $f_q$ and has a unique $q \in \Q$ such that $f_q(x) = f(x,q)$. 
 In the context of machine learning, one should think about $f(x,q)$ as the loss associated with example $x$ and model parameters $q$.
 %Definitions~\ref{cd2} and \ref{cd3} are therefore equivalent. 
 The set $A$ should be thought of as the set of all possible induces losses vectors. 
@@ -260,7 +260,7 @@ This intuition is restated more explicitly in the next section.
 
 \subsection{Coreset Complexity}
 In this section we point out a direct connection between coreset complexity and class discrepancy.
-The connection is a simple application of the folklore argument know as the ``the halving trick".
+The connection is a simple application of the folklore argument known as the ``the halving trick".
 For simplicity, in what follows we focus on functions $f$ whose range is $[0,1]$.
 
 \begin{definition} [\bf Coreset Complexity] 
