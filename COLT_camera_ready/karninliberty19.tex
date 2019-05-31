@@ -130,7 +130,8 @@ They provide a lower bound for the size of a multiplicative error coreset provin
 The coreset they build is of cardinality $m \approx \mu\sqrt{nd^3}/\eps^2$ where $\mu \geq 1$ is a complexity measure of the dataset.  
 \cite{tolochinsky2018coresets} give a generic multiplicative coreset construction for any monotonic function with $\ell_2^2$ regularization. 
 The dependence they get is $\tilde O(d/\eps^2)$ ignoring logarithmic factors. 
-Additive approximation coresets are also studies in the $\eps$-approximation literature which is also related to the discrepancy of the problem \cite{DBLP:journals/corr/MustafaV17}.
+Additive approximation coresets are also studies in the $\eps$-approximation literature which is also related to the discrepancy of the problem \cite{DBLP:journals/corr/MustafaV17}. In~\cite{braverman2016new}, some connections are drawn between additive and multiplicative guarantees by providing a method to use an additive guarantee along with sensitivity scores in order to provide a multiplicative guarantee\footnote{These methods might be combined with our results to obtain improved multiplicative guarantees, but this would not be a trivial result and we defer it to future research.}.
+
 
 We show that our result also applies to any analytic function of the squared distance.
 A prime example of that is Gaussian kernel density estimation.
@@ -345,17 +346,18 @@ Any function $f$ with class discrepancy $D_m = O(c/\sqrt{m})$ has streaming core
 
 Theorems~\ref{thm:streaming11} and~\ref{thm:streaming21} are achieved by deterministic algorithms. 
 They could be thought of extensions of the MRL algorithm \cite{MRL} for streaming quantile sketching. 
-Quantile sketching falls into this framework since it corresponds to $f(x,q) = 1$ if $x>q$ and $0$ else. 
+Quantile sketching falls into this framework since it corresponds to $f(x,q) = 1$ if $x>q$ and $0$ else. The techniques of the above Theorems could also be associated with~\cite{matousek1995approximations}, providing a merge-reduce framework for additive coresets. 
 More details and the proof of correctness are given in Appendix ~\ref{app:sketch proof}.
 
-Recently, {\cite{DBLP:conf/focs/KarninLL16} provided an improved (optimal) streaming quantile coreset algorithm. 
-Generalizing the construction at  \cite{DBLP:conf/focs/KarninLL16} requires more work. 
-The main ideas are as follows. 
+Recently, \cite{DBLP:conf/focs/KarninLL16} provided an improved (optimal) streaming quantile coreset algorithm by improving the merge-reduce technique in a way tailored to the quantile problem. In the typical merge-reduce framework, the algorithm is based on finding an $\eps$-coreset on subsets of size dependent on $\eps$ rather than on $n$. The novelty of \cite{DBLP:conf/focs/KarninLL16} is in suggesting a way to use different values of $\eps$ for these local coreset constructions. This ends up providing a randomized algorithm with no dependence on $n$ and doubly logarithmic dependence on the failure probability. 
+%
+%In high level, their novelty is using 
+Generalizing their construction requires more work and the main ideas are as follows. 
 We argued above that $\tilde F_{+}$ and $\tilde F_{-}$ are both good approximations for $F$. 
 We can also take $\tilde F_{\pm}$ which is $\tilde F_{+}$ or $\tilde F_{-}$ with equally probability. 
 Clearly $|\tilde F_{\pm} - F| \le |E|$ as before. But now, $\E[\tilde F_{\pm}] = F$ as well. 
-In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times to small subsets of items from the stream. This allows us to use concentration results to bound the overall error. 
-The main departure from \cite{DBLP:conf/focs/KarninLL16} is that $\tilde F_{\pm}$ has half the support of $F$ only in expectation.
+In the streaming algorithm, we apply this compaction (converting $F$ to $\tilde F_{\pm}$) many times to small subsets of items from the stream. This allows us to use concentration results to bound the overall error. So far, analogous ideas where used in \cite{DBLP:conf/focs/KarninLL16};
+the main departure is that $\tilde F_{\pm}$ has half the support of $F$ only in expectation.
 
 \begin{theorem} \label{thm:streaming12}
 Any function $f$ with class discrepancy $D_m(f) = O(c/m)$ has streaming coreset complexity of $O\left(c\log^2\log(|Q_\eps|/\delta)/\eps\right)$.
